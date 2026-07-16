@@ -11,10 +11,12 @@ public sealed class PrototypeRingEmitter : MonoBehaviour
     private float timer;
     private float currentAngle;
 
-    private void Start()
-    {
-        FireRing();
-    }
+    private void OnEnable()
+{
+    timer = 0f;
+    currentAngle = 0f;
+    FireRing();
+}
 
     private void Update()
     {

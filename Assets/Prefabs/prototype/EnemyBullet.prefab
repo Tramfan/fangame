@@ -172,4 +172,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeEnemyBullet
   speed: 2.5
-  removalBounds: {x: 6.1, y: 6}
+  removalBounds: {x: 6, y: 6}
