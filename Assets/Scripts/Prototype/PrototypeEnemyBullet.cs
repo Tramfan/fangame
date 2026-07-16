@@ -8,6 +8,7 @@ public sealed class PrototypeEnemyBullet : MonoBehaviour
     [SerializeField] private float removalPositionY = -5.5f;
 
     private Rigidbody2D body;
+    private bool hasGrantedGraze;
 
     private void Awake()
     {
@@ -30,13 +31,35 @@ public sealed class PrototypeEnemyBullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag("Player"))
+        PrototypePlayerArea playerArea =
+            other.GetComponent<PrototypePlayerArea>();
+
+        if (playerArea == null)
         {
             return;
         }
 
-        Debug.Log("Player hit.");
+        if (playerArea.AreaType == PrototypePlayerAreaType.Hitbox)
+        {
+            Debug.Log("Player hit.");
+            Destroy(gameObject);
+            return;
+        }
 
-        Destroy(gameObject);
+        if (hasGrantedGraze)
+        {
+            return;
+        }
+
+        PrototypePlayerController player =
+            other.GetComponentInParent<PrototypePlayerController>();
+
+        if (player == null)
+        {
+            return;
+        }
+
+        hasGrantedGraze = true;
+        player.RegisterGraze();
     }
 }

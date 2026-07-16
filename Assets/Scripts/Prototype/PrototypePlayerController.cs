@@ -14,6 +14,7 @@ public sealed class PrototypePlayerController : MonoBehaviour
     [SerializeField] private SpriteRenderer hitboxRenderer;
 
     public bool IsFocused { get; private set; }
+    public int GrazeCount { get; private set; }
 
     private void Awake()
     {
@@ -35,6 +36,13 @@ public sealed class PrototypePlayerController : MonoBehaviour
         ReadFocusInput();
         UpdateHitboxVisibility();
         Move();
+    }
+
+    public void RegisterGraze()
+    {
+        GrazeCount++;
+
+        Debug.Log($"Graze: {GrazeCount}");
     }
 
     private void ReadFocusInput()
