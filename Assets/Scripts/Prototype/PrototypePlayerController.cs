@@ -2,15 +2,57 @@ using UnityEngine;
 
 public sealed class PrototypePlayerController : MonoBehaviour
 {
+    [Header("Movement")]
     [SerializeField] private float normalSpeed = 5f;
     [SerializeField] private float focusSpeed = 2f;
 
+    [Header("Movement Bounds")]
     [SerializeField] private Vector2 minimumPosition = new(-3.5f, -4.5f);
     [SerializeField] private Vector2 maximumPosition = new(3.5f, 4.5f);
 
+    [Header("Focus Mode")]
+    [SerializeField] private SpriteRenderer hitboxRenderer;
+
     public bool IsFocused { get; private set; }
 
+    private void Awake()
+    {
+        if (hitboxRenderer != null)
+        {
+            hitboxRenderer.enabled = false;
+        }
+        else
+        {
+            Debug.LogError(
+                "Hitbox Renderer is not assigned.",
+                this
+            );
+        }
+    }
+
     private void Update()
+    {
+        ReadFocusInput();
+        UpdateHitboxVisibility();
+        Move();
+    }
+
+    private void ReadFocusInput()
+    {
+        IsFocused =
+            Input.GetKey(KeyCode.LeftShift) ||
+            Input.GetKey(KeyCode.RightShift);
+    }
+
+    private void UpdateHitboxVisibility()
+    {
+        if (hitboxRenderer != null)
+        {
+            hitboxRenderer.enabled = IsFocused;
+        }
+    }
+
+    private void Move()
     {
         Vector2 input = new(
             Input.GetAxisRaw("Horizontal"),
@@ -19,11 +61,9 @@ public sealed class PrototypePlayerController : MonoBehaviour
 
         input = Vector2.ClampMagnitude(input, 1f);
 
-        IsFocused =
-            Input.GetKey(KeyCode.LeftShift) ||
-            Input.GetKey(KeyCode.RightShift);
-
-        float currentSpeed = IsFocused ? focusSpeed : normalSpeed;
+        float currentSpeed = IsFocused
+            ? focusSpeed
+            : normalSpeed;
 
         Vector2 nextPosition =
             (Vector2)transform.position +
