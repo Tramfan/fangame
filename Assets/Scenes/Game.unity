@@ -1380,7 +1380,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 373070327}
-  - component: {fileID: 373070326}
   m_Layer: 5
   m_Name: PauseMenu
   m_TagString: Untagged
@@ -1388,20 +1387,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!114 &373070326
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 373070325}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13d8b218d61e58b4e86df6804b78e006, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  audioMixer: {fileID: 24100000, guid: 300eb567f7789ad4ead0b404742d9fab, type: 2}
-  resolutionDropdown: {fileID: 0}
 --- !u!4 &373070327
 Transform:
   m_ObjectHideFlags: 0
@@ -5360,7 +5345,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1999640401}
-  - component: {fileID: 1999640402}
   m_Layer: 5
   m_Name: GameOverMenu
   m_TagString: Untagged
@@ -5388,20 +5372,6 @@ Transform:
   - {fileID: 482865431}
   m_Father: {fileID: 1919409282}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1999640402
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1999640400}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13d8b218d61e58b4e86df6804b78e006, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  audioMixer: {fileID: 24100000, guid: 300eb567f7789ad4ead0b404742d9fab, type: 2}
-  resolutionDropdown: {fileID: 0}
 --- !u!1 &2021271255
 GameObject:
   m_ObjectHideFlags: 0
