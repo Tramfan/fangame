@@ -1,0 +1,23 @@
+fileFormatVersion: 2
+guid: c853f6dcb04698b4c870cfcb9943e3c7
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Round'n'Round
+  fontNames:
+  - Round'n'Round
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: b6fb214a62470c749b181eb73e68e17f, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
