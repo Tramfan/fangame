@@ -165,7 +165,13 @@ turnDegreesRemaining = 0f;
             Destroy(gameObject);
             return;
         }
-
+// Пуля, созданная уже внутри зоны грейза,
+// не считается честно пойманной.
+if (source != null &&
+    other.OverlapPoint((Vector2)source.position))
+{
+    return;
+}
         if (hasGrantedGraze)
         {
             return;
