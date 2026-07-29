@@ -13,10 +13,11 @@ public sealed class PrototypeAimedFanEmitter : MonoBehaviour
 
     private float timer;
 
-    private void Start()
-    {
-        FireFan();
-    }
+    private void OnEnable()
+{
+    timer = 0f;
+    FireFan();
+}
 
     private void Update()
     {
@@ -30,7 +31,10 @@ public sealed class PrototypeAimedFanEmitter : MonoBehaviour
         timer -= fireInterval;
         FireFan();
     }
-
+public void SetTarget(Transform newTarget)
+{
+    target = newTarget;
+}
     private void FireFan()
     {
         if (bulletPrefab == null)
@@ -85,7 +89,11 @@ public sealed class PrototypeAimedFanEmitter : MonoBehaviour
                 Quaternion.identity
             );
 
-            bullet.Initialize(direction, bulletSpeed);
+            bullet.Initialize(
+    direction,
+    bulletSpeed,
+    transform.root
+);
         }
     }
 }
