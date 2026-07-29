@@ -216,7 +216,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeRingEmitter
   bulletPrefab: {fileID: 170877814814272871, guid: 7b5ddf06bef4ffd4590ef0cdd4866cad,
     type: 3}
-  bulletCount: 16
+  bulletCount: 32
   bulletSpeed: 2.5
   fireIntervalTicks: 120
   rotationPerRing: 7.5
