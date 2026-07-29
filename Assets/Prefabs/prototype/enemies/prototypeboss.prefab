@@ -168,7 +168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1f1d0a915b40d0479a716944fb923b7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeBossController
-  phaseDurationTicks: 1800
+  phaseDurationTicks: 3600
   attackRoot: {fileID: 6417989589326434176}
 --- !u!1 &6417989589326434176
 GameObject:
