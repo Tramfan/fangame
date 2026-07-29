@@ -5,31 +5,34 @@ public sealed class PrototypeRingEmitter : MonoBehaviour
     [SerializeField] private PrototypeEnemyBullet bulletPrefab;
     [SerializeField] private int bulletCount = 16;
     [SerializeField] private float bulletSpeed = 2.5f;
-    [SerializeField] private float fireInterval = 2f;
+    [SerializeField, Min(1)]
+private int fireIntervalTicks = 120;
+
+private int ticksUntilFire;
     [SerializeField] private float rotationPerRing = 7.5f;
 
     private float timer;
     private float currentAngle;
 
-    private void OnEnable()
+   private void OnEnable()
 {
-    timer = 0f;
+    ticksUntilFire = fireIntervalTicks;
     currentAngle = 0f;
     FireRing();
 }
 
-    private void Update()
+private void FixedUpdate()
+{
+    ticksUntilFire--;
+
+    if (ticksUntilFire > 0)
     {
-        timer += Time.deltaTime;
-
-        if (timer < fireInterval)
-        {
-            return;
-        }
-
-        timer -= fireInterval;
-        FireRing();
+        return;
     }
+
+    FireRing();
+    ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
+}
 
     private void FireRing()
     {
@@ -59,7 +62,11 @@ public sealed class PrototypeRingEmitter : MonoBehaviour
                 Quaternion.identity
             );
 
-            bullet.Initialize(direction, bulletSpeed);
+           bullet.Initialize(
+    direction,
+    bulletSpeed,
+    transform.root
+);
         }
 
         currentAngle += rotationPerRing;

@@ -10,10 +10,11 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
         private PrototypeHorizontalEnemy enemyPrefab;
 
         [SerializeField]
-        private Vector2 spawnPosition = new Vector2(4.5f, 0f);
+        private Vector2 spawnPosition =
+            new Vector2(4.5f, 0f);
 
-        [SerializeField, Min(0f)]
-        private float delayAfterSpawn = 2f;
+        [SerializeField, Min(0)]
+        private int delayAfterSpawnTicks = 120;
 
         public PrototypeHorizontalEnemy EnemyPrefab =>
             enemyPrefab;
@@ -21,8 +22,8 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
         public Vector2 SpawnPosition =>
             spawnPosition;
 
-        public float DelayAfterSpawn =>
-            Mathf.Max(0f, delayAfterSpawn);
+        public int DelayAfterSpawnTicks =>
+            Mathf.Max(0, delayAfterSpawnTicks);
     }
 
     [SerializeField]
@@ -34,23 +35,29 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
     [SerializeField]
     private bool loop = true;
 
-    [SerializeField, Min(0f)]
-    private float loopDelay = 2f;
+    [SerializeField, Min(0)]
+    private int loopDelayTicks = 180;
+
+    private static readonly WaitForFixedUpdate
+        FixedTick = new WaitForFixedUpdate();
 
     private Coroutine spawnRoutine;
 
     private void OnEnable()
     {
-        spawnRoutine = StartCoroutine(RunSequence());
+        spawnRoutine =
+            StartCoroutine(RunSequence());
     }
 
     private void OnDisable()
     {
-        if (spawnRoutine != null)
+        if (spawnRoutine == null)
         {
-            StopCoroutine(spawnRoutine);
-            spawnRoutine = null;
+            return;
         }
+
+        StopCoroutine(spawnRoutine);
+        spawnRoutine = null;
     }
 
     private IEnumerator RunSequence()
@@ -91,10 +98,10 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
 
                 SpawnEnemy(step);
 
-                if (step.DelayAfterSpawn > 0f)
+                if (step.DelayAfterSpawnTicks > 0)
                 {
-                    yield return new WaitForSeconds(
-                        step.DelayAfterSpawn
+                    yield return WaitTicks(
+                        step.DelayAfterSpawnTicks
                     );
                 }
                 else
@@ -113,9 +120,11 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
                 yield break;
             }
 
-            if (loop && loopDelay > 0f)
+            if (loop && loopDelayTicks > 0)
             {
-                yield return new WaitForSeconds(loopDelay);
+                yield return WaitTicks(
+                    loopDelayTicks
+                );
             }
         }
         while (loop);
@@ -123,20 +132,33 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
         spawnRoutine = null;
     }
 
+    private static IEnumerator WaitTicks(
+        int tickCount
+    )
+    {
+        for (int tick = 0; tick < tickCount; tick++)
+        {
+            yield return FixedTick;
+        }
+    }
+
     private void SpawnEnemy(SpawnStep step)
     {
-        PrototypeHorizontalEnemy enemy = Instantiate(
-            step.EnemyPrefab,
-            step.SpawnPosition,
-            Quaternion.identity
-        );
+        PrototypeHorizontalEnemy enemy =
+            Instantiate(
+                step.EnemyPrefab,
+                step.SpawnPosition,
+                Quaternion.identity
+            );
 
         PrototypeAimedFanEmitter[] emitters =
             enemy.GetComponentsInChildren
                 <PrototypeAimedFanEmitter>(true);
 
-        foreach (PrototypeAimedFanEmitter emitter
-                 in emitters)
+        foreach (
+            PrototypeAimedFanEmitter emitter
+            in emitters
+        )
         {
             emitter.SetTarget(target);
         }

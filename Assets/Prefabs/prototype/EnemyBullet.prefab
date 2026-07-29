@@ -173,7 +173,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeEnemyBullet
   speed: 2.5
   removalBounds: {x: 6, y: 6}
-  reflectionTurnRadius: 0.45
+  reflectionTurnRadius: 0.15
   reflectedSpeedMultiplier: 6
   reflectedDamage: 1
   reflectedColor: {r: 1, g: 0.7383354, b: 0.25098038, a: 1}

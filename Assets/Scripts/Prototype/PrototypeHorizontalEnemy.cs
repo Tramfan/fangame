@@ -24,28 +24,29 @@ public sealed class PrototypeHorizontalEnemy : MonoBehaviour
         startY = transform.position.y;
     }
 
-    private void Update()
+   private void FixedUpdate()
+{
+    elapsedTime += Time.fixedDeltaTime;
+
+    Vector3 position = transform.position;
+
+    position.x -=
+        movementSpeed * Time.fixedDeltaTime;
+
+    position.y =
+        startY +
+        verticalAmplitude *
+        Mathf.Sin(
+            elapsedTime *
+            verticalCyclesPerSecond *
+            Mathf.PI * 2f
+        );
+
+    transform.position = position;
+
+    if (position.x <= removalX)
     {
-        elapsedTime += Time.deltaTime;
-
-        Vector3 position = transform.position;
-
-        position.x -= movementSpeed * Time.deltaTime;
-
-        position.y =
-            startY +
-            verticalAmplitude *
-            Mathf.Sin(
-                elapsedTime *
-                verticalCyclesPerSecond *
-                Mathf.PI * 2f
-            );
-
-        transform.position = position;
-
-        if (position.x <= removalX)
-        {
-            Destroy(gameObject);
-        }
+        Destroy(gameObject);
     }
+}
 }

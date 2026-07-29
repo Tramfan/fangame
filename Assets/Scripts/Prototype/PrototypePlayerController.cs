@@ -15,7 +15,7 @@ public sealed class PrototypePlayerController : MonoBehaviour
 
     public bool IsFocused { get; private set; }
     public int GrazeCount { get; private set; }
-
+    private Vector2 movementInput;
     private void Awake()
     {
         if (hitboxRenderer != null)
@@ -31,13 +31,26 @@ public sealed class PrototypePlayerController : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        ReadFocusInput();
-        UpdateHitboxVisibility();
-        Move();
-    }
+   private void Update()
+{
+    ReadMovementInput();
+    ReadFocusInput();
+    UpdateHitboxVisibility();
+}
+private void FixedUpdate()
+{
+    Move();
+}
+private void ReadMovementInput()
+{
+    movementInput = new Vector2(
+        Input.GetAxisRaw("Horizontal"),
+        Input.GetAxisRaw("Vertical")
+    );
 
+    movementInput =
+        Vector2.ClampMagnitude(movementInput, 1f);
+}
     public void RegisterGraze()
     {
         GrazeCount++;
@@ -61,34 +74,29 @@ public sealed class PrototypePlayerController : MonoBehaviour
     }
 
     private void Move()
-    {
-        Vector2 input = new(
-            Input.GetAxisRaw("Horizontal"),
-            Input.GetAxisRaw("Vertical")
-        );
+{
+    float currentSpeed = IsFocused
+        ? focusSpeed
+        : normalSpeed;
 
-        input = Vector2.ClampMagnitude(input, 1f);
+    Vector2 nextPosition =
+        (Vector2)transform.position +
+        movementInput *
+        currentSpeed *
+        Time.fixedDeltaTime;
 
-        float currentSpeed = IsFocused
-            ? focusSpeed
-            : normalSpeed;
+    nextPosition.x = Mathf.Clamp(
+        nextPosition.x,
+        minimumPosition.x,
+        maximumPosition.x
+    );
 
-        Vector2 nextPosition =
-            (Vector2)transform.position +
-            input * currentSpeed * Time.deltaTime;
+    nextPosition.y = Mathf.Clamp(
+        nextPosition.y,
+        minimumPosition.y,
+        maximumPosition.y
+    );
 
-        nextPosition.x = Mathf.Clamp(
-            nextPosition.x,
-            minimumPosition.x,
-            maximumPosition.x
-        );
-
-        nextPosition.y = Mathf.Clamp(
-            nextPosition.y,
-            minimumPosition.y,
-            maximumPosition.y
-        );
-
-        transform.position = nextPosition;
-    }
+    transform.position = nextPosition;
+}
 }

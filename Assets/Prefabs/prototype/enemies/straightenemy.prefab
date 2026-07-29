@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 1087793230139626299}
   - component: {fileID: 7445581317188138629}
   - component: {fileID: 4497591858019462858}
-  - component: {fileID: -2993078910685502356}
   - component: {fileID: 2207961768965337832}
   m_Layer: 0
   m_Name: straightenemy
@@ -28,12 +27,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4217140370117118093}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 4.5, y: 3, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3294137696339070346}
+  - {fileID: 6023414608311833582}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7445581317188138629
@@ -109,23 +108,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76366863a925dee4d8ae34c0c1372c3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeHorizontalEnemy
-  movementSpeed: 1.5
+  movementSpeed: 1
   removalX: -5
   verticalAmplitude: 0
   verticalCyclesPerSecond: 0.5
---- !u!114 &-2993078910685502356
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4217140370117118093}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 42ed3393c9c5bdc45b1de96d1fbfca11, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHealth: 3
 --- !u!61 &2207961768965337832
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -172,7 +158,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!1 &8558262207254192865
+--- !u!1 &6417989589326434176
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -180,22 +166,22 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3294137696339070346}
-  - component: {fileID: 4713338369369331936}
+  - component: {fileID: 6023414608311833582}
+  - component: {fileID: 7830923007802973670}
   m_Layer: 0
-  m_Name: AimedFanEmitter
+  m_Name: RingEmitter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3294137696339070346
+--- !u!4 &6023414608311833582
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8558262207254192865}
+  m_GameObject: {fileID: 6417989589326434176}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -204,22 +190,21 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1087793230139626299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4713338369369331936
+--- !u!114 &7830923007802973670
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8558262207254192865}
+  m_GameObject: {fileID: 6417989589326434176}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af1bec9900641f34297396a389bad619, type: 3}
+  m_Script: {fileID: 11500000, guid: 72c3a84c30a8d0540b350415302fc801, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PrototypeAimedFanEmitter
+  m_EditorClassIdentifier: Assembly-CSharp::PrototypeRingEmitter
   bulletPrefab: {fileID: 170877814814272871, guid: 7b5ddf06bef4ffd4590ef0cdd4866cad,
     type: 3}
-  target: {fileID: 0}
-  bulletCount: 5
-  spreadAngle: 60
-  bulletSpeed: 3
-  fireInterval: 0.5
+  bulletCount: 16
+  bulletSpeed: 2.5
+  fireIntervalTicks: 120
+  rotationPerRing: 7.5

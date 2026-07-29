@@ -9,28 +9,31 @@ public sealed class PrototypeAimedFanEmitter : MonoBehaviour
     [SerializeField] private int bulletCount = 5;
     [SerializeField] private float spreadAngle = 60f;
     [SerializeField] private float bulletSpeed = 3f;
-    [SerializeField] private float fireInterval = 1.5f;
+   [SerializeField, Min(1)]
+private int fireIntervalTicks = 90;
+
+private int ticksUntilFire;
 
     private float timer;
 
-    private void OnEnable()
+  private void OnEnable()
 {
-    timer = 0f;
+    ticksUntilFire = fireIntervalTicks;
     FireFan();
 }
 
-    private void Update()
+private void FixedUpdate()
+{
+    ticksUntilFire--;
+
+    if (ticksUntilFire > 0)
     {
-        timer += Time.deltaTime;
-
-        if (timer < fireInterval)
-        {
-            return;
-        }
-
-        timer -= fireInterval;
-        FireFan();
+        return;
     }
+
+    FireFan();
+    ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
+}
 public void SetTarget(Transform newTarget)
 {
     target = newTarget;
