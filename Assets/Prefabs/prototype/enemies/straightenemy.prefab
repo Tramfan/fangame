@@ -12,13 +12,14 @@ GameObject:
   - component: {fileID: 7445581317188138629}
   - component: {fileID: 4497591858019462858}
   - component: {fileID: 2207961768965337832}
+  - component: {fileID: 3286775804829198518}
   m_Layer: 0
   m_Name: straightenemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1087793230139626299
 Transform:
   m_ObjectHideFlags: 0
@@ -158,6 +159,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &3286775804829198518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4217140370117118093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42ed3393c9c5bdc45b1de96d1fbfca11, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
+  maxHealth: 3
 --- !u!1 &6417989589326434176
 GameObject:
   m_ObjectHideFlags: 0

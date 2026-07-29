@@ -1042,11 +1042,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: straightenemy
       objectReference: {fileID: 0}
-    - target: {fileID: 4217140370117118093, guid: e2d960ebdfb100145af27d0618ba2134,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
