@@ -1792,6 +1792,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3286775804829198518, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: destroyOnDeath
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 305619750}
     - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
       propertyPath: phaseDurationTicks
@@ -1801,6 +1811,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: prototypeboss
+      objectReference: {fileID: 0}
+    - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: bulletCount
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: spreadAngle
+      value: 70
+      objectReference: {fileID: 0}
+    - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: fireIntervalTicks
+      value: 45
       objectReference: {fileID: 0}
     - target: {fileID: 7830923007802973670, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}

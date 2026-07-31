@@ -6,7 +6,8 @@ public sealed class EnemyHealth : MonoBehaviour, IDamageable
 {
     [SerializeField, Min(1)]
     private int maxHealth = 3;
-
+[SerializeField]
+private bool destroyOnDeath = true;
     public int MaxHealth => maxHealth;
 
     public int CurrentHealth { get; private set; }
@@ -23,13 +24,18 @@ public sealed class EnemyHealth : MonoBehaviour, IDamageable
     private void OnValidate()
     {
         maxHealth = Mathf.Max(1, maxHealth);
+        
     }
 
     public void ResetHealth()
     {
         CurrentHealth = Mathf.Max(1, maxHealth);
     }
-
+public void ResetHealth(int newMaxHealth)
+{
+    maxHealth = Mathf.Max(1, newMaxHealth);
+    CurrentHealth = maxHealth;
+}
     public void TakeDamage(int amount)
     {
         if (amount <= 0 || IsDead)
@@ -48,12 +54,15 @@ public sealed class EnemyHealth : MonoBehaviour, IDamageable
         }
     }
 
-    private void Die()
+private void Die()
+{
+    Died?.Invoke(this);
+
+    if (destroyOnDeath)
     {
-        Died?.Invoke(this);
         Destroy(gameObject);
     }
-
+}
     [ContextMenu("Test: Take 1 Damage")]
     private void TestTakeDamage()
     {
