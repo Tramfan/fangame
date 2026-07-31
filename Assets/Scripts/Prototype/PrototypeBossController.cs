@@ -62,7 +62,7 @@ public sealed class PrototypeBossController : MonoBehaviour
         PrototypeBossController,
         bool
     > PhaseEnded;
-
+public event Action<PrototypeBossController> Completed;
     private void Awake()
     {
         health = GetComponent<EnemyHealth>();
@@ -223,7 +223,8 @@ public sealed class PrototypeBossController : MonoBehaviour
             return;
         }
 
-        Destroy(gameObject);
+        Completed?.Invoke(this);
+Destroy(gameObject);
     }
 
     private void PrepareAimedEmitters(
