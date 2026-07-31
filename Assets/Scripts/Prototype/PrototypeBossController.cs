@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemyHealth))]
+[RequireComponent(typeof(PrototypeBossMover))]
 public sealed class PrototypeBossController : MonoBehaviour
 {
     [Serializable]
@@ -16,13 +17,20 @@ public sealed class PrototypeBossController : MonoBehaviour
         [SerializeField]
         private GameObject attackRoot;
 
+        [SerializeField]
+        private Vector2 position;
+
         public int MaxHealth =>
             Mathf.Max(1, maxHealth);
 
         public int DurationTicks =>
             Mathf.Max(1, durationTicks);
 
-        public GameObject AttackRoot => attackRoot;
+        public GameObject AttackRoot =>
+            attackRoot;
+
+        public Vector2 Position =>
+            position;
     }
 
     [SerializeField]
@@ -32,7 +40,10 @@ public sealed class PrototypeBossController : MonoBehaviour
     private Phase[] phases;
 
     private EnemyHealth health;
+    private PrototypeBossMover mover;
+
     private int currentPhaseIndex = -1;
+    private int pendingPhaseIndex = -1;
 
     public int TicksRemaining { get; private set; }
 
@@ -55,18 +66,25 @@ public sealed class PrototypeBossController : MonoBehaviour
     private void Awake()
     {
         health = GetComponent<EnemyHealth>();
+        mover = GetComponent<PrototypeBossMover>();
+
         DisableAllAttacks();
     }
 
     private void OnEnable()
     {
         health.Died += HandleDeath;
-        StartPhase(0);
+        mover.DestinationReached +=
+            HandleDestinationReached;
+
+        MoveToPhase(0);
     }
 
     private void OnDisable()
     {
         health.Died -= HandleDeath;
+        mover.DestinationReached -=
+            HandleDestinationReached;
     }
 
     private void FixedUpdate()
@@ -92,6 +110,43 @@ public sealed class PrototypeBossController : MonoBehaviour
         EndPhase(timedOut: false);
     }
 
+    private void MoveToPhase(int phaseIndex)
+    {
+        if (phases == null ||
+            phaseIndex < 0 ||
+            phaseIndex >= phases.Length ||
+            phases[phaseIndex] == null)
+        {
+            Debug.LogError(
+                "Boss has no valid phase destination.",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        pendingPhaseIndex = phaseIndex;
+        IsPhaseActive = false;
+
+        health.SetInvulnerable(true);
+
+        mover.MoveTo(phases[phaseIndex].Position);
+    }
+
+    private void HandleDestinationReached()
+    {
+        if (pendingPhaseIndex < 0)
+        {
+            return;
+        }
+
+        int phaseIndex = pendingPhaseIndex;
+        pendingPhaseIndex = -1;
+
+        StartPhase(phaseIndex);
+    }
+
     private void StartPhase(int phaseIndex)
     {
         if (phases == null ||
@@ -113,6 +168,8 @@ public sealed class PrototypeBossController : MonoBehaviour
         Phase phase = phases[currentPhaseIndex];
 
         health.ResetHealth(phase.MaxHealth);
+        health.SetInvulnerable(false);
+
         TicksRemaining = phase.DurationTicks;
         IsPhaseActive = true;
 
@@ -138,6 +195,7 @@ public sealed class PrototypeBossController : MonoBehaviour
         }
 
         IsPhaseActive = false;
+        health.SetInvulnerable(true);
 
         Phase phase = phases[currentPhaseIndex];
 
@@ -161,7 +219,7 @@ public sealed class PrototypeBossController : MonoBehaviour
 
         if (nextPhaseIndex < phases.Length)
         {
-            StartPhase(nextPhaseIndex);
+            MoveToPhase(nextPhaseIndex);
             return;
         }
 

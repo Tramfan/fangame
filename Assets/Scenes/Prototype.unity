@@ -1750,7 +1750,7 @@ PrefabInstance:
     - target: {fileID: 1087793230139626299, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 3
+      value: 5.5
       objectReference: {fileID: 0}
     - target: {fileID: 1087793230139626299, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
@@ -1806,6 +1806,21 @@ PrefabInstance:
         type: 3}
       propertyPath: phaseDurationTicks
       value: 3600
+      objectReference: {fileID: 0}
+    - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: phases.Array.data[0].position.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: phases.Array.data[1].position.x
+      value: 1.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: phases.Array.data[1].position.y
+      value: 2.5
       objectReference: {fileID: 0}
     - target: {fileID: 4217140370117118093, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
