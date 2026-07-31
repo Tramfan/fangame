@@ -156,15 +156,30 @@ turnDegreesRemaining = 0f;
             return;
         }
 
-        if (playerArea.AreaType ==
-            PrototypePlayerAreaType.Hitbox)
-        {
-            hasHitPlayer = true;
+       if (playerArea.AreaType ==
+    PrototypePlayerAreaType.Hitbox)
+{
+    hasHitPlayer = true;
 
-            Debug.Log("Player hit.");
-            Destroy(gameObject);
-            return;
-        }
+    PrototypePlayerState playerState =
+        other.GetComponentInParent
+            <PrototypePlayerState>();
+
+    if (playerState != null)
+    {
+        playerState.TakeHit();
+    }
+    else
+    {
+        Debug.LogError(
+            "Player has no PrototypePlayerState.",
+            other
+        );
+    }
+
+    Destroy(gameObject);
+    return;
+}
 // Пуля, созданная уже внутри зоны грейза,
 // не считается честно пойманной.
 if (source != null &&
