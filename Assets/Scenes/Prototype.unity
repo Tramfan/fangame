@@ -2331,6 +2331,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1913305737
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1913305739}
+  - component: {fileID: 1913305738}
+  m_Layer: 0
+  m_Name: BulletPool
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1913305738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913305737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3671d544ed96f0540b53bce86f5e3749, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BulletPool
+  bulletPrefab: {fileID: 170877814814272871, guid: 7b5ddf06bef4ffd4590ef0cdd4866cad,
+    type: 3}
+  initialSize: 256
+--- !u!4 &1913305739
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1913305737}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.39645, y: -0, z: 14.82816}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1984044569
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2439,6 +2486,11 @@ PrefabInstance:
       propertyPath: fireIntervalTicks
       value: 45
       objectReference: {fileID: 0}
+    - target: {fileID: 7830923007802973670, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: bulletPool
+      value: 
+      objectReference: {fileID: 1913305738}
     - target: {fileID: 7830923007802973670, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
       propertyPath: bulletCount
@@ -2871,6 +2923,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7830923007802973670, guid: e2d960ebdfb100145af27d0618ba2134,
         type: 3}
+      propertyPath: bulletPool
+      value: 
+      objectReference: {fileID: 1913305738}
+    - target: {fileID: 7830923007802973670, guid: e2d960ebdfb100145af27d0618ba2134,
+        type: 3}
       propertyPath: bulletCount
       value: 24
       objectReference: {fileID: 0}
@@ -2985,3 +3042,4 @@ SceneRoots:
   - {fileID: 6403978788861098379}
   - {fileID: 575406369}
   - {fileID: 1984044569}
+  - {fileID: 1913305739}

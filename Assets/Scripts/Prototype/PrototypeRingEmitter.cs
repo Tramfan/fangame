@@ -2,43 +2,53 @@ using UnityEngine;
 
 public sealed class PrototypeRingEmitter : MonoBehaviour
 {
-    [SerializeField] private Bullet bulletPrefab;
-    [SerializeField] private int bulletCount = 16;
-    [SerializeField] private float bulletSpeed = 2.5f;
+    [SerializeField]
+    private BulletPool bulletPool;
+
     [SerializeField, Min(1)]
-private int fireIntervalTicks = 120;
+    private int bulletCount = 16;
 
-private int ticksUntilFire;
-    [SerializeField] private float rotationPerRing = 7.5f;
+    [SerializeField]
+    private float bulletSpeed = 2.5f;
 
+    [SerializeField, Min(1)]
+    private int fireIntervalTicks = 120;
 
+    [SerializeField]
+    private float rotationPerRing = 7.5f;
+
+    private int ticksUntilFire;
     private float currentAngle;
 
-   private void OnEnable()
-{
-    ticksUntilFire = fireIntervalTicks;
-    currentAngle = 0f;
-    FireRing();
-}
-
-private void FixedUpdate()
-{
-    ticksUntilFire--;
-
-    if (ticksUntilFire > 0)
+    private void OnEnable()
     {
-        return;
+        ticksUntilFire = fireIntervalTicks;
+        currentAngle = 0f;
+        FireRing();
     }
 
-    FireRing();
-    ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
-}
+    private void FixedUpdate()
+    {
+        ticksUntilFire--;
+
+        if (ticksUntilFire > 0)
+        {
+            return;
+        }
+
+        FireRing();
+        ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
+    }
 
     private void FireRing()
     {
-        if (bulletPrefab == null)
+        if (bulletPool == null)
         {
-            Debug.LogError("Bullet Prefab is not assigned.", this);
+            Debug.LogError(
+                "Bullet Pool is not assigned.",
+                this
+            );
+
             return;
         }
 
@@ -56,17 +66,12 @@ private void FixedUpdate()
                 Mathf.Sin(angle)
             );
 
-            Bullet bullet = Instantiate(
-                bulletPrefab,
+            bulletPool.Spawn(
                 transform.position,
-                Quaternion.identity
+                direction,
+                bulletSpeed,
+                transform.root
             );
-
-           bullet.Initialize(
-    direction,
-    bulletSpeed,
-    transform.root
-);
         }
 
         currentAngle += rotationPerRing;
