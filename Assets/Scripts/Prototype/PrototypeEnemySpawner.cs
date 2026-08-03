@@ -151,12 +151,12 @@ public sealed class PrototypeEnemySpawner : MonoBehaviour
                 Quaternion.identity
             );
 
-        PrototypeAimedFanEmitter[] emitters =
+        AimedFanEmitter[] emitters =
             enemy.GetComponentsInChildren
-                <PrototypeAimedFanEmitter>(true);
+                <AimedFanEmitter>(true);
 
         foreach (
-            PrototypeAimedFanEmitter emitter
+            AimedFanEmitter emitter
             in emitters
         )
         {

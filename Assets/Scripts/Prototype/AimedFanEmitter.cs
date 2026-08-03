@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class PrototypeAimedFanEmitter : MonoBehaviour
+public sealed class AimedFanEmitter : MonoBehaviour
 {
     [SerializeField]
     private BulletPool bulletPool;

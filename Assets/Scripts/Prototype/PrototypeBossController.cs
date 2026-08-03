@@ -236,9 +236,9 @@ Destroy(gameObject);
             return;
         }
 
-        PrototypeAimedFanEmitter[] emitters =
+        AimedFanEmitter[] emitters =
             attackRoot.GetComponentsInChildren
-                <PrototypeAimedFanEmitter>(true);
+                <AimedFanEmitter>(true);
 
         if (emitters.Length > 0 && target == null)
         {
@@ -250,7 +250,7 @@ Destroy(gameObject);
             return;
         }
 
-        foreach (PrototypeAimedFanEmitter emitter
+        foreach (AimedFanEmitter emitter
                  in emitters)
         {
             emitter.SetTarget(target);

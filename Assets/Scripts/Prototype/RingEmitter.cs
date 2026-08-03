@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class PrototypeRingEmitter : MonoBehaviour
+public sealed class RingEmitter : MonoBehaviour
 {
     [SerializeField]
     private BulletPool bulletPool;
