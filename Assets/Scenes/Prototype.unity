@@ -448,7 +448,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87663d0df420e5f4fabc332d2bfdd2b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypePlayerState
-  battleState: {fileID: 0}
+  battleState: {fileID: 870805359}
 --- !u!1 &350940473
 GameObject:
   m_ObjectHideFlags: 0
