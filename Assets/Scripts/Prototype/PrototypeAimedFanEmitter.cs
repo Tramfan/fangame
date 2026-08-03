@@ -2,52 +2,70 @@ using UnityEngine;
 
 public sealed class PrototypeAimedFanEmitter : MonoBehaviour
 {
-    [SerializeField] private Bullet bulletPrefab;
-    [SerializeField] private Transform target;
+    [SerializeField]
+    private BulletPool bulletPool;
+
+    [SerializeField]
+    private Transform target;
 
     [Header("Pattern")]
-    [SerializeField] private int bulletCount = 5;
-    [SerializeField] private float spreadAngle = 60f;
-    [SerializeField] private float bulletSpeed = 3f;
-   [SerializeField, Min(1)]
-private int fireIntervalTicks = 90;
+    [SerializeField, Min(1)]
+    private int bulletCount = 5;
 
-private int ticksUntilFire;
+    [SerializeField, Range(0f, 360f)]
+    private float spreadAngle = 60f;
 
+    [SerializeField, Min(0f)]
+    private float bulletSpeed = 3f;
 
-  private void OnEnable()
-{
-    ticksUntilFire = fireIntervalTicks;
-    FireFan();
-}
+    [SerializeField, Min(1)]
+    private int fireIntervalTicks = 90;
 
-private void FixedUpdate()
-{
-    ticksUntilFire--;
+    private int ticksUntilFire;
 
-    if (ticksUntilFire > 0)
+    private void OnEnable()
     {
-        return;
+        ticksUntilFire = fireIntervalTicks;
+        FireFan();
     }
 
-    FireFan();
-    ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
-}
-public void SetTarget(Transform newTarget)
-{
-    target = newTarget;
-}
+    private void FixedUpdate()
+    {
+        ticksUntilFire--;
+
+        if (ticksUntilFire > 0)
+        {
+            return;
+        }
+
+        FireFan();
+        ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
+    }
+
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+    }
+
     private void FireFan()
     {
-        if (bulletPrefab == null)
+        if (bulletPool == null)
         {
-            Debug.LogError("Bullet Prefab is not assigned.", this);
+            Debug.LogError(
+                "Bullet Pool is not assigned.",
+                this
+            );
+
             return;
         }
 
         if (target == null)
         {
-            Debug.LogError("Target is not assigned.", this);
+            Debug.LogError(
+                "Target is not assigned.",
+                this
+            );
+
             return;
         }
 
@@ -85,17 +103,12 @@ public void SetTarget(Transform newTarget)
                 Mathf.Sin(angle)
             );
 
-            Bullet bullet = Instantiate(
-                bulletPrefab,
+            bulletPool.Spawn(
                 transform.position,
-                Quaternion.identity
+                direction,
+                bulletSpeed,
+                transform.root
             );
-
-            bullet.Initialize(
-    direction,
-    bulletSpeed,
-    transform.root
-);
         }
     }
 }

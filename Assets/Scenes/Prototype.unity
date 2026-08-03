@@ -2473,6 +2473,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 305619750}
+    - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: bulletPool
+      value: 
+      objectReference: {fileID: 1913305738}
+    - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
       propertyPath: bulletCount
       value: 7
       objectReference: {fileID: 0}
@@ -2949,6 +2959,11 @@ PrefabInstance:
       propertyPath: target
       value: 
       objectReference: {fileID: 305619750}
+    - target: {fileID: 3404545264645371791, guid: 72d16443c69d685439ba80fd0d11afbc,
+        type: 3}
+      propertyPath: bulletPool
+      value: 
+      objectReference: {fileID: 1913305738}
     - target: {fileID: 3404545264645371791, guid: 72d16443c69d685439ba80fd0d11afbc,
         type: 3}
       propertyPath: bulletSpeed

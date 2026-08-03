@@ -385,19 +385,23 @@ public sealed class Bullet : MonoBehaviour
     }
 
     private void ReturnToPool()
+{
+    if (!gameObject.activeSelf)
     {
-        if (!gameObject.activeSelf)
-        {
-            return;
-        }
-
-        if (pool != null)
-        {
-            pool.Return(this);
-            return;
-        }
-
-        // Веер пока создаёт пули через Instantiate().
-        Destroy(gameObject);
+        return;
     }
+
+    if (pool == null)
+    {
+        Debug.LogError(
+            "Bullet has no pool assigned.",
+            this
+        );
+
+        gameObject.SetActive(false);
+        return;
+    }
+
+    pool.Return(this);
+}
 }
