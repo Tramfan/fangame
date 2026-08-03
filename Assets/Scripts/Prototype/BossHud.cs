@@ -2,10 +2,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public sealed class PrototypeBossHud : MonoBehaviour
+public sealed class BossHud : MonoBehaviour
 {
     [SerializeField]
-    private PrototypeBossController boss;
+    private BossPhaseController boss;
 
     [SerializeField]
     private GameObject displayRoot;

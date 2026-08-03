@@ -12,7 +12,7 @@ public enum PrototypeBattleResult
 public sealed class PrototypeBattleState : MonoBehaviour
 {
     [SerializeField]
-    private PrototypeBossController boss;
+    private BossPhaseController boss;
 
     [SerializeField]
     private GameObject gameOverRoot;
@@ -98,7 +98,7 @@ public sealed class PrototypeBattleState : MonoBehaviour
     }
 
     private void HandleBossCompleted(
-        PrototypeBossController completedBoss
+        BossPhaseController completedBoss
     )
     {
         if (Result != PrototypeBattleResult.Running)

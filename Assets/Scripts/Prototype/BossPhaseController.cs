@@ -3,7 +3,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(EnemyHealth))]
 [RequireComponent(typeof(PrototypeBossMover))]
-public sealed class PrototypeBossController : MonoBehaviour
+public sealed class BossPhaseController : MonoBehaviour
 {
     [Serializable]
     private sealed class Phase
@@ -59,10 +59,10 @@ public sealed class PrototypeBossController : MonoBehaviour
         phases != null ? phases.Length : 0;
 
     public event Action<
-        PrototypeBossController,
+        BossPhaseController,
         bool
     > PhaseEnded;
-public event Action<PrototypeBossController> Completed;
+public event Action<BossPhaseController> Completed;
     private void Awake()
     {
         health = GetComponent<EnemyHealth>();
