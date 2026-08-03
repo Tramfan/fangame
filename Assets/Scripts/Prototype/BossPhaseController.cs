@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(EnemyHealth))]
-[RequireComponent(typeof(PrototypeBossMover))]
+[RequireComponent(typeof(BossMover))]
 public sealed class BossPhaseController : MonoBehaviour
 {
     [Serializable]
@@ -40,7 +40,7 @@ public sealed class BossPhaseController : MonoBehaviour
     private Phase[] phases;
 
     private EnemyHealth health;
-    private PrototypeBossMover mover;
+    private BossMover mover;
 
     private int currentPhaseIndex = -1;
     private int pendingPhaseIndex = -1;
@@ -66,7 +66,7 @@ public event Action<BossPhaseController> Completed;
     private void Awake()
     {
         health = GetComponent<EnemyHealth>();
-        mover = GetComponent<PrototypeBossMover>();
+        mover = GetComponent<BossMover>();
 
         DisableAllAttacks();
     }

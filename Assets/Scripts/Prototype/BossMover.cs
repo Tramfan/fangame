@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class PrototypeBossMover :
+public sealed class BossMover :
     MonoBehaviour
 {
     [SerializeField, Min(0.01f)]
