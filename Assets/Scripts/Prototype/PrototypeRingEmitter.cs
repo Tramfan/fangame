@@ -11,7 +11,7 @@ private int fireIntervalTicks = 120;
 private int ticksUntilFire;
     [SerializeField] private float rotationPerRing = 7.5f;
 
-    private float timer;
+
     private float currentAngle;
 
    private void OnEnable()

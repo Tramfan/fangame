@@ -14,7 +14,6 @@ private int fireIntervalTicks = 90;
 
 private int ticksUntilFire;
 
-    private float timer;
 
   private void OnEnable()
 {
