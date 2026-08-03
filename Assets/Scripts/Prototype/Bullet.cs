@@ -8,7 +8,7 @@ public enum PrototypeBulletOwner
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
-public sealed class PrototypeEnemyBullet : MonoBehaviour
+public sealed class Bullet : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField]

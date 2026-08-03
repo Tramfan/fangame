@@ -2,7 +2,7 @@ using UnityEngine;
 
 public sealed class PrototypeAimedFanEmitter : MonoBehaviour
 {
-    [SerializeField] private PrototypeEnemyBullet bulletPrefab;
+    [SerializeField] private Bullet bulletPrefab;
     [SerializeField] private Transform target;
 
     [Header("Pattern")]
@@ -85,7 +85,7 @@ public void SetTarget(Transform newTarget)
                 Mathf.Sin(angle)
             );
 
-            PrototypeEnemyBullet bullet = Instantiate(
+            Bullet bullet = Instantiate(
                 bulletPrefab,
                 transform.position,
                 Quaternion.identity

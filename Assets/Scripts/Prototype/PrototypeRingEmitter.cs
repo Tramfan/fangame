@@ -2,7 +2,7 @@ using UnityEngine;
 
 public sealed class PrototypeRingEmitter : MonoBehaviour
 {
-    [SerializeField] private PrototypeEnemyBullet bulletPrefab;
+    [SerializeField] private Bullet bulletPrefab;
     [SerializeField] private int bulletCount = 16;
     [SerializeField] private float bulletSpeed = 2.5f;
     [SerializeField, Min(1)]
@@ -56,7 +56,7 @@ private void FixedUpdate()
                 Mathf.Sin(angle)
             );
 
-            PrototypeEnemyBullet bullet = Instantiate(
+            Bullet bullet = Instantiate(
                 bulletPrefab,
                 transform.position,
                 Quaternion.identity
