@@ -1,13 +1,12 @@
 using TMPro;
 using UnityEngine;
 
-public sealed class PrototypeGrazeDisplay : MonoBehaviour
+public sealed class GrazeDisplay : MonoBehaviour
 {
     [SerializeField]
     private PlayerState playerState;
 
     private TMP_Text label;
-    private int displayedGraze = -1;
 
     private void Awake()
     {
@@ -30,19 +29,35 @@ public sealed class PrototypeGrazeDisplay : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        if (label == null || playerState == null)
+        if (playerState == null)
         {
             return;
         }
 
-        if (displayedGraze == playerState.GrazeCount)
-        {
-            return;
-        }
+        playerState.GrazeChanged += HandleGrazeChanged;
+        UpdateLabel(playerState.GrazeCount);
+    }
 
-        displayedGraze = playerState.GrazeCount;
-        label.text = $"Graze: {displayedGraze}";
+    private void OnDisable()
+    {
+        if (playerState != null)
+        {
+            playerState.GrazeChanged -= HandleGrazeChanged;
+        }
+    }
+
+    private void HandleGrazeChanged(int grazeCount)
+    {
+        UpdateLabel(grazeCount);
+    }
+
+    private void UpdateLabel(int grazeCount)
+    {
+        if (label != null)
+        {
+            label.text = $"Graze: {grazeCount}";
+        }
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public enum PrototypeBattleResult
+public enum BattleResult
 {
     Running,
     Defeated,
@@ -9,7 +9,7 @@ public enum PrototypeBattleResult
 }
 
 [DisallowMultipleComponent]
-public sealed class PrototypeBattleState : MonoBehaviour
+public sealed class BattleFlowController : MonoBehaviour
 {
     [SerializeField]
     private BossPhaseController boss;
@@ -23,16 +23,19 @@ public sealed class PrototypeBattleState : MonoBehaviour
     [SerializeField]
     private KeyCode restartKey = KeyCode.R;
 
-    public PrototypeBattleResult Result
+    public BattleResult Result
     {
         get;
         private set;
     }
 
+    public bool IsRunning =>
+        Result == BattleResult.Running;
+
     private void Awake()
     {
         Time.timeScale = 1f;
-        Result = PrototypeBattleResult.Running;
+        Result = BattleResult.Running;
 
         if (gameOverRoot != null)
         {
@@ -50,7 +53,7 @@ public sealed class PrototypeBattleState : MonoBehaviour
         if (boss == null)
         {
             Debug.LogError(
-                "Battle state has no boss assigned.",
+                "Battle flow has no boss assigned.",
                 this
             );
 
@@ -71,8 +74,12 @@ public sealed class PrototypeBattleState : MonoBehaviour
 
     private void Update()
     {
-        if (Result != PrototypeBattleResult.Running &&
-            Input.GetKeyDown(restartKey))
+        if (Result == BattleResult.Running)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(restartKey))
         {
             RestartBattle();
         }
@@ -80,12 +87,12 @@ public sealed class PrototypeBattleState : MonoBehaviour
 
     public void Defeat()
     {
-        if (Result != PrototypeBattleResult.Running)
+        if (Result != BattleResult.Running)
         {
             return;
         }
 
-        Result = PrototypeBattleResult.Defeated;
+        Result = BattleResult.Defeated;
 
         if (gameOverRoot != null)
         {
@@ -101,12 +108,12 @@ public sealed class PrototypeBattleState : MonoBehaviour
         BossPhaseController completedBoss
     )
     {
-        if (Result != PrototypeBattleResult.Running)
+        if (Result != BattleResult.Running)
         {
             return;
         }
 
-        Result = PrototypeBattleResult.Cleared;
+        Result = BattleResult.Cleared;
 
         if (stageClearRoot != null)
         {
@@ -125,7 +132,9 @@ public sealed class PrototypeBattleState : MonoBehaviour
         Scene currentScene =
             SceneManager.GetActiveScene();
 
-        SceneManager.LoadScene(currentScene.buildIndex);
+        SceneManager.LoadScene(
+            currentScene.buildIndex
+        );
     }
 
     private void OnDestroy()
