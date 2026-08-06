@@ -31,6 +31,10 @@ public sealed class Bullet : MonoBehaviour
     private Color reflectedColor =
         new(0.25f, 1f, 1f, 1f);
 
+    [Header("Shield")]
+    [SerializeField, Min(1)]
+    private int shieldPowerCost = 1;
+
     private Rigidbody2D body;
     private SpriteRenderer spriteRenderer;
     private BulletPool pool;
@@ -110,8 +114,10 @@ public sealed class Bullet : MonoBehaviour
 
         body.MovePosition(nextPosition);
 
-        if (Mathf.Abs(nextPosition.x) > removalBounds.x ||
-            Mathf.Abs(nextPosition.y) > removalBounds.y)
+        if (Mathf.Abs(nextPosition.x) >
+                removalBounds.x ||
+            Mathf.Abs(nextPosition.y) >
+                removalBounds.y)
         {
             ReturnToPool();
         }
@@ -119,12 +125,33 @@ public sealed class Bullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        PlayerShield playerShield =
+            other.GetComponentInParent<PlayerShield>();
+
+        if (playerShield != null &&
+            playerShield.OwnsCollider(other))
+        {
+            if (owner == BulletOwner.Enemy &&
+                playerShield.TryAbsorb(
+                    shieldPowerCost
+                ))
+            {
+                ReturnToPool();
+            }
+
+            return;
+        }
+
         PlayerArea playerArea =
             other.GetComponent<PlayerArea>();
 
         if (playerArea != null)
         {
-            HandlePlayerAreaEnter(playerArea, other);
+            HandlePlayerAreaEnter(
+                playerArea,
+                other
+            );
+
             return;
         }
 
@@ -158,7 +185,17 @@ public sealed class Bullet : MonoBehaviour
             other.GetComponent<PlayerArea>();
 
         if (playerArea == null ||
-            playerArea.AreaType != PlayerAreaType.Graze)
+            playerArea.AreaType !=
+                PlayerAreaType.Graze)
+        {
+            return;
+        }
+
+        PlayerShield playerShield =
+            other.GetComponentInParent<PlayerShield>();
+
+        if (playerShield != null &&
+            playerShield.IsActive)
         {
             return;
         }
@@ -171,13 +208,24 @@ public sealed class Bullet : MonoBehaviour
         Collider2D other
     )
     {
-        // Отражённая пуля больше не опасна для игрока.
         if (owner != BulletOwner.Enemy)
         {
             return;
         }
 
-        if (playerArea.AreaType == PlayerAreaType.Hitbox)
+        PlayerShield playerShield =
+            other.GetComponentInParent<PlayerShield>();
+
+        // Пока щит активен, попадания в другие
+        // зоны игрока не обрабатываются.
+        if (playerShield != null &&
+            playerShield.IsActive)
+        {
+            return;
+        }
+
+        if (playerArea.AreaType ==
+            PlayerAreaType.Hitbox)
         {
             hasHitPlayer = true;
 
@@ -203,7 +251,9 @@ public sealed class Bullet : MonoBehaviour
         // Пуля, созданная уже внутри зоны ухилення,
         // не считается честно пойманной.
         if (source != null &&
-            other.OverlapPoint((Vector2)source.position))
+            other.OverlapPoint(
+                (Vector2)source.position
+            ))
         {
             return;
         }
@@ -247,8 +297,6 @@ public sealed class Bullet : MonoBehaviour
         }
         else
         {
-            // Почти центральная траектория:
-            // выбираем стабильную сторону поворота.
             turnSign =
                 body.position.x >= playerCenter.x
                     ? 1f
@@ -326,7 +374,9 @@ public sealed class Bullet : MonoBehaviour
 
         if (target == null)
         {
-            target = FindNearestEnemy(currentPosition);
+            target = FindNearestEnemy(
+                currentPosition
+            );
         }
 
         if (target != null)
