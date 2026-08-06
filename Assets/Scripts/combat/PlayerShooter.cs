@@ -1,10 +1,10 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class PrototypePlayerShooter : MonoBehaviour
+public sealed class PlayerShooter : MonoBehaviour
 {
     [SerializeField]
-    private PrototypePlayerBullet bulletPrefab;
+    private PlayerBullet bulletPrefab;
 
     [SerializeField]
     private Transform firePoint;

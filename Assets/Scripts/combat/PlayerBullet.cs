@@ -2,7 +2,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
-public sealed class PrototypePlayerBullet : MonoBehaviour
+public sealed class PlayerBullet : MonoBehaviour
 {
     [SerializeField, Min(0f)]
     private float speed = 12f;
@@ -30,7 +30,9 @@ public sealed class PrototypePlayerBullet : MonoBehaviour
     {
         Vector2 nextPosition =
             body.position +
-            Vector2.up * speed * Time.fixedDeltaTime;
+            Vector2.up *
+            speed *
+            Time.fixedDeltaTime;
 
         body.MovePosition(nextPosition);
 
@@ -57,6 +59,7 @@ public sealed class PrototypePlayerBullet : MonoBehaviour
 
         hasHit = true;
         damageable.TakeDamage(damage);
+
         Destroy(gameObject);
     }
 }
