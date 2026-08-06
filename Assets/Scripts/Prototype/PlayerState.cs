@@ -1,9 +1,11 @@
 using UnityEngine;
 
-public sealed class PrototypePlayerState : MonoBehaviour
+public sealed class PlayerState : MonoBehaviour
 {
     [SerializeField]
     private PrototypeBattleState battleState;
+
+    public int GrazeCount { get; private set; }
 
     public bool IsDefeated =>
         battleState != null &&
@@ -19,6 +21,13 @@ public sealed class PrototypePlayerState : MonoBehaviour
                 this
             );
         }
+    }
+
+    public void RegisterGraze()
+    {
+        GrazeCount++;
+
+        Debug.Log($"Graze: {GrazeCount}", this);
     }
 
     public void TakeHit()

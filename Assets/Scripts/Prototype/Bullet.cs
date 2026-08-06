@@ -28,7 +28,8 @@ public sealed class Bullet : MonoBehaviour
     private int reflectedDamage = 1;
 
     [SerializeField]
-    private Color reflectedColor = new(0.25f, 1f, 1f, 1f);
+    private Color reflectedColor =
+        new(0.25f, 1f, 1f, 1f);
 
     private Rigidbody2D body;
     private SpriteRenderer spriteRenderer;
@@ -102,7 +103,9 @@ public sealed class Bullet : MonoBehaviour
         {
             nextPosition =
                 body.position +
-                direction * speed * Time.fixedDeltaTime;
+                direction *
+                speed *
+                Time.fixedDeltaTime;
         }
 
         body.MovePosition(nextPosition);
@@ -116,8 +119,8 @@ public sealed class Bullet : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        PrototypePlayerArea playerArea =
-            other.GetComponent<PrototypePlayerArea>();
+        PlayerArea playerArea =
+            other.GetComponent<PlayerArea>();
 
         if (playerArea != null)
         {
@@ -151,11 +154,11 @@ public sealed class Bullet : MonoBehaviour
             return;
         }
 
-        PrototypePlayerArea playerArea =
-            other.GetComponent<PrototypePlayerArea>();
+        PlayerArea playerArea =
+            other.GetComponent<PlayerArea>();
 
         if (playerArea == null ||
-            playerArea.AreaType != PrototypePlayerAreaType.Graze)
+            playerArea.AreaType != PlayerAreaType.Graze)
         {
             return;
         }
@@ -164,7 +167,7 @@ public sealed class Bullet : MonoBehaviour
     }
 
     private void HandlePlayerAreaEnter(
-        PrototypePlayerArea playerArea,
+        PlayerArea playerArea,
         Collider2D other
     )
     {
@@ -174,13 +177,12 @@ public sealed class Bullet : MonoBehaviour
             return;
         }
 
-        if (playerArea.AreaType ==
-            PrototypePlayerAreaType.Hitbox)
+        if (playerArea.AreaType == PlayerAreaType.Hitbox)
         {
             hasHitPlayer = true;
 
-            PrototypePlayerState playerState =
-                other.GetComponentInParent<PrototypePlayerState>();
+            PlayerState playerState =
+                other.GetComponentInParent<PlayerState>();
 
             if (playerState != null)
             {
@@ -189,7 +191,7 @@ public sealed class Bullet : MonoBehaviour
             else
             {
                 Debug.LogError(
-                    "Player has no PrototypePlayerState.",
+                    "Player has no PlayerState.",
                     other
                 );
             }
@@ -198,7 +200,7 @@ public sealed class Bullet : MonoBehaviour
             return;
         }
 
-        // Пуля, созданная уже внутри зоны грейза,
+        // Пуля, созданная уже внутри зоны ухилення,
         // не считается честно пойманной.
         if (source != null &&
             other.OverlapPoint((Vector2)source.position))
@@ -211,16 +213,21 @@ public sealed class Bullet : MonoBehaviour
             return;
         }
 
-        PrototypePlayerController player =
-            other.GetComponentInParent<PrototypePlayerController>();
+        PlayerState grazeReceiver =
+            other.GetComponentInParent<PlayerState>();
 
-        if (player == null)
+        if (grazeReceiver == null)
         {
+            Debug.LogError(
+                "Player has no PlayerState.",
+                other
+            );
+
             return;
         }
 
         hasGrantedGraze = true;
-        player.RegisterGraze();
+        grazeReceiver.RegisterGraze();
     }
 
     private void Reflect(Vector2 playerCenter)
@@ -284,10 +291,16 @@ public sealed class Bullet : MonoBehaviour
             body.position - turnCenter;
 
         relativePosition =
-            RotateVector(relativePosition, signedAngle);
+            RotateVector(
+                relativePosition,
+                signedAngle
+            );
 
         direction =
-            RotateVector(direction, signedAngle).normalized;
+            RotateVector(
+                direction,
+                signedAngle
+            ).normalized;
 
         turnDegreesRemaining -= angleStep;
 
@@ -302,7 +315,9 @@ public sealed class Bullet : MonoBehaviour
         return nextPosition;
     }
 
-    private void FinishReflectionTurn(Vector2 currentPosition)
+    private void FinishReflectionTurn(
+        Vector2 currentPosition
+    )
     {
         isTurning = false;
         speed *= reflectedSpeedMultiplier;
@@ -317,11 +332,15 @@ public sealed class Bullet : MonoBehaviour
         if (target != null)
         {
             Vector2 directionToTarget =
-                (Vector2)target.position - currentPosition;
+                (Vector2)target.position -
+                currentPosition;
 
-            if (directionToTarget.sqrMagnitude > 0.0001f)
+            if (directionToTarget.sqrMagnitude >
+                0.0001f)
             {
-                direction = directionToTarget.normalized;
+                direction =
+                    directionToTarget.normalized;
+
                 return;
             }
         }
@@ -339,6 +358,7 @@ public sealed class Bullet : MonoBehaviour
             );
 
         EnemyHealth nearestEnemy = null;
+
         float nearestDistanceSquared =
             float.PositiveInfinity;
 
@@ -353,14 +373,18 @@ public sealed class Bullet : MonoBehaviour
                 (Vector2)enemy.transform.position -
                 currentPosition;
 
-            float distanceSquared = offset.sqrMagnitude;
+            float distanceSquared =
+                offset.sqrMagnitude;
 
-            if (distanceSquared >= nearestDistanceSquared)
+            if (distanceSquared >=
+                nearestDistanceSquared)
             {
                 continue;
             }
 
-            nearestDistanceSquared = distanceSquared;
+            nearestDistanceSquared =
+                distanceSquared;
+
             nearestEnemy = enemy;
         }
 
@@ -379,29 +403,31 @@ public sealed class Bullet : MonoBehaviour
         float cosine = Mathf.Cos(radians);
 
         return new Vector2(
-            vector.x * cosine - vector.y * sine,
-            vector.x * sine + vector.y * cosine
+            vector.x * cosine -
+            vector.y * sine,
+            vector.x * sine +
+            vector.y * cosine
         );
     }
 
     private void ReturnToPool()
-{
-    if (!gameObject.activeSelf)
     {
-        return;
+        if (!gameObject.activeSelf)
+        {
+            return;
+        }
+
+        if (pool == null)
+        {
+            Debug.LogError(
+                "Bullet has no pool assigned.",
+                this
+            );
+
+            gameObject.SetActive(false);
+            return;
+        }
+
+        pool.Return(this);
     }
-
-    if (pool == null)
-    {
-        Debug.LogError(
-            "Bullet has no pool assigned.",
-            this
-        );
-
-        gameObject.SetActive(false);
-        return;
-    }
-
-    pool.Return(this);
-}
 }

@@ -581,7 +581,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: decff7c525304ca4cb6d52322c9c8767, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeGrazeDisplay
-  player: {fileID: 305619748}
+  playerState: {fileID: 305619751}
 --- !u!114 &397398449
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -3,7 +3,8 @@ using UnityEngine;
 
 public sealed class PrototypeGrazeDisplay : MonoBehaviour
 {
-    [SerializeField] private PrototypePlayerController player;
+    [SerializeField]
+    private PlayerState playerState;
 
     private TMP_Text label;
     private int displayedGraze = -1;
@@ -14,28 +15,34 @@ public sealed class PrototypeGrazeDisplay : MonoBehaviour
 
         if (label == null)
         {
-            Debug.LogError("TMP Text component is missing.", this);
+            Debug.LogError(
+                "TMP Text component is missing.",
+                this
+            );
         }
 
-        if (player == null)
+        if (playerState == null)
         {
-            Debug.LogError("Player is not assigned.", this);
+            Debug.LogError(
+                "Player State is not assigned.",
+                this
+            );
         }
     }
 
     private void Update()
     {
-        if (label == null || player == null)
+        if (label == null || playerState == null)
         {
             return;
         }
 
-        if (displayedGraze == player.GrazeCount)
+        if (displayedGraze == playerState.GrazeCount)
         {
             return;
         }
 
-        displayedGraze = player.GrazeCount;
+        displayedGraze = playerState.GrazeCount;
         label.text = $"Graze: {displayedGraze}";
     }
 }
