@@ -1,10 +1,17 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Localization;
 
 public sealed class GrazeDisplay : MonoBehaviour
 {
     [SerializeField]
     private PlayerState playerState;
+
+    [SerializeField]
+    private LocalizedString labelFormat = new();
+
+    private readonly object[] formatArguments =
+        new object[1];
 
     private TMP_Text label;
 
@@ -31,33 +38,51 @@ public sealed class GrazeDisplay : MonoBehaviour
 
     private void OnEnable()
     {
-        if (playerState == null)
+        int initialGraze =
+            playerState != null
+                ? playerState.GrazeCount
+                : 0;
+
+        formatArguments[0] = initialGraze;
+        labelFormat.Arguments = formatArguments;
+
+        labelFormat.StringChanged +=
+            HandleLocalizedStringChanged;
+
+        if (playerState != null)
         {
-            return;
+            playerState.GrazeChanged +=
+                HandleGrazeChanged;
         }
 
-        playerState.GrazeChanged += HandleGrazeChanged;
-        UpdateLabel(playerState.GrazeCount);
+        labelFormat.RefreshString();
     }
 
     private void OnDisable()
     {
+        labelFormat.StringChanged -=
+            HandleLocalizedStringChanged;
+
         if (playerState != null)
         {
-            playerState.GrazeChanged -= HandleGrazeChanged;
+            playerState.GrazeChanged -=
+                HandleGrazeChanged;
         }
     }
 
     private void HandleGrazeChanged(int grazeCount)
     {
-        UpdateLabel(grazeCount);
+        formatArguments[0] = grazeCount;
+        labelFormat.RefreshString();
     }
 
-    private void UpdateLabel(int grazeCount)
+    private void HandleLocalizedStringChanged(
+        string localizedText
+    )
     {
         if (label != null)
         {
-            label.text = $"Graze: {grazeCount}";
+            label.text = localizedText;
         }
     }
 }
