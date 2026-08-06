@@ -35,7 +35,8 @@ public sealed class BossPhaseController : MonoBehaviour
 
     [SerializeField]
     private Transform target;
-
+[SerializeField]
+private BulletPool bulletPool;
     [SerializeField]
     private Phase[] phases;
 
@@ -203,7 +204,17 @@ public event Action<BossPhaseController> Completed;
         {
             phase.AttackRoot.SetActive(false);
         }
-
+if (bulletPool != null)
+{
+    bulletPool.ClearActiveBullets();
+}
+else
+{
+    Debug.LogError(
+        "Boss has no Bullet Pool assigned.",
+        this
+    );
+}
         PhaseEnded?.Invoke(this, timedOut);
 
         Debug.Log(

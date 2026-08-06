@@ -2448,6 +2448,11 @@ PrefabInstance:
       objectReference: {fileID: 305619750}
     - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
+      propertyPath: bulletPool
+      value: 
+      objectReference: {fileID: 1913305738}
+    - target: {fileID: 3766594915778429930, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
       propertyPath: phaseDurationTicks
       value: 3600
       objectReference: {fileID: 0}

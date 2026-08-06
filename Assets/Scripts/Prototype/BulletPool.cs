@@ -11,6 +11,7 @@ public sealed class BulletPool : MonoBehaviour
     private int initialSize = 256;
 
     private readonly Queue<Bullet> available = new();
+    private readonly HashSet<Bullet> activeBullets = new();
 
     private void Awake()
     {
@@ -55,15 +56,38 @@ public sealed class BulletPool : MonoBehaviour
         bullet.Initialize(direction, speed, source);
         bullet.gameObject.SetActive(true);
 
+        activeBullets.Add(bullet);
+
         return bullet;
+    }
+
+    public void ClearActiveBullets()
+    {
+        if (activeBullets.Count == 0)
+        {
+            return;
+        }
+
+        Bullet[] bulletsToReturn =
+            new Bullet[activeBullets.Count];
+
+        activeBullets.CopyTo(bulletsToReturn);
+
+        foreach (Bullet bullet in bulletsToReturn)
+        {
+            Return(bullet);
+        }
     }
 
     internal void Return(Bullet bullet)
     {
-        if (bullet == null || !bullet.gameObject.activeSelf)
+        if (bullet == null ||
+            !bullet.gameObject.activeSelf)
         {
             return;
         }
+
+        activeBullets.Remove(bullet);
 
         bullet.gameObject.SetActive(false);
         available.Enqueue(bullet);
@@ -71,7 +95,8 @@ public sealed class BulletPool : MonoBehaviour
 
     private Bullet CreateBullet()
     {
-        Bullet bullet = Instantiate(bulletPrefab, transform);
+        Bullet bullet =
+            Instantiate(bulletPrefab, transform);
 
         bullet.AssignPool(this);
         bullet.gameObject.SetActive(false);
