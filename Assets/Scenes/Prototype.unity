@@ -1070,11 +1070,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeEnemySpawner
   target: {fileID: 305619750}
   steps:
-  - enemyPrefab: {fileID: 4497591858019462858, guid: e2d960ebdfb100145af27d0618ba2134,
+  - enemyPrefab: {fileID: 6012566910578917993, guid: 72d16443c69d685439ba80fd0d11afbc,
       type: 3}
     spawnPosition: {x: 4.5, y: 3}
     delayAfterSpawnTicks: 120
-  - enemyPrefab: {fileID: 3758840049540971163, guid: 72d16443c69d685439ba80fd0d11afbc,
+  - enemyPrefab: {fileID: 4217140370117118093, guid: e2d960ebdfb100145af27d0618ba2134,
       type: 3}
     spawnPosition: {x: 4.5, y: 1}
     delayAfterSpawnTicks: 300
