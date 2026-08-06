@@ -1667,7 +1667,7 @@ GameObject:
   - component: {fileID: 870805358}
   - component: {fileID: 870805359}
   m_Layer: 5
-  m_Name: BattleState
+  m_Name: BattleFlow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1750,7 +1750,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1095423236}
   m_Layer: 0
-  m_Name: CircleCollider
+  m_Name: ShieldCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2238,7 +2238,7 @@ GameObject:
   - component: {fileID: 1738804789}
   - component: {fileID: 1738804790}
   m_Layer: 0
-  m_Name: SpriteRenderer
+  m_Name: ShieldSprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2923,7 +2923,7 @@ PrefabInstance:
     - target: {fileID: 4217140370117118093, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
       propertyPath: m_Name
-      value: boss
+      value: Boss
       objectReference: {fileID: 0}
     - target: {fileID: 4217140370117118093, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
@@ -3465,7 +3465,7 @@ PrefabInstance:
     - target: {fileID: 4217140370117118093, guid: e2d960ebdfb100145af27d0618ba2134,
         type: 3}
       propertyPath: m_Name
-      value: straightenemy
+      value: StraightEnemy
       objectReference: {fileID: 0}
     - target: {fileID: 4217140370117118093, guid: e2d960ebdfb100145af27d0618ba2134,
         type: 3}
