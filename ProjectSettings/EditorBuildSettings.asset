@@ -15,5 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Prototype.unity
     guid: 3ce7c3d47e4788a42885d6fd67320ab7
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 59913164a792e334fbdf82c73f67519f,
+      type: 2}
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f,
+      type: 2}
+    com.unity.localization.settings: {fileID: 11400000, guid: caa3f4ac27ae8584f9fea66634d0948b,
       type: 2}
