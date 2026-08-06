@@ -315,7 +315,7 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 1984044569}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1914161346}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b1f1d0a915b40d0479a716944fb923b7, type: 3}
@@ -334,7 +334,7 @@ GameObject:
   - component: {fileID: 305619748}
   - component: {fileID: 305619751}
   m_Layer: 0
-  m_Name: PrototypePlayer
+  m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1103,7 +1103,7 @@ GameObject:
   - component: {fileID: 575406369}
   - component: {fileID: 575406368}
   m_Layer: 0
-  m_Name: PrototypeEnemySpawner
+  m_Name: EnemySpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1122,6 +1122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeEnemySpawner
   target: {fileID: 305619750}
+  bulletPool: {fileID: 1913305738}
   steps:
   - enemyPrefab: {fileID: 6012566910578917993, guid: 72d16443c69d685439ba80fd0d11afbc,
       type: 3}
@@ -1131,7 +1132,7 @@ MonoBehaviour:
       type: 3}
     spawnPosition: {x: 4.5, y: 1}
     delayAfterSpawnTicks: 300
-  loop: 1
+  loop: 0
   loopDelayTicks: 180
 --- !u!4 &575406369
 Transform:
@@ -2466,6 +2467,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1812315832
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1812315834}
+  - component: {fileID: 1812315833}
+  m_Layer: 0
+  m_Name: StageSequence
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1812315833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1812315832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee9b8a9d56754fe4ea60ed410c146667, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StageSequenceController
+  openingWave: {fileID: 575406368}
+  bossRoot: {fileID: 1914161346}
+  bulletPool: {fileID: 1913305738}
+  delayBeforeBossTicks: 60
+--- !u!4 &1812315834
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1812315832}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 4.39645, y: 0, z: 14.82816}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1913305737
 GameObject:
   m_ObjectHideFlags: 0
@@ -2513,6 +2562,12 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1914161346 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4217140370117118093, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+    type: 3}
+  m_PrefabInstance: {fileID: 1984044569}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1984044569
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2609,7 +2664,12 @@ PrefabInstance:
     - target: {fileID: 4217140370117118093, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
       propertyPath: m_Name
-      value: prototypeboss
+      value: boss
+      objectReference: {fileID: 0}
+    - target: {fileID: 4217140370117118093, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5030113988379621682, guid: e0af8967fb09f6c49bdc1c54b0e6500b,
         type: 3}
@@ -3153,6 +3213,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4497591858019462858, guid: e2d960ebdfb100145af27d0618ba2134,
+        type: 3}
+      propertyPath: movementSpeed
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 7830923007802973670, guid: e2d960ebdfb100145af27d0618ba2134,
         type: 3}
       propertyPath: bulletPool
@@ -3199,12 +3264,12 @@ PrefabInstance:
     - target: {fileID: 3758840049540971163, guid: 72d16443c69d685439ba80fd0d11afbc,
         type: 3}
       propertyPath: movementSpeed
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6012566910578917993, guid: 72d16443c69d685439ba80fd0d11afbc,
         type: 3}
       propertyPath: m_Name
-      value: PrototypeSineEnemy
+      value: SineEnemy
       objectReference: {fileID: 0}
     - target: {fileID: 6012566910578917993, guid: 72d16443c69d685439ba80fd0d11afbc,
         type: 3}
@@ -3280,3 +3345,4 @@ SceneRoots:
   - {fileID: 575406369}
   - {fileID: 1984044569}
   - {fileID: 1913305739}
+  - {fileID: 1812315834}

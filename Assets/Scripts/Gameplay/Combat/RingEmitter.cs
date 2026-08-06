@@ -5,30 +5,51 @@ public sealed class RingEmitter : MonoBehaviour
     [SerializeField]
     private BulletPool bulletPool;
 
+    [Header("Pattern")]
     [SerializeField, Min(1)]
     private int bulletCount = 16;
 
-    [SerializeField]
+    [SerializeField, Min(0f)]
     private float bulletSpeed = 2.5f;
 
-    [SerializeField, Min(1)]
-    private int fireIntervalTicks = 120;
-
     [SerializeField]
-    private float rotationPerRing = 7.5f;
+    private float rotationPerRing = 8f;
+
+    [SerializeField, Min(1)]
+    private int fireIntervalTicks = 90;
 
     private int ticksUntilFire;
     private float currentAngle;
+    private bool initialRingFired;
 
     private void OnEnable()
     {
-        ticksUntilFire = fireIntervalTicks;
+        ticksUntilFire =
+            Mathf.Max(1, fireIntervalTicks);
+
         currentAngle = 0f;
-        FireRing();
+        initialRingFired = false;
+
+        TryFireInitialRing();
     }
 
     private void FixedUpdate()
     {
+        if (bulletPool == null)
+        {
+            return;
+        }
+
+        if (!initialRingFired)
+        {
+            TryFireInitialRing();
+
+            if (!initialRingFired)
+            {
+                return;
+            }
+        }
+
         ticksUntilFire--;
 
         if (ticksUntilFire > 0)
@@ -37,21 +58,38 @@ public sealed class RingEmitter : MonoBehaviour
         }
 
         FireRing();
-        ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
+
+        ticksUntilFire =
+            Mathf.Max(1, fireIntervalTicks);
+    }
+
+    public void SetBulletPool(
+        BulletPool newBulletPool
+    )
+    {
+        bulletPool = newBulletPool;
+
+        TryFireInitialRing();
+    }
+
+    private void TryFireInitialRing()
+    {
+        if (!isActiveAndEnabled ||
+            initialRingFired ||
+            bulletPool == null)
+        {
+            return;
+        }
+
+        FireRing();
+        initialRingFired = true;
+
+        ticksUntilFire =
+            Mathf.Max(1, fireIntervalTicks);
     }
 
     private void FireRing()
     {
-        if (bulletPool == null)
-        {
-            Debug.LogError(
-                "Bullet Pool is not assigned.",
-                this
-            );
-
-            return;
-        }
-
         int count = Mathf.Max(1, bulletCount);
         float angleStep = 360f / count;
 

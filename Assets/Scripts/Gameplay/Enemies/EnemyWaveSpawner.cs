@@ -1,8 +1,10 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class EnemyWaveSpawner : MonoBehaviour
 {
-    [System.Serializable]
+    [Serializable]
     private sealed class SpawnStep
     {
         [SerializeField]
@@ -27,17 +29,28 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
     private Transform target;
 
     [SerializeField]
+    private BulletPool bulletPool;
+
+    [SerializeField]
     private SpawnStep[] steps;
 
     [SerializeField]
-    private bool loop = true;
+    private bool loop;
 
     [SerializeField, Min(0)]
     private int loopDelayTicks = 180;
 
+    private readonly List<GameObject> activeEnemies =
+        new();
+
     private int currentStepIndex;
     private int ticksUntilNextSpawn;
+
     private bool sequenceRunning;
+    private bool spawningFinished;
+    private bool completionRaised;
+
+    public event Action<EnemyWaveSpawner> Completed;
 
     private void OnEnable()
     {
@@ -47,40 +60,52 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
     private void OnDisable()
     {
         sequenceRunning = false;
+        spawningFinished = false;
+        completionRaised = false;
+
         currentStepIndex = 0;
         ticksUntilNextSpawn = 0;
+
+        activeEnemies.Clear();
     }
 
     private void FixedUpdate()
     {
-        if (!sequenceRunning)
+        RemoveDestroyedEnemies();
+
+        if (sequenceRunning)
         {
-            return;
+            UpdateSpawnSequence();
         }
 
-        if (ticksUntilNextSpawn > 0)
-        {
-            ticksUntilNextSpawn--;
-
-            if (ticksUntilNextSpawn > 0)
-            {
-                return;
-            }
-        }
-
-        SpawnNextStep();
+        TryComplete();
     }
 
     private void StartSequence()
     {
         currentStepIndex = 0;
         ticksUntilNextSpawn = 0;
+
         sequenceRunning = false;
+        spawningFinished = false;
+        completionRaised = false;
+
+        activeEnemies.Clear();
 
         if (target == null)
         {
             Debug.LogError(
                 "Spawner target is not assigned.",
+                this
+            );
+
+            return;
+        }
+
+        if (bulletPool == null)
+        {
+            Debug.LogError(
+                "Spawner Bullet Pool is not assigned.",
                 this
             );
 
@@ -111,6 +136,21 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         SpawnNextStep();
     }
 
+    private void UpdateSpawnSequence()
+    {
+        if (ticksUntilNextSpawn > 0)
+        {
+            ticksUntilNextSpawn--;
+
+            if (ticksUntilNextSpawn > 0)
+            {
+                return;
+            }
+        }
+
+        SpawnNextStep();
+    }
+
     private bool HasValidStep()
     {
         foreach (SpawnStep step in steps)
@@ -131,17 +171,7 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         {
             if (currentStepIndex >= steps.Length)
             {
-                if (!loop)
-                {
-                    sequenceRunning = false;
-                    return;
-                }
-
-                currentStepIndex = 0;
-
-                ticksUntilNextSpawn =
-                    Mathf.Max(1, loopDelayTicks);
-
+                HandleSequenceEnd();
                 return;
             }
 
@@ -160,19 +190,21 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
 
             if (currentStepIndex >= steps.Length)
             {
-                if (!loop)
+                if (loop)
+                {
+                    currentStepIndex = 0;
+
+                    ticksUntilNextSpawn =
+                        Mathf.Max(
+                            1,
+                            delay + loopDelayTicks
+                        );
+                }
+                else
                 {
                     sequenceRunning = false;
-                    return;
+                    spawningFinished = true;
                 }
-
-                currentStepIndex = 0;
-
-                ticksUntilNextSpawn =
-                    Mathf.Max(
-                        1,
-                        delay + loopDelayTicks
-                    );
 
                 return;
             }
@@ -182,10 +214,23 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
                 ticksUntilNextSpawn = delay;
                 return;
             }
-
-            // Нулевая задержка означает, что следующий
-            // противник появляется в том же такте.
         }
+    }
+
+    private void HandleSequenceEnd()
+    {
+        if (loop)
+        {
+            currentStepIndex = 0;
+
+            ticksUntilNextSpawn =
+                Mathf.Max(1, loopDelayTicks);
+
+            return;
+        }
+
+        sequenceRunning = false;
+        spawningFinished = true;
     }
 
     private void SpawnEnemy(SpawnStep step)
@@ -196,13 +241,57 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
             Quaternion.identity
         );
 
-        AimedFanEmitter[] emitters =
+        activeEnemies.Add(enemy);
+
+        AimedFanEmitter[] aimedEmitters =
             enemy.GetComponentsInChildren
                 <AimedFanEmitter>(true);
 
-        foreach (AimedFanEmitter emitter in emitters)
+        foreach (AimedFanEmitter emitter
+                 in aimedEmitters)
         {
-            emitter.SetTarget(target);
+            emitter.Configure(target, bulletPool);
         }
+
+        RingEmitter[] ringEmitters =
+            enemy.GetComponentsInChildren
+                <RingEmitter>(true);
+
+        foreach (RingEmitter emitter in ringEmitters)
+        {
+            emitter.SetBulletPool(bulletPool);
+        }
+    }
+
+    private void RemoveDestroyedEnemies()
+    {
+        for (int index = activeEnemies.Count - 1;
+             index >= 0;
+             index--)
+        {
+            if (activeEnemies[index] == null)
+            {
+                activeEnemies.RemoveAt(index);
+            }
+        }
+    }
+
+    private void TryComplete()
+    {
+        if (!spawningFinished ||
+            completionRaised ||
+            activeEnemies.Count > 0)
+        {
+            return;
+        }
+
+        completionRaised = true;
+
+        Debug.Log(
+            "Enemy wave completed.",
+            this
+        );
+
+        Completed?.Invoke(this);
     }
 }

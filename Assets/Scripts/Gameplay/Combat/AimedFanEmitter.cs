@@ -22,15 +22,35 @@ public sealed class AimedFanEmitter : MonoBehaviour
     private int fireIntervalTicks = 90;
 
     private int ticksUntilFire;
+    private bool initialBurstFired;
 
     private void OnEnable()
     {
-        ticksUntilFire = fireIntervalTicks;
-        FireFan();
+        ticksUntilFire =
+            Mathf.Max(1, fireIntervalTicks);
+
+        initialBurstFired = false;
+
+        TryFireInitialBurst();
     }
 
     private void FixedUpdate()
     {
+        if (bulletPool == null || target == null)
+        {
+            return;
+        }
+
+        if (!initialBurstFired)
+        {
+            TryFireInitialBurst();
+
+            if (!initialBurstFired)
+            {
+                return;
+            }
+        }
+
         ticksUntilFire--;
 
         if (ticksUntilFire > 0)
@@ -39,40 +59,62 @@ public sealed class AimedFanEmitter : MonoBehaviour
         }
 
         FireFan();
-        ticksUntilFire = Mathf.Max(1, fireIntervalTicks);
+
+        ticksUntilFire =
+            Mathf.Max(1, fireIntervalTicks);
+    }
+
+    public void Configure(
+        Transform newTarget,
+        BulletPool newBulletPool
+    )
+    {
+        target = newTarget;
+        bulletPool = newBulletPool;
+
+        TryFireInitialBurst();
     }
 
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
+
+        TryFireInitialBurst();
+    }
+
+    public void SetBulletPool(
+        BulletPool newBulletPool
+    )
+    {
+        bulletPool = newBulletPool;
+
+        TryFireInitialBurst();
+    }
+
+    private void TryFireInitialBurst()
+    {
+        if (!isActiveAndEnabled ||
+            initialBurstFired ||
+            bulletPool == null ||
+            target == null)
+        {
+            return;
+        }
+
+        FireFan();
+        initialBurstFired = true;
+
+        ticksUntilFire =
+            Mathf.Max(1, fireIntervalTicks);
     }
 
     private void FireFan()
     {
-        if (bulletPool == null)
-        {
-            Debug.LogError(
-                "Bullet Pool is not assigned.",
-                this
-            );
-
-            return;
-        }
-
-        if (target == null)
-        {
-            Debug.LogError(
-                "Target is not assigned.",
-                this
-            );
-
-            return;
-        }
-
         Vector2 directionToTarget =
             target.position - transform.position;
 
-        if (directionToTarget.sqrMagnitude < 0.0001f)
+        if (directionToTarget.sqrMagnitude <
+            0.0001f)
         {
             return;
         }
