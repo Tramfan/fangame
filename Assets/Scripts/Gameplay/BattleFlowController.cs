@@ -14,14 +14,25 @@ public sealed class BattleFlowController : MonoBehaviour
     [SerializeField]
     private BossPhaseController boss;
 
+    [Header("Result Screens")]
     [SerializeField]
     private GameObject gameOverRoot;
 
     [SerializeField]
     private GameObject stageClearRoot;
 
+    [Header("Scenes")]
+    [SerializeField]
+    private string mainMenuSceneName =
+        "MainMenu";
+
+    [Header("Result Controls")]
     [SerializeField]
     private KeyCode restartKey = KeyCode.R;
+
+    [SerializeField]
+    private KeyCode returnToMenuKey =
+        KeyCode.Escape;
 
     public BattleResult Result
     {
@@ -53,7 +64,7 @@ public sealed class BattleFlowController : MonoBehaviour
         if (boss == null)
         {
             Debug.LogError(
-                "Battle flow has no boss assigned.",
+                "Battle Flow has no Boss assigned.",
                 this
             );
 
@@ -61,14 +72,16 @@ public sealed class BattleFlowController : MonoBehaviour
             return;
         }
 
-        boss.Completed += HandleBossCompleted;
+        boss.Completed +=
+            HandleBossCompleted;
     }
 
     private void OnDisable()
     {
         if (boss != null)
         {
-            boss.Completed -= HandleBossCompleted;
+            boss.Completed -=
+                HandleBossCompleted;
         }
     }
 
@@ -82,6 +95,12 @@ public sealed class BattleFlowController : MonoBehaviour
         if (Input.GetKeyDown(restartKey))
         {
             RestartBattle();
+            return;
+        }
+
+        if (Input.GetKeyDown(returnToMenuKey))
+        {
+            ReturnToMainMenu();
         }
     }
 
@@ -134,6 +153,27 @@ public sealed class BattleFlowController : MonoBehaviour
 
         SceneManager.LoadScene(
             currentScene.buildIndex
+        );
+    }
+
+    public void ReturnToMainMenu()
+    {
+        if (string.IsNullOrWhiteSpace(
+                mainMenuSceneName))
+        {
+            Debug.LogError(
+                "Main Menu Scene Name is empty.",
+                this
+            );
+
+            return;
+        }
+
+        Time.timeScale = 1f;
+
+        SceneManager.LoadScene(
+            mainMenuSceneName,
+            LoadSceneMode.Single
         );
     }
 

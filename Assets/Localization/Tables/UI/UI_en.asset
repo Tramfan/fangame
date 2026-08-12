@@ -40,6 +40,22 @@ MonoBehaviour:
     m_Localized: Restart
     m_Metadata:
       m_Items: []
+  - m_Id: 901274738688
+    m_Localized: Start Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2238508398354432
+    m_Localized: Language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2238545920598016
+    m_Localized: Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2247602920300544
+    m_Localized: Main Menu
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

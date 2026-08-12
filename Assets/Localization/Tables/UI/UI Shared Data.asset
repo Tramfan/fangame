@@ -36,7 +36,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 901274738688
-    m_Key: New Entry
+    m_Key: ui.main.start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2238508398354432
+    m_Key: ui.main.language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2238545920598016
+    m_Key: ui.main.exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2247602920300544
+    m_Key: result.main_menu
     m_Metadata:
       m_Items: []
   m_Metadata:
