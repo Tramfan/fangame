@@ -4,6 +4,9 @@ using UnityEngine;
 public sealed class PlayerShooter : MonoBehaviour
 {
     [SerializeField]
+    private PlayerInputSource inputSource;
+
+    [SerializeField]
     private PlayerBullet bulletPrefab;
 
     [SerializeField]
@@ -13,19 +16,36 @@ public sealed class PlayerShooter : MonoBehaviour
     private int fireIntervalTicks = 6;
 
     [SerializeField]
-    private KeyCode fireKey = KeyCode.Z;
-
-    [SerializeField]
     private bool shootingEnabled = true;
 
     private bool shootHeld;
     private int cooldownTicks;
 
+    private void Awake()
+    {
+        if (inputSource == null)
+        {
+            inputSource =
+                GetComponentInParent<PlayerInputSource>();
+        }
+
+        if (inputSource == null)
+        {
+            Debug.LogError(
+                "Player Shooter has no Input Source.",
+                this
+            );
+
+            enabled = false;
+        }
+    }
+
     private void Update()
     {
         shootHeld =
             shootingEnabled &&
-            Input.GetKey(fireKey);
+            inputSource != null &&
+            inputSource.ShootHeld;
     }
 
     private void FixedUpdate()
@@ -47,7 +67,14 @@ public sealed class PlayerShooter : MonoBehaviour
         }
 
         Fire();
-        cooldownTicks = fireIntervalTicks;
+        cooldownTicks =
+            Mathf.Max(1, fireIntervalTicks);
+    }
+
+    private void OnDisable()
+    {
+        shootHeld = false;
+        cooldownTicks = 0;
     }
 
     private void Fire()

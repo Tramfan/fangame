@@ -44,13 +44,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af1bec9900641f34297396a389bad619, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeAimedFanEmitter
-  bulletPrefab: {fileID: 170877814814272871, guid: 7b5ddf06bef4ffd4590ef0cdd4866cad,
-    type: 3}
+  bulletPool: {fileID: 0}
   target: {fileID: 0}
   bulletCount: 5
   spreadAngle: 60
   bulletSpeed: 3
-  fireInterval: 0.5
+  fireIntervalTicks: 90
 --- !u!1 &6012566910578917993
 GameObject:
   m_ObjectHideFlags: 0
@@ -64,6 +63,7 @@ GameObject:
   - component: {fileID: 3758840049540971163}
   - component: {fileID: 238092957260139280}
   - component: {fileID: -146006695629538788}
+  - component: {fileID: -1699393519964558162}
   m_Layer: 0
   m_Name: sineenemy
   m_TagString: Untagged
@@ -177,6 +177,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 3
+  destroyOnDeath: 1
 --- !u!61 &-146006695629538788
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -223,3 +224,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &-1699393519964558162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6012566910578917993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1723b4aec32210458fe02c6f5135834, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerDropOnDeath
+  drops:
+  - pickupPrefab: {fileID: 3659459172009174353, guid: e86858d51c7aed4459592c9291dd512d,
+      type: 3}
+    count: 5
+  minimumLaunchSpeed: 1.4
+  maximumLaunchSpeed: 2.2
+  spreadAngle: 100

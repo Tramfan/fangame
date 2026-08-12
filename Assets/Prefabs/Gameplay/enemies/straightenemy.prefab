@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4497591858019462858}
   - component: {fileID: 2207961768965337832}
   - component: {fileID: 3286775804829198518}
+  - component: {fileID: 8022991309534070768}
   m_Layer: 0
   m_Name: straightenemy
   m_TagString: Untagged
@@ -172,6 +173,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 3
+  destroyOnDeath: 1
+--- !u!114 &8022991309534070768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4217140370117118093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1723b4aec32210458fe02c6f5135834, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PowerDropOnDeath
+  drops:
+  - pickupPrefab: {fileID: 3659459172009174353, guid: e86858d51c7aed4459592c9291dd512d,
+      type: 3}
+    count: 5
+  minimumLaunchSpeed: 1.4
+  maximumLaunchSpeed: 2.2
+  spreadAngle: 100
 --- !u!1 &6417989589326434176
 GameObject:
   m_ObjectHideFlags: 0
@@ -216,9 +237,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72c3a84c30a8d0540b350415302fc801, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeRingEmitter
-  bulletPrefab: {fileID: 170877814814272871, guid: 7b5ddf06bef4ffd4590ef0cdd4866cad,
-    type: 3}
+  bulletPool: {fileID: 0}
   bulletCount: 16
   bulletSpeed: 2.5
-  fireIntervalTicks: 120
   rotationPerRing: 7.5
+  fireIntervalTicks: 120

@@ -182,5 +182,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PowerPickup
   powerAmount: 25
-  fallSpeed: 0.5
+  fallSpeed: 2
   removalY: -6

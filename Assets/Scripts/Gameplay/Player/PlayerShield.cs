@@ -4,6 +4,9 @@ using UnityEngine;
 public sealed class PlayerShield : MonoBehaviour
 {
     [SerializeField]
+    private PlayerInputSource inputSource;
+
+    [SerializeField]
     private PlayerPower playerPower;
 
     [SerializeField]
@@ -12,16 +15,35 @@ public sealed class PlayerShield : MonoBehaviour
     [SerializeField]
     private SpriteRenderer shieldRenderer;
 
-    [SerializeField]
-    private KeyCode shieldKey = KeyCode.X;
-
-    public bool IsActive { get; private set; }
+    public bool IsActive
+    {
+        get;
+        private set;
+    }
 
     private void Awake()
     {
+        if (inputSource == null)
+        {
+            inputSource =
+                GetComponentInParent<PlayerInputSource>();
+        }
+
         if (playerPower == null)
         {
-            playerPower = GetComponent<PlayerPower>();
+            playerPower =
+                GetComponentInParent<PlayerPower>();
+        }
+
+        if (inputSource == null)
+        {
+            Debug.LogError(
+                "Player Shield has no Input Source.",
+                this
+            );
+
+            enabled = false;
+            return;
         }
 
         if (playerPower == null)
@@ -54,7 +76,7 @@ public sealed class PlayerShield : MonoBehaviour
     private void Update()
     {
         bool shouldBeActive =
-            Input.GetKey(shieldKey) &&
+            inputSource.ShieldHeld &&
             playerPower.HasPower;
 
         SetShieldActive(shouldBeActive);
@@ -92,6 +114,12 @@ public sealed class PlayerShield : MonoBehaviour
 
     private void SetShieldActive(bool active)
     {
+        if (shieldCollider == null)
+        {
+            IsActive = false;
+            return;
+        }
+
         if (IsActive == active &&
             shieldCollider.enabled == active)
         {
