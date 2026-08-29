@@ -3759,7 +3759,6 @@ GameObject:
   - component: {fileID: 1459029097}
   - component: {fileID: 1459029096}
   - component: {fileID: 1459029095}
-  - component: {fileID: 1459029094}
   - component: {fileID: 1459029093}
   m_Layer: 5
   m_Name: CenterSelector
@@ -3789,22 +3788,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: aa2c18bbcbce6754eba586b492124836, type: 2}
   defaultCharacterIndex: 0
   defaultShotTypeIndex: 0
---- !u!114 &1459029094
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1459029092}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa69ecafa16cce44ab11c5cafb08b6eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DifficultySelector
-  valueLabel: {fileID: 1078582850}
-  runSetupController: {fileID: 1679227663}
-  options: 00010203
-  defaultIndex: 1
 --- !u!114 &1459029095
 MonoBehaviour:
   m_ObjectHideFlags: 0
