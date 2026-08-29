@@ -1,66 +1,34 @@
-using TMPro;
 using UnityEngine;
+using UnityEngine.Localization.Components;
 
 [DisallowMultipleComponent]
 public sealed class DifficultySelector :
     MenuCarouselSelector
 {
     [SerializeField]
-    private TMP_Text valueLabel;
+    private LocalizeStringEvent valueLocalization;
 
     [SerializeField]
     private RunSetupController runSetupController;
 
     [SerializeField]
-    private GameDifficulty[] options =
-    {
-        GameDifficulty.Easy,
-        GameDifficulty.Normal,
-        GameDifficulty.Hard,
-        GameDifficulty.Lunatic
-    };
+    private DifficultyDefinition[] options;
 
     [SerializeField, Min(0)]
     private int defaultIndex = 1;
 
     private int currentIndex;
 
-    public GameDifficulty CurrentDifficulty =>
+    public DifficultyDefinition CurrentDefinition =>
         options[currentIndex];
+
+    public GameDifficulty CurrentDifficulty =>
+        CurrentDefinition.Difficulty;
 
     private void Awake()
     {
-        if (valueLabel == null)
+        if (!ValidateSetup())
         {
-            Debug.LogError(
-                "Difficulty Selector has no Value Label.",
-                this
-            );
-
-            enabled = false;
-            return;
-        }
-
-        if (runSetupController == null)
-        {
-            Debug.LogError(
-                "Difficulty Selector has no " +
-                "Run Setup Controller.",
-                this
-            );
-
-            enabled = false;
-            return;
-        }
-
-        if (options == null ||
-            options.Length == 0)
-        {
-            Debug.LogError(
-                "Difficulty Selector has no options.",
-                this
-            );
-
             enabled = false;
             return;
         }
@@ -82,8 +50,7 @@ public sealed class DifficultySelector :
 
         if (currentIndex < 0)
         {
-            currentIndex =
-                options.Length - 1;
+            currentIndex = options.Length - 1;
         }
         else if (currentIndex >= options.Length)
         {
@@ -102,7 +69,62 @@ public sealed class DifficultySelector :
 
     private void RefreshLabel()
     {
-        valueLabel.text =
-            CurrentDifficulty.ToString();
+        valueLocalization.StringReference =
+            CurrentDefinition.DisplayName;
+
+        valueLocalization.RefreshString();
+    }
+
+    private bool ValidateSetup()
+    {
+        if (valueLocalization == null)
+        {
+            Debug.LogError(
+                "Difficulty Selector has no " +
+                "Value Localization.",
+                this
+            );
+
+            return false;
+        }
+
+        if (runSetupController == null)
+        {
+            Debug.LogError(
+                "Difficulty Selector has no " +
+                "Run Setup Controller.",
+                this
+            );
+
+            return false;
+        }
+
+        if (options == null ||
+            options.Length == 0)
+        {
+            Debug.LogError(
+                "Difficulty Selector has no options.",
+                this
+            );
+
+            return false;
+        }
+
+        foreach (DifficultyDefinition option
+                 in options)
+        {
+            if (option == null)
+            {
+                Debug.LogError(
+                    "Difficulty Selector contains " +
+                    "an empty option.",
+                    this
+                );
+
+                return false;
+            }
+        }
+
+        return true;
     }
 }
