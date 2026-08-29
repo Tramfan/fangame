@@ -15,9 +15,9 @@ MonoBehaviour:
   difficulty: 0
   displayName:
     m_TableReference:
-      m_TableCollectionName: 
+      m_TableCollectionName: GUID:f1840332047dc7b4ab6af1f1f1731dc9
     m_TableEntryReference:
-      m_KeyId: 0
+      m_KeyId: 8300206892851200
       m_Key: 
     m_FallbackState: 0
     m_WaitForCompletion: 0

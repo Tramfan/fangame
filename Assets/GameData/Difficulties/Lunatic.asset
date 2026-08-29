@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18e5adcb3ac2d7146bf326dd1f87ff3c, type: 3}
   m_Name: Lunatic
   m_EditorClassIdentifier: Assembly-CSharp::DifficultyDefinition
-  difficulty: 0
+  difficulty: 3
   displayName:
     m_TableReference:
-      m_TableCollectionName: 
+      m_TableCollectionName: GUID:f1840332047dc7b4ab6af1f1f1731dc9
     m_TableEntryReference:
-      m_KeyId: 0
+      m_KeyId: 8300265348866048
       m_Key: 
     m_FallbackState: 0
     m_WaitForCompletion: 0

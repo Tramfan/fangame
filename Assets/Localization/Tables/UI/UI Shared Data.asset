@@ -75,6 +75,22 @@ MonoBehaviour:
     m_Key: ui.shottype.marisa_b
     m_Metadata:
       m_Items: []
+  - m_Id: 8300206892851200
+    m_Key: ui.difficulty.easy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8300216334229504
+    m_Key: ui.difficulty.normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8300247598571520
+    m_Key: ui.difficulty.hard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8300265348866048
+    m_Key: ui.difficulty.lunatic
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

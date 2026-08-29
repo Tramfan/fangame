@@ -80,6 +80,22 @@ MonoBehaviour:
     m_Localized: Type B
     m_Metadata:
       m_Items: []
+  - m_Id: 8300206892851200
+    m_Localized: Easy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8300216334229504
+    m_Localized: Normal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8300247598571520
+    m_Localized: Hard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8300265348866048
+    m_Localized: Lunatic
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:
