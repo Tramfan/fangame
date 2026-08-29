@@ -22,6 +22,10 @@ MonoBehaviour:
     m_FallbackState: 0
     m_WaitForCompletion: 0
     m_LocalVariables: []
+  bulletPrefab: {fileID: 8797406539021003959, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+    type: 3}
+  fireIntervalTicks: 3
+  shootingEnabled: 1
   references:
     version: 2
     RefIds: []

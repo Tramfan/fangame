@@ -115,4 +115,19 @@ public sealed class PlayerController : MonoBehaviour
 
         transform.position = nextPosition;
     }
+    public void ConfigureMovement(
+    float newNormalSpeed,
+    float newFocusSpeed
+)
+{
+    normalSpeed = Mathf.Max(
+        0f,
+        newNormalSpeed
+    );
+
+    focusSpeed = Mathf.Max(
+        0f,
+        newFocusSpeed
+    );
+}
 }

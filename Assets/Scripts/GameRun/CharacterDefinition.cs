@@ -23,6 +23,16 @@ public sealed class CharacterDefinition :
     [SerializeField]
     private ShotTypeDefinition[] shotTypes;
 
+    [Header("Gameplay")]
+    [SerializeField]
+    private Sprite playerSprite;
+
+    [SerializeField, Min(0f)]
+    private float normalSpeed = 5f;
+
+    [SerializeField, Min(0f)]
+    private float focusSpeed = 2f;
+
     public string Id => id;
 
     public string CampaignId => campaignId;
@@ -34,4 +44,13 @@ public sealed class CharacterDefinition :
 
     public ShotTypeDefinition[] ShotTypes =>
         shotTypes;
+
+    public Sprite PlayerSprite =>
+        playerSprite;
+
+    public float NormalSpeed =>
+        normalSpeed;
+
+    public float FocusSpeed =>
+        focusSpeed;
 }

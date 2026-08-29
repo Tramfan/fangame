@@ -32,6 +32,18 @@ public static class GameRunContext
         private set;
     } = string.Empty;
 
+    public static CharacterDefinition SelectedCharacter
+    {
+        get;
+        private set;
+    }
+
+    public static ShotTypeDefinition SelectedShotType
+    {
+        get;
+        private set;
+    }
+
     public static bool HasDifficulty
     {
         get;
@@ -59,16 +71,11 @@ public static class GameRunContext
     {
         Seed = CreateTimeSeed();
 
-        Difficulty =
-            GameDifficulty.Normal;
+        Difficulty = GameDifficulty.Normal;
 
-        CharacterId = string.Empty;
-        CampaignId = string.Empty;
-        ShotTypeId = string.Empty;
+        ClearLoadout();
 
         HasDifficulty = false;
-        HasCharacter = false;
-        HasShotType = false;
     }
 
     public static void SelectDifficulty(
@@ -78,26 +85,36 @@ public static class GameRunContext
         Difficulty = difficulty;
         HasDifficulty = true;
 
+        ClearLoadout();
+    }
+
+    public static void SelectLoadout(
+        CharacterDefinition character,
+        ShotTypeDefinition shotType
+    )
+    {
+        SelectedCharacter = character;
+        SelectedShotType = shotType;
+
+        CharacterId = character.Id;
+        CampaignId = character.CampaignId;
+        ShotTypeId = shotType.Id;
+
+        HasCharacter = true;
+        HasShotType = true;
+    }
+
+    private static void ClearLoadout()
+    {
         CharacterId = string.Empty;
         CampaignId = string.Empty;
         ShotTypeId = string.Empty;
 
+        SelectedCharacter = null;
+        SelectedShotType = null;
+
         HasCharacter = false;
         HasShotType = false;
-    }
-
-    public static void SelectLoadout(
-        string characterId,
-        string campaignId,
-        string shotTypeId
-    )
-    {
-        CharacterId = characterId;
-        CampaignId = campaignId;
-        ShotTypeId = shotTypeId;
-
-        HasCharacter = true;
-        HasShotType = true;
     }
 
     private static int CreateTimeSeed()

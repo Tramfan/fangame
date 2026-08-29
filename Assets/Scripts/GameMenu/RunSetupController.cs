@@ -94,11 +94,10 @@ public sealed class RunSetupController : MonoBehaviour
             return;
         }
 
-        GameRunContext.SelectLoadout(
-            character.Id,
-            character.CampaignId,
-            shotType.Id
-        );
+GameRunContext.SelectLoadout(
+    character,
+    shotType
+);
 
         GameplayRandom.SetSeedForNextRun(
             GameRunContext.Seed

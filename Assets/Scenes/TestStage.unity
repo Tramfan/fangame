@@ -639,6 +639,7 @@ GameObject:
   - component: {fileID: 305619753}
   - component: {fileID: 305619752}
   - component: {fileID: 305619754}
+  - component: {fileID: 305619755}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -804,6 +805,23 @@ MonoBehaviour:
   secondaryFocusKey: 303
   shootKey: 122
   shieldKey: 120
+--- !u!114 &305619755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305619747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b691f582cf92a945a1f3e47437a656c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerLoadoutApplicator
+  playerRenderer: {fileID: 305619749}
+  playerController: {fileID: 305619748}
+  playerShooter: {fileID: 714653873}
+  fallbackCharacter: {fileID: 11400000, guid: aa2c18bbcbce6754eba586b492124836, type: 2}
+  fallbackShotType: {fileID: 11400000, guid: 8d6a327a9b5d0424e9434c7b495aa6e4, type: 2}
 --- !u!1 &350940473
 GameObject:
   m_ObjectHideFlags: 0

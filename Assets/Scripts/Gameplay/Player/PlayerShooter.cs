@@ -112,4 +112,19 @@ public sealed class PlayerShooter : MonoBehaviour
             cooldownTicks = 0;
         }
     }
+    public void Configure(
+    PlayerBullet newBulletPrefab,
+    int newFireIntervalTicks,
+    bool enableShooting
+)
+{
+    bulletPrefab = newBulletPrefab;
+
+    fireIntervalTicks = Mathf.Max(
+        1,
+        newFireIntervalTicks
+    );
+
+    SetShootingEnabled(enableShooting);
+}
 }
