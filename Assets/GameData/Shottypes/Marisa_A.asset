@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3879d214cdbfeae45806e2ecd73e654d, type: 3}
+  m_Name: Marisa_A
+  m_EditorClassIdentifier: Assembly-CSharp::ShotTypeDefinition
+  id: marisa_a
+  displayName:
+    m_TableReference:
+      m_TableCollectionName: GUID:f1840332047dc7b4ab6af1f1f1731dc9
+    m_TableEntryReference:
+      m_KeyId: 8275713080238080
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  references:
+    version: 2
+    RefIds: []

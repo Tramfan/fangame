@@ -51,6 +51,30 @@ MonoBehaviour:
     m_Key: result.main_menu
     m_Metadata:
       m_Items: []
+  - m_Id: 8262676478763008
+    m_Key: ui.character.reimu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8262697500614656
+    m_Key: ui.character.marisa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275653600813056
+    m_Key: ui.shottype.reimu_a
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275660919873536
+    m_Key: ui.shottype.reimu_b
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275713080238080
+    m_Key: ui.shottype.marisa_a
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275745045028864
+    m_Key: ui.shottype.marisa_b
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

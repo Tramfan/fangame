@@ -170,6 +170,10 @@ public sealed class MenuButtonVisual :
         BaseEventData eventData
     )
     {
+            if (!isActiveAndEnabled)
+    {
+        return;
+    }
         if (submitRoutine != null)
         {
             StopCoroutine(submitRoutine);

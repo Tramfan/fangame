@@ -1,18 +1,12 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
-using UnityEngine.SceneManagement;
 
 [DisallowMultipleComponent]
 public sealed class MainMenuController : MonoBehaviour
 {
     private const string LanguagePreferenceKey =
         "selected_locale";
-
-    [Header("Scene")]
-    [SerializeField]
-    private string gameplaySceneName = "TestStage";
 
     [Header("Locales")]
     [SerializeField]
@@ -21,42 +15,9 @@ public sealed class MainMenuController : MonoBehaviour
     [SerializeField]
     private Locale ukrainianLocale;
 
-    [Header("Navigation")]
-    [SerializeField]
-    private GameObject firstSelectedObject;
-
-    private bool sceneLoading;
-
     private void Start()
     {
         ApplySavedLocale();
-        SelectInitialButton();
-    }
-
-    public void StartGame()
-    {
-        if (sceneLoading)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(
-                gameplaySceneName))
-        {
-            Debug.LogError(
-                "Gameplay Scene Name is empty.",
-                this
-            );
-
-            return;
-        }
-
-        sceneLoading = true;
-
-        SceneManager.LoadScene(
-            gameplaySceneName,
-            LoadSceneMode.Single
-        );
     }
 
     public void SelectEnglish()
@@ -144,26 +105,5 @@ public sealed class MainMenuController : MonoBehaviour
         );
 
         PlayerPrefs.Save();
-    }
-
-    private void SelectInitialButton()
-    {
-        if (EventSystem.current == null)
-        {
-            Debug.LogError(
-                "Main Menu has no Event System.",
-                this
-            );
-
-            return;
-        }
-
-        if (firstSelectedObject != null)
-        {
-            EventSystem.current
-                .SetSelectedGameObject(
-                    firstSelectedObject
-                );
-        }
     }
 }

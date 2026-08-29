@@ -56,6 +56,30 @@ MonoBehaviour:
     m_Localized: Main Menu
     m_Metadata:
       m_Items: []
+  - m_Id: 8262676478763008
+    m_Localized: Reimu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8262697500614656
+    m_Localized: Marisa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275713080238080
+    m_Localized: Type A
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275653600813056
+    m_Localized: Type A
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275660919873536
+    m_Localized: Type B
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8275745045028864
+    m_Localized: Type B
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:
