@@ -14,7 +14,9 @@ public sealed class PlayerLoadoutApplicator :
 
     [SerializeField]
     private PlayerShooter playerShooter;
-
+    
+[SerializeField]
+private PlayerOptionController playerOptionController;
     [Header("Direct Scene Play")]
     [SerializeField]
     private CharacterDefinition fallbackCharacter;
@@ -25,7 +27,11 @@ public sealed class PlayerLoadoutApplicator :
     private void Awake()
     {
         FindMissingComponents();
-
+if (playerOptionController == null)
+{
+    playerOptionController =
+        GetComponent<PlayerOptionController>();
+}
         if (!ValidateComponents())
         {
             enabled = false;
@@ -69,19 +75,20 @@ public sealed class PlayerLoadoutApplicator :
             return;
         }
 
-        if (shotType.ShootingEnabled &&
-            shotType.BulletPrefab == null)
-        {
-            Debug.LogError(
-                $"Shot type {shotType.Id} has no " +
-                "Player Bullet prefab.",
-                shotType
-            );
+if (shotType.ShootingEnabled &&
+    shotType.UnfocusedPattern == null &&
+    shotType.BulletPrefab == null)
+{
+    Debug.LogError(
+        $"Shot type {shotType.Id} has neither " +
+        $"a shot pattern nor a legacy bullet.",
+        shotType
+    );
 
-            playerShooter.SetShootingEnabled(false);
-            enabled = false;
-            return;
-        }
+    playerShooter.SetShootingEnabled(false);
+    enabled = false;
+    return;
+}
 
         ApplyCharacter(character);
         ApplyShotType(shotType);
@@ -150,7 +157,16 @@ public sealed class PlayerLoadoutApplicator :
 
             return false;
         }
+if (playerOptionController == null)
+{
+    Debug.LogError(
+        "Player Loadout Applicator has no " +
+        "Player Option Controller.",
+        this
+    );
 
+    return false;
+}
         return true;
     }
 
@@ -170,17 +186,31 @@ public sealed class PlayerLoadoutApplicator :
         );
     }
 
-    private void ApplyShotType(
-        ShotTypeDefinition shotType
-    )
+private void ApplyShotType(
+    ShotTypeDefinition shotType
+)
+{
+    playerOptionController.Configure(
+        shotType.OptionFormation
+    );
+
+    if (shotType.UsesShotPatterns)
     {
         playerShooter.Configure(
-            shotType.BulletPrefab,
-            shotType.FireIntervalTicks,
+            shotType.UnfocusedPattern,
+            shotType.FocusedPattern,
             shotType.ShootingEnabled
         );
+
+        return;
     }
 
+    playerShooter.Configure(
+        shotType.BulletPrefab,
+        shotType.FireIntervalTicks,
+        shotType.ShootingEnabled
+    );
+}
     private static bool CharacterContainsShotType(
         CharacterDefinition character,
         ShotTypeDefinition shotType

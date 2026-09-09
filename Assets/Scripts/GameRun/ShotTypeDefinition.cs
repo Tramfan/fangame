@@ -7,6 +7,7 @@ using UnityEngine.Localization;
 )]
 public sealed class ShotTypeDefinition :
     ScriptableObject
+    
 {
     [SerializeField]
     private string id;
@@ -16,18 +17,40 @@ public sealed class ShotTypeDefinition :
 
     [Header("Gameplay")]
     [SerializeField]
+    private bool shootingEnabled = true;
+
+    [SerializeField]
+    private PlayerShotPatternDefinition
+        unfocusedPattern;
+
+    [SerializeField]
+    private PlayerShotPatternDefinition
+        focusedPattern;
+[Header("Options")]
+[SerializeField]
+private PlayerOptionFormationDefinition optionFormation;
+    [Header("Legacy Fallback")]
+    [SerializeField]
     private PlayerBullet bulletPrefab;
 
     [SerializeField, Min(1)]
     private int fireIntervalTicks = 6;
 
-    [SerializeField]
-    private bool shootingEnabled = true;
-
     public string Id => id;
 
     public LocalizedString DisplayName =>
         displayName;
+
+    public bool ShootingEnabled =>
+        shootingEnabled;
+
+    public PlayerShotPatternDefinition
+        UnfocusedPattern =>
+            unfocusedPattern;
+
+    public PlayerShotPatternDefinition
+        FocusedPattern =>
+            focusedPattern;
 
     public PlayerBullet BulletPrefab =>
         bulletPrefab;
@@ -35,6 +58,8 @@ public sealed class ShotTypeDefinition :
     public int FireIntervalTicks =>
         fireIntervalTicks;
 
-    public bool ShootingEnabled =>
-        shootingEnabled;
+    public bool UsesShotPatterns =>
+        unfocusedPattern != null;
+        public PlayerOptionFormationDefinition OptionFormation =>
+    optionFormation;
 }

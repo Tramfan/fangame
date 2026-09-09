@@ -640,6 +640,7 @@ GameObject:
   - component: {fileID: 305619752}
   - component: {fileID: 305619754}
   - component: {fileID: 305619755}
+  - component: {fileID: 305619756}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -820,8 +821,24 @@ MonoBehaviour:
   playerRenderer: {fileID: 305619749}
   playerController: {fileID: 305619748}
   playerShooter: {fileID: 714653873}
+  playerOptionController: {fileID: 0}
   fallbackCharacter: {fileID: 11400000, guid: fe42c21201aff6740905eec7e503e7f5, type: 2}
   fallbackShotType: {fileID: 11400000, guid: 1faee0ac9dee5eb4b883ca27656f64a5, type: 2}
+--- !u!114 &305619756
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305619747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d4b1a827950cd549bc1b3f3c7f46d59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerOptionController
+  inputSource: {fileID: 305619754}
+  playerPower: {fileID: 305619753}
+  optionRoot: {fileID: 0}
 --- !u!1 &350940473
 GameObject:
   m_ObjectHideFlags: 0
@@ -1712,9 +1729,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypePlayerShooter
   inputSource: {fileID: 0}
+  firePoint: {fileID: 714653872}
   bulletPrefab: {fileID: 8797406539021003959, guid: 812a39f8f4543694ca600f7c5cbdff2d,
     type: 3}
-  firePoint: {fileID: 714653872}
   fireIntervalTicks: 6
   shootingEnabled: 1
 --- !u!1 &780153131
