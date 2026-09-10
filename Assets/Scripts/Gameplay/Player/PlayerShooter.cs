@@ -10,6 +10,8 @@ public sealed class PlayerShooter : MonoBehaviour
     [SerializeField]
     private Transform firePoint;
 
+[SerializeField]
+private PlayerOptionController playerOptionController;
     [Header("Legacy Fallback")]
     [SerializeField]
     private PlayerBullet bulletPrefab;
@@ -31,24 +33,30 @@ private int patternFireTick;
     private bool focusHeld;
     private int legacyCooldownTicks;
 
-    private void Awake()
+  private void Awake()
+{
+    if (inputSource == null)
     {
-        if (inputSource == null)
-        {
-            inputSource =
-                GetComponentInParent<PlayerInputSource>();
-        }
-
-        if (inputSource == null)
-        {
-            Debug.LogError(
-                "Player Shooter has no Input Source.",
-                this
-            );
-
-            enabled = false;
-        }
+        inputSource =
+            GetComponentInParent<PlayerInputSource>();
     }
+
+    if (playerOptionController == null)
+    {
+        playerOptionController =
+            GetComponentInParent<PlayerOptionController>();
+    }
+
+    if (inputSource == null)
+    {
+        Debug.LogError(
+            "Player Shooter has no Input Source.",
+            this
+        );
+
+        enabled = false;
+    }
+}
 
     private void Update()
     {
@@ -156,10 +164,13 @@ private int patternFireTick;
             return false;
         }
 
-        Transform origin =
-            firePoint != null
-                ? firePoint
-                : transform;
+Transform origin =
+    ResolveEmitterOrigin(emitter);
+
+if (origin == null)
+{
+    return true;
+}
 
         Vector3 spawnPosition =
             origin.TransformPoint(
@@ -233,7 +244,28 @@ private int patternFireTick;
 
         return true;
     }
+private Transform ResolveEmitterOrigin(
+    PlayerShotPatternDefinition.Emitter emitter
+)
+{
+    if (emitter.OriginType ==
+        PlayerShotOriginType.Option)
+    {
+        if (playerOptionController == null)
+        {
+            return null;
+        }
 
+        return playerOptionController
+            .GetOptionTransform(
+                emitter.OptionIndex
+            );
+    }
+
+    return firePoint != null
+        ? firePoint
+        : transform;
+}
     private void FireLegacyTick()
     {
         if (legacyCooldownTicks > 0)

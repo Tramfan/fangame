@@ -25,6 +25,7 @@ MonoBehaviour:
   shootingEnabled: 1
   unfocusedPattern: {fileID: 11400000, guid: e00bdd26ecbd4664b97e9acb8bbfc013, type: 2}
   focusedPattern: {fileID: 0}
+  optionFormation: {fileID: 11400000, guid: 036ea5bd4b1a35f4f9640dabed83746a, type: 2}
   bulletPrefab: {fileID: 8797406539021003959, guid: 812a39f8f4543694ca600f7c5cbdff2d,
     type: 3}
   fireIntervalTicks: 6

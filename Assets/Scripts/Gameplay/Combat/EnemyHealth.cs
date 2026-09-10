@@ -31,7 +31,15 @@ public sealed class EnemyHealth :
     {
         maxHealth = Mathf.Max(1, maxHealth);
     }
+private void OnEnable()
+{
+    EnemyTargetRegistry.Register(this);
+}
 
+private void OnDisable()
+{
+    EnemyTargetRegistry.Unregister(this);
+}
     public void ResetHealth()
     {
         CurrentHealth = Mathf.Max(1, maxHealth);

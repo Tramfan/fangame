@@ -1,6 +1,12 @@
 using System;
 using UnityEngine;
 
+public enum PlayerShotOriginType : byte
+{
+    Player = 0,
+    Option = 1
+}
+
 [CreateAssetMenu(
     fileName = "PlayerShotPattern",
     menuName = "Fangame/Player Shot Pattern"
@@ -11,6 +17,19 @@ public sealed class PlayerShotPatternDefinition :
     [Serializable]
     public sealed class Emitter
     {
+        [Header("Origin")]
+        [SerializeField]
+        private PlayerShotOriginType originType =
+            PlayerShotOriginType.Player;
+
+        [Tooltip(
+            "Zero-based option index. " +
+            "Used only when Origin Type is Option."
+        )]
+        [SerializeField, Min(0)]
+        private int optionIndex;
+
+        [Header("Projectile")]
         [SerializeField]
         private GameObject projectilePrefab;
 
@@ -30,17 +49,25 @@ public sealed class PlayerShotPatternDefinition :
         [SerializeField, Min(0f)]
         private float spreadDegrees;
 
+        [Header("Timing")]
         [SerializeField, Min(1)]
         private int fireIntervalTicks = 6;
 
         [SerializeField, Min(0)]
         private int firstShotDelayTicks;
 
+        [Header("Projectile Values")]
         [SerializeField, Min(0f)]
         private float projectileSpeed = 12f;
 
         [SerializeField, Min(1)]
         private int projectileDamage = 1;
+
+        public PlayerShotOriginType OriginType =>
+            originType;
+
+        public int OptionIndex =>
+            optionIndex;
 
         public GameObject ProjectilePrefab =>
             projectilePrefab;
@@ -71,7 +98,9 @@ public sealed class PlayerShotPatternDefinition :
     }
 
     [SerializeField]
-    private Emitter[] emitters;
+    private Emitter[] emitters =
+        Array.Empty<Emitter>();
 
-    public Emitter[] Emitters => emitters;
+    public Emitter[] Emitters =>
+        emitters;
 }

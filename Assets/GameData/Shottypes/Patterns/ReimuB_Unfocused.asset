@@ -13,12 +13,74 @@ MonoBehaviour:
   m_Name: ReimuB_Unfocused
   m_EditorClassIdentifier: Assembly-CSharp::PlayerShotPatternDefinition
   emitters:
-  - projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+  - originType: 0
+    optionIndex: 0
+    projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+      type: 3}
+    localOffset: {x: -0.1, y: 0}
+    angleOffsetDegrees: 0
+    projectileCount: 1
+    spreadDegrees: 0
+    fireIntervalTicks: 6
+    firstShotDelayTicks: 0
+    projectileSpeed: 12
+    projectileDamage: 1
+  - originType: 0
+    optionIndex: 0
+    projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+      type: 3}
+    localOffset: {x: 0.1, y: 0}
+    angleOffsetDegrees: 0
+    projectileCount: 1
+    spreadDegrees: 0
+    fireIntervalTicks: 6
+    firstShotDelayTicks: 0
+    projectileSpeed: 12
+    projectileDamage: 1
+  - originType: 1
+    optionIndex: 0
+    projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
       type: 3}
     localOffset: {x: 0, y: 0}
-    angleOffsetDegrees: 0
-    projectileCount: 5
-    spreadDegrees: 40
+    angleOffsetDegrees: 7
+    projectileCount: 1
+    spreadDegrees: 0
+    fireIntervalTicks: 6
+    firstShotDelayTicks: 0
+    projectileSpeed: 12
+    projectileDamage: 1
+  - originType: 1
+    optionIndex: 1
+    projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+      type: 3}
+    localOffset: {x: 0, y: 0}
+    angleOffsetDegrees: -7
+    projectileCount: 1
+    spreadDegrees: 0
+    fireIntervalTicks: 6
+    firstShotDelayTicks: 0
+    projectileSpeed: 12
+    projectileDamage: 1
+  - originType: 1
+    optionIndex: 2
+    projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+      type: 3}
+    localOffset: {x: 0, y: 0}
+    angleOffsetDegrees: 18
+    projectileCount: 1
+    spreadDegrees: 0
+    fireIntervalTicks: 6
+    firstShotDelayTicks: 0
+    projectileSpeed: 12
+    projectileDamage: 1
+  - originType: 1
+    optionIndex: 3
+    projectilePrefab: {fileID: 7086399275050229656, guid: 812a39f8f4543694ca600f7c5cbdff2d,
+      type: 3}
+    localOffset: {x: 0, y: 0}
+    angleOffsetDegrees: -18
+    projectileCount: 1
+    spreadDegrees: 0
     fireIntervalTicks: 6
     firstShotDelayTicks: 0
     projectileSpeed: 12
