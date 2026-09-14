@@ -150,7 +150,7 @@ public sealed class BattleFlowController : MonoBehaviour
 
         Scene currentScene =
             SceneManager.GetActiveScene();
-
+GameRunContext.ResetScore();
         SceneManager.LoadScene(
             currentScene.buildIndex
         );

@@ -91,6 +91,10 @@ MonoBehaviour:
     m_Key: ui.difficulty.lunatic
     m_Metadata:
       m_Items: []
+  - m_Id: 14084760522006528
+    m_Key: autocollect_line
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

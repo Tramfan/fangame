@@ -5,7 +5,8 @@ public sealed class PlayerState : MonoBehaviour
 {
     [SerializeField]
     private BattleFlowController battleState;
-
+[SerializeField, Min(0)]
+private int scorePerGraze = 100;
     public event Action<int> GrazeChanged;
 
     public int GrazeCount { get; private set; }
@@ -35,6 +36,9 @@ public sealed class PlayerState : MonoBehaviour
             $"Graze: {GrazeCount}",
             this
         );
+        GameRunContext.AddScore(
+    scorePerGraze
+);
     }
 
     public void TakeHit()
@@ -52,4 +56,12 @@ public sealed class PlayerState : MonoBehaviour
             battleState.RestartBattle();
         }
     }
+    private void OnValidate()
+{
+    scorePerGraze =
+        Mathf.Max(
+            0,
+            scorePerGraze
+        );
+}
 }

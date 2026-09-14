@@ -7,7 +7,10 @@ public static class GameRunContext
         get;
         private set;
     }
-
+public static void ResetScore()
+{
+    SetScore(0);
+}
     public static GameDifficulty Difficulty
     {
         get;
@@ -42,8 +45,13 @@ public static class GameRunContext
     {
         get;
         private set;
-    }
+    }public static long CurrentScore
+{
+    get;
+    private set;
+}
 
+public static event Action<long> ScoreChanged;
     public static bool HasDifficulty
     {
         get;
@@ -69,8 +77,9 @@ public static class GameRunContext
 
     public static void BeginNewRun()
     {
+        
         Seed = CreateTimeSeed();
-
+ResetScore();
         Difficulty = GameDifficulty.Normal;
 
         ClearLoadout();
@@ -103,7 +112,39 @@ public static class GameRunContext
         HasCharacter = true;
         HasShotType = true;
     }
+public static void AddScore(long amount)
+{
+    if (amount <= 0)
+    {
+        return;
+    }
 
+    long newScore =
+        amount > long.MaxValue - CurrentScore
+            ? long.MaxValue
+            : CurrentScore + amount;
+
+    SetScore(newScore);
+}
+
+private static void SetScore(long newScore)
+{
+    newScore = Math.Max(
+        0,
+        newScore
+    );
+
+    if (newScore == CurrentScore)
+    {
+        return;
+    }
+
+    CurrentScore = newScore;
+
+    ScoreChanged?.Invoke(
+        CurrentScore
+    );
+}
     private static void ClearLoadout()
     {
         CharacterId = string.Empty;

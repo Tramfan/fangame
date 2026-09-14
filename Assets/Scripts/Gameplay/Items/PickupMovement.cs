@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Rigidbody2D))]
 public sealed class PickupMovement : MonoBehaviour
 {
+    private static readonly List<PickupMovement>
+        activePickups = new();
+
     [Header("Default Launch")]
     [SerializeField]
     private Vector2 defaultInitialVelocity =
@@ -19,17 +23,33 @@ public sealed class PickupMovement : MonoBehaviour
     [SerializeField, Min(0f)]
     private float horizontalDeceleration = 2f;
 
+    [Header("Attraction")]
+    [SerializeField, Min(0.1f)]
+    private float attractionSpeed = 12f;
+
+    [Header("Removal")]
     [SerializeField]
     private float removalY = -6f;
 
     private Rigidbody2D body;
     private Vector2 velocity;
+    private Transform attractionTarget;
+
+    [RuntimeInitializeOnLoadMethod(
+        RuntimeInitializeLoadType.SubsystemRegistration
+    )]
+    private static void ResetRegistry()
+    {
+        activePickups.Clear();
+    }
 
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
 
-        body.bodyType = RigidbodyType2D.Kinematic;
+        body.bodyType =
+            RigidbodyType2D.Kinematic;
+
         body.gravityScale = 0f;
         body.freezeRotation = true;
     }
@@ -37,36 +57,103 @@ public sealed class PickupMovement : MonoBehaviour
     private void OnEnable()
     {
         velocity = defaultInitialVelocity;
+        attractionTarget = null;
+
+        if (!activePickups.Contains(this))
+        {
+            activePickups.Add(this);
+        }
     }
 
-    public void Launch(Vector2 initialVelocity)
+    private void OnDisable()
+    {
+        activePickups.Remove(this);
+    }
+
+    public void Launch(
+        Vector2 initialVelocity
+    )
     {
         velocity = initialVelocity;
     }
 
+    public void AttractTo(
+        Transform target
+    )
+    {
+        if (target != null)
+        {
+            attractionTarget = target;
+        }
+    }
+
+    public static void AttractAllTo(
+        Transform target
+    )
+    {
+        if (target == null)
+        {
+            return;
+        }
+
+        for (int index =
+                 activePickups.Count - 1;
+             index >= 0;
+             index--)
+        {
+            PickupMovement pickup =
+                activePickups[index];
+
+            if (pickup == null)
+            {
+                activePickups.RemoveAt(index);
+                continue;
+            }
+
+            pickup.AttractTo(target);
+        }
+    }
+
     private void FixedUpdate()
     {
-        float deltaTime = Time.fixedDeltaTime;
+        float deltaTime =
+            Time.fixedDeltaTime;
 
-        velocity.x = Mathf.MoveTowards(
-            velocity.x,
-            0f,
-            horizontalDeceleration * deltaTime
-        );
+        if (attractionTarget != null)
+        {
+            Vector2 nextPosition =
+                Vector2.MoveTowards(
+                    body.position,
+                    attractionTarget.position,
+                    attractionSpeed * deltaTime
+                );
 
-        velocity.y = Mathf.Max(
-            velocity.y -
-            fallAcceleration * deltaTime,
-            -maximumFallSpeed
-        );
+            body.MovePosition(nextPosition);
+            return;
+        }
 
-        Vector2 nextPosition =
+        velocity.x =
+            Mathf.MoveTowards(
+                velocity.x,
+                0f,
+                horizontalDeceleration *
+                deltaTime
+            );
+
+        velocity.y =
+            Mathf.Max(
+                velocity.y -
+                fallAcceleration * deltaTime,
+                -maximumFallSpeed
+            );
+
+        Vector2 fallingPosition =
             body.position +
             velocity * deltaTime;
 
-        body.MovePosition(nextPosition);
+        body.MovePosition(fallingPosition);
 
-        if (nextPosition.y <= removalY)
+        if (fallingPosition.y <= removalY)
         {
             Destroy(gameObject);
         }
@@ -75,12 +162,27 @@ public sealed class PickupMovement : MonoBehaviour
     private void OnValidate()
     {
         fallAcceleration =
-            Mathf.Max(0f, fallAcceleration);
+            Mathf.Max(
+                0f,
+                fallAcceleration
+            );
 
         maximumFallSpeed =
-            Mathf.Max(0.1f, maximumFallSpeed);
+            Mathf.Max(
+                0.1f,
+                maximumFallSpeed
+            );
 
         horizontalDeceleration =
-            Mathf.Max(0f, horizontalDeceleration);
+            Mathf.Max(
+                0f,
+                horizontalDeceleration
+            );
+
+        attractionSpeed =
+            Mathf.Max(
+                0.1f,
+                attractionSpeed
+            );
     }
 }

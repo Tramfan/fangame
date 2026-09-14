@@ -96,6 +96,10 @@ MonoBehaviour:
     m_Localized: Lunatic
     m_Metadata:
       m_Items: []
+  - m_Id: 14084760522006528
+    m_Localized: AUTO-COLLECT LINE
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

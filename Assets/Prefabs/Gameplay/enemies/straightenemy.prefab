@@ -190,6 +190,9 @@ MonoBehaviour:
   - pickupPrefab: {fileID: 3659459172009174353, guid: e86858d51c7aed4459592c9291dd512d,
       type: 3}
     count: 5
+  - pickupPrefab: {fileID: 3659459172009174353, guid: 5dab3c64df7dca44d9996faeaf116b4f,
+      type: 3}
+    count: 5
   minimumLaunchSpeed: 1.4
   maximumLaunchSpeed: 2.2
   spreadAngle: 100

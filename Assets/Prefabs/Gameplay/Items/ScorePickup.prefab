@@ -12,10 +12,10 @@ GameObject:
   - component: {fileID: 4958915389547653710}
   - component: {fileID: 5204484901050472558}
   - component: {fileID: 3295768681480869124}
-  - component: {fileID: 7601998958073524399}
   - component: {fileID: 3659459172009174353}
+  - component: {fileID: 5265067086854376973}
   m_Layer: 0
-  m_Name: PowerPickup
+  m_Name: ScorePickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7027316152575803653, guid: 042143141caeb054e9c228a9b82a3460,
+  m_Sprite: {fileID: 7844678153481922334, guid: 042143141caeb054e9c228a9b82a3460,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -133,8 +133,8 @@ BoxCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    border: {x: 0, y: 0, z: 0.01, w: 0}
+    pivot: {x: 0.49410832, y: 0.5117826}
     oldSize: {x: 0.14, y: 0.14}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
@@ -170,19 +170,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &7601998958073524399
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3077528629347086688}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4818943722d36e44c819d47a59b273fa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PowerPickup
-  powerAmount: 25
 --- !u!114 &3659459172009174353
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -200,3 +187,19 @@ MonoBehaviour:
   maximumFallSpeed: 3
   horizontalDeceleration: 2
   removalY: -6
+--- !u!114 &5265067086854376973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3077528629347086688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fad9d5da6438054aa52c78b6eada5f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScorePickup
+  minimumValue: 100
+  maximumValue: 1000
+  maximumValueViewportY: 0.8
+  valueStep: 10
