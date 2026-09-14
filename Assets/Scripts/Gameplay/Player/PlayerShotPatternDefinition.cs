@@ -6,7 +6,11 @@ public enum PlayerShotOriginType : byte
     Player = 0,
     Option = 1
 }
-
+public enum PlayerShotFireMode : byte
+{
+    Repeated = 0,
+    Continuous = 1
+}
 [CreateAssetMenu(
     fileName = "PlayerShotPattern",
     menuName = "Fangame/Player Shot Pattern"
@@ -28,7 +32,11 @@ public sealed class PlayerShotPatternDefinition :
         )]
         [SerializeField, Min(0)]
         private int optionIndex;
+[Header("Firing")]
+[SerializeField]
 
+private PlayerShotFireMode fireMode =
+    PlayerShotFireMode.Repeated;
         [Header("Projectile")]
         [SerializeField]
         private GameObject projectilePrefab;
@@ -68,7 +76,8 @@ public sealed class PlayerShotPatternDefinition :
 
         public int OptionIndex =>
             optionIndex;
-
+public PlayerShotFireMode FireMode =>
+    fireMode;
         public GameObject ProjectilePrefab =>
             projectilePrefab;
 

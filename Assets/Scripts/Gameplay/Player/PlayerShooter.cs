@@ -1,4 +1,4 @@
-
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -27,7 +27,10 @@ private PlayerOptionController playerOptionController;
     private PlayerShotPatternDefinition activePattern;
 
 private int patternFireTick;
-
+private readonly Dictionary<
+    PlayerShotPatternDefinition.Emitter,
+    GameObject
+> activeContinuousProjectiles = new();
     private bool usesPattern;
     private bool shootHeld;
     private bool focusHeld;
@@ -79,6 +82,7 @@ private int patternFireTick;
         if (!shootHeld)
         {
             ResetFiringState();
+            
             return;
         }
 
@@ -107,10 +111,11 @@ private int patternFireTick;
         SetActivePattern(wantedPattern);
     }
 
-    private void SetActivePattern(
+   private void SetActivePattern(
     PlayerShotPatternDefinition pattern
 )
 {
+    ClearContinuousProjectiles();
     activePattern = pattern;
 }
 
@@ -128,9 +133,24 @@ private int patternFireTick;
         PlayerShotPatternDefinition.Emitter emitter =
             emitters[index];
 
-        if (emitter == null) continue;
+      if (emitter == null)
+{
+    continue;
+}
 
-        int firstShotTick = emitter.FirstShotDelayTicks;
+if (emitter.FireMode ==
+    PlayerShotFireMode.Continuous)
+{
+    if (!MaintainContinuousEmitter(emitter))
+    {
+        return;
+    }
+
+    continue;
+}
+
+int firstShotTick =
+    emitter.FirstShotDelayTicks;
         int interval = Mathf.Max(
             1,
             emitter.FireIntervalTicks
@@ -266,6 +286,145 @@ private Transform ResolveEmitterOrigin(
         ? firePoint
         : transform;
 }
+private bool MaintainContinuousEmitter(
+    PlayerShotPatternDefinition.Emitter emitter
+)
+{
+    Transform origin =
+        ResolveEmitterOrigin(emitter);
+
+    if (origin == null)
+    {
+        StopContinuousEmitter(emitter);
+        return true;
+    }
+
+    if (activeContinuousProjectiles.TryGetValue(
+            emitter,
+            out GameObject existingProjectile))
+    {
+        if (existingProjectile != null)
+        {
+            return true;
+        }
+
+        activeContinuousProjectiles.Remove(
+            emitter
+        );
+    }
+
+    if (emitter.ProjectilePrefab == null)
+    {
+        Debug.LogError(
+            "Continuous player shot emitter has no " +
+            "projectile prefab.",
+            activePattern
+        );
+
+        SetShootingEnabled(false);
+        return false;
+    }
+
+    Vector3 spawnPosition =
+        origin.TransformPoint(
+            emitter.LocalOffset
+        );
+
+    Vector2 localDirection =
+        RotateVector(
+            Vector2.up,
+            emitter.AngleOffsetDegrees
+        );
+
+    Vector2 worldDirection =
+        origin.TransformDirection(
+            localDirection
+        );
+
+    GameObject projectileObject =
+        Instantiate(
+            emitter.ProjectilePrefab,
+            spawnPosition,
+            Quaternion.identity
+        );
+
+    IPlayerProjectile projectile =
+        projectileObject
+            .GetComponent<IPlayerProjectile>();
+
+    IOriginBoundPlayerProjectile originBound =
+        projectileObject
+            .GetComponent<
+                IOriginBoundPlayerProjectile
+            >();
+
+    if (projectile == null ||
+        originBound == null)
+    {
+        Debug.LogError(
+            $"Continuous projectile prefab " +
+            $"{emitter.ProjectilePrefab.name} must " +
+            $"implement {nameof(IPlayerProjectile)} " +
+            $"and " +
+            $"{nameof(IOriginBoundPlayerProjectile)}.",
+            emitter.ProjectilePrefab
+        );
+
+        Destroy(projectileObject);
+        SetShootingEnabled(false);
+        return false;
+    }
+
+    originBound.BindOrigin(origin);
+
+    projectile.Initialize(
+        worldDirection,
+        emitter.ProjectileSpeed,
+        emitter.ProjectileDamage
+    );
+
+    activeContinuousProjectiles.Add(
+        emitter,
+        projectileObject
+    );
+
+    return true;
+}
+
+private void StopContinuousEmitter(
+    PlayerShotPatternDefinition.Emitter emitter
+)
+{
+    if (!activeContinuousProjectiles.TryGetValue(
+            emitter,
+            out GameObject projectileObject))
+    {
+        return;
+    }
+
+    if (projectileObject != null)
+    {
+        Destroy(projectileObject);
+    }
+
+    activeContinuousProjectiles.Remove(
+        emitter
+    );
+}
+
+private void ClearContinuousProjectiles()
+{
+    foreach (GameObject projectileObject
+             in activeContinuousProjectiles.Values)
+    {
+        if (projectileObject != null)
+        {
+            Destroy(projectileObject);
+        }
+    }
+
+    activeContinuousProjectiles.Clear();
+}
     private void FireLegacyTick()
     {
         if (legacyCooldownTicks > 0)
@@ -306,6 +465,8 @@ private Transform ResolveEmitterOrigin(
 
  private void ResetFiringState()
 {
+    ClearContinuousProjectiles();
+
     legacyCooldownTicks = 0;
     patternFireTick = 0;
     activePattern = null;

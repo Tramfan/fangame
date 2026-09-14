@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad56a3f877af29041bb42c8eb0850a39, type: 3}
+  m_Name: MarisaA_OptionFormation
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerOptionFormationDefinition
+  optionPrefab: {fileID: 7086399275050229656, guid: 3a78224f52dd5a54982126df04e44ba6,
+    type: 3}
+  movementSpeed: 4
+  powerTiers:
+  - minimumPower: 0
+    options: []
+  - minimumPower: 50
+    options:
+    - unfocusedPosition: {x: -0.65, y: -0.1}
+      focusedPosition: {x: -0.28, y: 0.05}
+    - unfocusedPosition: {x: 0.65, y: -0.1}
+      focusedPosition: {x: 0.28, y: 0.05}
+  - minimumPower: 100
+    options:
+    - unfocusedPosition: {x: -0.45, y: -0.05}
+      focusedPosition: {x: -0.16, y: 0.1}
+    - unfocusedPosition: {x: 0.45, y: -0.05}
+      focusedPosition: {x: 0.16, y: 0.1}
+    - unfocusedPosition: {x: -0.95, y: -0.25}
+      focusedPosition: {x: -0.4, y: -0.05}
+    - unfocusedPosition: {x: 0.95, y: -0.25}
+      focusedPosition: {x: 0.4, y: -0.05}

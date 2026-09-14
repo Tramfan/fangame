@@ -1730,6 +1730,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PrototypePlayerShooter
   inputSource: {fileID: 0}
   firePoint: {fileID: 714653872}
+  playerOptionController: {fileID: 0}
   bulletPrefab: {fileID: 8797406539021003959, guid: 812a39f8f4543694ca600f7c5cbdff2d,
     type: 3}
   fireIntervalTicks: 6
