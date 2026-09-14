@@ -32,10 +32,6 @@ private int scorePerGraze = 100;
 
         GrazeChanged?.Invoke(GrazeCount);
 
-        Debug.Log(
-            $"Graze: {GrazeCount}",
-            this
-        );
         GameRunContext.AddScore(
     scorePerGraze
 );
