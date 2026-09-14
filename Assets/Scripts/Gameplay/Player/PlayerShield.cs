@@ -1,5 +1,5 @@
 using UnityEngine;
-
+[DefaultExecutionOrder(-900)]
 [DisallowMultipleComponent]
 public sealed class PlayerShield : MonoBehaviour
 {
@@ -73,7 +73,7 @@ public sealed class PlayerShield : MonoBehaviour
         SetShieldActive(false);
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         bool shouldBeActive =
             inputSource.ShieldHeld &&

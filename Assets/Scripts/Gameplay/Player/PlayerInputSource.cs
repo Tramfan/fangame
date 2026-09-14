@@ -33,6 +33,18 @@ public sealed class PlayerInputSource : MonoBehaviour
     [SerializeField]
     private KeyCode shieldKey = KeyCode.X;
 
+private PlayerInputButtons pendingLiveButtons;
+
+public int SimulationTick
+{
+    get;
+    private set;
+}
+
+public event Action<
+    int,
+    PlayerInputButtons
+> InputTickCaptured;
     public PlayerInputButtons CurrentButtons
     {
         get;
@@ -95,14 +107,34 @@ public sealed class PlayerInputSource : MonoBehaviour
             return;
         }
 
-        CurrentButtons = ReadLiveInput();
+        pendingLiveButtons =
+    ReadLiveInput();
     }
-
-    private void OnDisable()
+private void FixedUpdate()
+{
+    if (!IsReplayInput)
     {
         CurrentButtons =
-            PlayerInputButtons.None;
+            pendingLiveButtons;
     }
+
+    InputTickCaptured?.Invoke(
+        SimulationTick,
+        CurrentButtons
+    );
+
+    SimulationTick++;
+}
+    private void OnDisable()
+{
+    pendingLiveButtons =
+        PlayerInputButtons.None;
+
+    CurrentButtons =
+        PlayerInputButtons.None;
+
+    SimulationTick = 0;
+}
 
     public bool IsHeld(
         PlayerInputButtons button
@@ -121,12 +153,15 @@ public sealed class PlayerInputSource : MonoBehaviour
     }
 
     public void StopReplayInput()
-    {
-        IsReplayInput = false;
-        CurrentButtons =
-            PlayerInputButtons.None;
-    }
+{
+    IsReplayInput = false;
 
+    pendingLiveButtons =
+        PlayerInputButtons.None;
+
+    CurrentButtons =
+        PlayerInputButtons.None;
+}
     private PlayerInputButtons ReadLiveInput()
     {
         PlayerInputButtons buttons =

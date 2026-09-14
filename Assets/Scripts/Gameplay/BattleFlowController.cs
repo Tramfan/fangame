@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using System;
 public enum BattleResult
 {
     Running,
@@ -39,7 +39,8 @@ public sealed class BattleFlowController : MonoBehaviour
         get;
         private set;
     }
-
+public event Action<BattleResult>
+    ResultChanged;
     public bool IsRunning =>
         Result == BattleResult.Running;
 
@@ -85,25 +86,30 @@ public sealed class BattleFlowController : MonoBehaviour
         }
     }
 
-    private void Update()
+   private void Update()
+{
+    if (Result == BattleResult.Running)
     {
-        if (Result == BattleResult.Running)
-        {
-            return;
-        }
-
-        if (Input.GetKeyDown(restartKey))
-        {
-            RestartBattle();
-            return;
-        }
-
-        if (Input.GetKeyDown(returnToMenuKey))
-        {
-            ReturnToMainMenu();
-        }
+        return;
     }
 
+    if (Input.GetKeyDown(KeyCode.P))
+    {
+        ReplayLatestRecording();
+        return;
+    }
+
+    if (Input.GetKeyDown(restartKey))
+    {
+        RestartBattle();
+        return;
+    }
+
+    if (Input.GetKeyDown(returnToMenuKey))
+    {
+        ReturnToMainMenu();
+    }
+}
     public void Defeat()
     {
         if (Result != BattleResult.Running)
@@ -112,7 +118,7 @@ public sealed class BattleFlowController : MonoBehaviour
         }
 
         Result = BattleResult.Defeated;
-
+ResultChanged?.Invoke(Result);
         if (gameOverRoot != null)
         {
             gameOverRoot.SetActive(true);
@@ -133,7 +139,7 @@ public sealed class BattleFlowController : MonoBehaviour
         }
 
         Result = BattleResult.Cleared;
-
+ResultChanged?.Invoke(Result);
         if (stageClearRoot != null)
         {
             stageClearRoot.SetActive(true);
@@ -155,9 +161,41 @@ GameRunContext.ResetScore();
             currentScene.buildIndex
         );
     }
+private void ReplayLatestRecording()
 
-    public void ReturnToMainMenu()
+{
+    
+    if (!ReplayRuntimeContext.TryBeginLatestPlayback())
     {
+        Debug.LogWarning(
+            "There is no completed replay to play.",
+            this
+        );
+
+        return;
+    }
+
+    ReplayRunData replay =
+        ReplayRuntimeContext.ActivePlayback;
+
+    GameplayRandom.SetSeedForNextRun(
+        replay.Seed
+    );
+
+    GameRunContext.ResetScore();
+    Time.timeScale = 1f;
+
+    Scene currentScene =
+        SceneManager.GetActiveScene();
+
+    SceneManager.LoadScene(
+        currentScene.buildIndex
+    );
+}
+    public void ReturnToMainMenu()
+    
+    {
+        ReplayRuntimeContext.StopPlayback();
         if (string.IsNullOrWhiteSpace(
                 mainMenuSceneName))
         {

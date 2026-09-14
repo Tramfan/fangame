@@ -793,6 +793,8 @@ GameObject:
   - component: {fileID: 305619755}
   - component: {fileID: 305619756}
   - component: {fileID: 305619757}
+  - component: {fileID: 305619758}
+  - component: {fileID: 305619759}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1006,6 +1008,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAutoCollect
   collectionLineViewportY: 0.8
   attractionTarget: {fileID: 0}
+--- !u!114 &305619758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305619747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5245135bd349a1649ad8f5d761a1afd1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReplayRecorder
+  inputSource: {fileID: 0}
+  battleFlow: {fileID: 870805359}
+--- !u!114 &305619759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305619747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03acf75174563b04d9b2695a658048f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReplayPlayer
+  inputSource: {fileID: 0}
+  battleFlow: {fileID: 870805359}
 --- !u!1 &350940473
 GameObject:
   m_ObjectHideFlags: 0

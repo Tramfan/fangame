@@ -61,24 +61,17 @@ private readonly Dictionary<
     }
 }
 
-    private void Update()
-    {
-        if (inputSource == null)
-        {
-            shootHeld = false;
-            focusHeld = false;
-            return;
-        }
-
-        shootHeld =
-            shootingEnabled &&
-            inputSource.ShootHeld;
-
-        focusHeld = inputSource.FocusHeld;
-    }
-
+   
     private void FixedUpdate()
     {
+        shootHeld =
+    inputSource != null &&
+    shootingEnabled &&
+    inputSource.ShootHeld;
+
+focusHeld =
+    inputSource != null &&
+    inputSource.FocusHeld;
         if (!shootHeld)
         {
             ResetFiringState();

@@ -5,7 +5,7 @@ public enum BulletOwner
     Enemy,
     Player
 }
-
+[DefaultExecutionOrder(-800)]
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
 public sealed class Bullet : MonoBehaviour
@@ -47,7 +47,8 @@ public sealed class Bullet : MonoBehaviour
 
     private bool hasGrantedGraze;
     private bool hasHitPlayer;
-
+private bool wasInsideGrazeArea;
+private bool ignoreGrazeUntilExit;
     private bool isTurning;
     private float turnSign;
     private float turnDegreesRemaining;
@@ -83,7 +84,17 @@ public sealed class Bullet : MonoBehaviour
 
         hasGrantedGraze = false;
         hasHitPlayer = false;
+PlayerArea grazeArea =
+    PlayerArea.GrazeArea;
 
+wasInsideGrazeArea =
+    grazeArea != null &&
+    grazeArea.ContainsPoint(
+        transform.position
+    );
+
+ignoreGrazeUntilExit =
+    wasInsideGrazeArea;
         isTurning = false;
         turnSign = 0f;
         turnDegreesRemaining = 0f;
@@ -97,6 +108,7 @@ public sealed class Bullet : MonoBehaviour
 
     private void FixedUpdate()
     {
+        UpdateGrazeState(body.position);
         Vector2 nextPosition;
 
         if (isTurning)
@@ -172,113 +184,128 @@ public sealed class Bullet : MonoBehaviour
         ReturnToPool();
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+   private void UpdateGrazeState(
+    Vector2 bulletPosition
+)
+{
+    if (owner != BulletOwner.Enemy ||
+        hasHitPlayer)
     {
-        if (owner != BulletOwner.Enemy ||
-            hasHitPlayer ||
-            !hasGrantedGraze)
-        {
-            return;
-        }
-
-        PlayerArea playerArea =
-            other.GetComponent<PlayerArea>();
-
-        if (playerArea == null ||
-            playerArea.AreaType !=
-                PlayerAreaType.Graze)
-        {
-            return;
-        }
-
-        PlayerShield playerShield =
-            other.GetComponentInParent<PlayerShield>();
-
-        if (playerShield != null &&
-            playerShield.IsActive)
-        {
-            return;
-        }
-
-        Reflect(playerArea.transform.position);
+        return;
     }
 
-    private void HandlePlayerAreaEnter(
-        PlayerArea playerArea,
-        Collider2D other
-    )
+    PlayerArea grazeArea =
+        PlayerArea.GrazeArea;
+
+    if (grazeArea == null)
     {
-        if (owner != BulletOwner.Enemy)
+        wasInsideGrazeArea = false;
+        ignoreGrazeUntilExit = false;
+        return;
+    }
+
+    bool isInside =
+        grazeArea.ContainsPoint(
+            bulletPosition
+        );
+
+    PlayerShield playerShield =
+        grazeArea.GetComponentInParent<
+            PlayerShield
+        >();
+
+    bool shieldActive =
+        playerShield != null &&
+        playerShield.IsActive;
+
+    if (isInside && !wasInsideGrazeArea)
+    {
+        if (!ignoreGrazeUntilExit &&
+            !hasGrantedGraze &&
+            !shieldActive)
         {
-            return;
-        }
-
-        PlayerShield playerShield =
-            other.GetComponentInParent<PlayerShield>();
-
-        // Пока щит активен, попадания в другие
-        // зоны игрока не обрабатываются.
-        if (playerShield != null &&
-            playerShield.IsActive)
-        {
-            return;
-        }
-
-        if (playerArea.AreaType ==
-            PlayerAreaType.Hitbox)
-        {
-            hasHitPlayer = true;
-
             PlayerState playerState =
-                other.GetComponentInParent<PlayerState>();
+                grazeArea.GetComponentInParent<
+                    PlayerState
+                >();
 
-            if (playerState != null)
-            {
-                playerState.TakeHit();
-            }
+if (playerState != null)
+{
+    hasGrantedGraze = true;
+    playerState.RegisterGraze();
+}
             else
             {
                 Debug.LogError(
                     "Player has no PlayerState.",
-                    other
+                    grazeArea
                 );
             }
-
-            ReturnToPool();
-            return;
         }
-
-        // Пуля, созданная уже внутри зоны ухилення,
-        // не считается честно пойманной.
-        if (source != null &&
-            other.OverlapPoint(
-                (Vector2)source.position
-            ))
-        {
-            return;
-        }
-
-        if (hasGrantedGraze)
-        {
-            return;
-        }
-
-        PlayerState grazeReceiver =
-            other.GetComponentInParent<PlayerState>();
-
-        if (grazeReceiver == null)
-        {
-            Debug.LogError(
-                "Player has no PlayerState.",
-                other
-            );
-
-            return;
-        }
-
-        hasGrantedGraze = true;
-        grazeReceiver.RegisterGraze();
     }
+    else if (!isInside &&
+             wasInsideGrazeArea)
+    {
+        if (ignoreGrazeUntilExit)
+        {
+            ignoreGrazeUntilExit = false;
+        }
+        else if (hasGrantedGraze &&
+                 !shieldActive)
+        {
+            Reflect(grazeArea.Center);
+        }
+    }
+
+    wasInsideGrazeArea = isInside;
+}
+
+    private void HandlePlayerAreaEnter(
+    PlayerArea playerArea,
+    Collider2D other
+)
+{
+    if (owner != BulletOwner.Enemy)
+    {
+        return;
+    }
+
+    PlayerShield playerShield =
+        other.GetComponentInParent<PlayerShield>();
+
+    // Пока щит активен, попадания в другие
+    // зоны игрока не обрабатываются.
+    if (playerShield != null &&
+        playerShield.IsActive)
+    {
+        return;
+    }
+
+    if (playerArea.AreaType !=
+        PlayerAreaType.Hitbox)
+    {
+        return;
+    }
+
+    hasHitPlayer = true;
+
+    PlayerState playerState =
+        other.GetComponentInParent<PlayerState>();
+
+    if (playerState != null)
+    {
+        playerState.TakeHit();
+    }
+    else
+    {
+        Debug.LogError(
+            "Player has no PlayerState.",
+            other
+        );
+    }
+
+    ReturnToPool();
+}
 
     private void Reflect(Vector2 playerCenter)
     {

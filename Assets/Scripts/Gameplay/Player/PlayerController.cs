@@ -1,5 +1,5 @@
 using UnityEngine;
-
+[DefaultExecutionOrder(-900)]
 [DisallowMultipleComponent]
 public sealed class PlayerController : MonoBehaviour
 {
