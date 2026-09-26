@@ -89,10 +89,9 @@ public sealed class ReplayRecorder :
                 HandleBattleResultChanged;
         }
 
-        if (IsRecording)
-        {
-            FinishRecording(false);
-        }
+     // При уходе со сцены незавершённый бой
+// не становится готовым реплеем.
+IsRecording = false;
     }
 
     private void HandleInputTickCaptured(

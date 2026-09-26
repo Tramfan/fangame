@@ -36,6 +36,7 @@ public sealed class Bullet : MonoBehaviour
     private int shieldPowerCost = 1;
 
     private Rigidbody2D body;
+    private CircleCollider2D bulletCollider;
     private SpriteRenderer spriteRenderer;
     private BulletPool pool;
 
@@ -56,6 +57,7 @@ private bool ignoreGrazeUntilExit;
 
     private void Awake()
     {
+        bulletCollider = GetComponent<CircleCollider2D>();
         body = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
@@ -89,9 +91,10 @@ PlayerArea grazeArea =
 
 wasInsideGrazeArea =
     grazeArea != null &&
-    grazeArea.ContainsPoint(
-        transform.position
-    );
+  grazeArea.OverlapsCircle(
+    GetBulletCenter(transform.position),
+    GetBulletWorldRadius()
+);
 
 ignoreGrazeUntilExit =
     wasInsideGrazeArea;
@@ -205,9 +208,10 @@ ignoreGrazeUntilExit =
     }
 
     bool isInside =
-        grazeArea.ContainsPoint(
-            bulletPosition
-        );
+        grazeArea.OverlapsCircle(
+    GetBulletCenter(bulletPosition),
+    GetBulletWorldRadius()
+);
 
     PlayerShield playerShield =
         grazeArea.GetComponentInParent<
@@ -306,7 +310,25 @@ if (playerState != null)
 
     ReturnToPool();
 }
+private Vector2 GetBulletCenter(Vector2 position)
+{
+    return position +
+        (Vector2)transform.TransformVector(
+            bulletCollider.offset
+        );
+}
 
+private float GetBulletWorldRadius()
+{
+    Vector3 scale = transform.lossyScale;
+
+    float largestScale = Mathf.Max(
+        Mathf.Abs(scale.x),
+        Mathf.Abs(scale.y)
+    );
+
+    return bulletCollider.radius * largestScale;
+}
     private void Reflect(Vector2 playerCenter)
     {
         owner = BulletOwner.Player;

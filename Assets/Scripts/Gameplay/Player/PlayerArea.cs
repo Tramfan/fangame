@@ -78,4 +78,18 @@ public sealed class PlayerArea : MonoBehaviour
             offset.sqrMagnitude <=
             radius * radius;
     }
+    public bool OverlapsCircle(
+    Vector2 worldCenter,
+    float worldRadius
+)
+{
+    Vector2 offset =
+        worldCenter - Center;
+
+    float combinedRadius =
+        WorldRadius + Mathf.Max(0f, worldRadius);
+
+    return offset.sqrMagnitude <=
+        combinedRadius * combinedRadius;
+}
 }
