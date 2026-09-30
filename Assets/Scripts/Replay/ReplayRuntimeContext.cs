@@ -42,8 +42,23 @@ public static class ReplayRuntimeContext
 
     public static bool TryBeginLatestPlayback()
     {
-        if (LatestRecording == null ||
-            !LatestRecording.Finished ||
+        if (LatestRecording == null)
+        {
+            if (!ReplayFileStorage.TryLoadLatest(
+                    out ReplayRunData loadedReplay,
+                    out string loadedPath))
+            {
+                return false;
+            }
+
+            LatestRecording = loadedReplay;
+
+            Debug.Log(
+                $"Replay loaded: {loadedPath}"
+            );
+        }
+
+        if (!LatestRecording.Finished ||
             LatestRecording.TickCount == 0)
         {
             return false;

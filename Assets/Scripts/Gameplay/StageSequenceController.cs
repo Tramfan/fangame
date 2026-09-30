@@ -17,6 +17,7 @@ public sealed class StageSequenceController : MonoBehaviour
 
     private int ticksUntilBoss;
     private bool waitingForBoss;
+    private BossPhaseController boss;
 
     private void Awake()
     {
@@ -50,7 +51,26 @@ public sealed class StageSequenceController : MonoBehaviour
             );
 
             enabled = false;
+            return;
         }
+
+        boss = bossRoot.GetComponentInChildren<
+            BossPhaseController
+        >(true);
+
+        if (boss == null)
+        {
+            Debug.LogError(
+                "Boss root has no Boss Phase Controller.",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        boss.PrepareEncounter();
+        bossRoot.SetActive(false);
     }
 
     private void OnEnable()
@@ -69,7 +89,6 @@ public sealed class StageSequenceController : MonoBehaviour
             return;
         }
 
-        bossRoot.SetActive(false);
         openingWave.gameObject.SetActive(true);
 
         Debug.Log(
@@ -125,6 +144,7 @@ public sealed class StageSequenceController : MonoBehaviour
 
     private void StartBoss()
     {
+        boss.PrepareEncounter();
         waitingForBoss = false;
         bossRoot.SetActive(true);
 

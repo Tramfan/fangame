@@ -57,10 +57,11 @@ public sealed class ReplayRecorder :
     private void OnEnable()
     {
         if (ReplayRuntimeContext.IsPlaybackActive)
-{
-    enabled = false;
-    return;
-}
+        {
+            enabled = false;
+            return;
+        }
+
         Recording =
             new ReplayRunData();
 
@@ -89,9 +90,9 @@ public sealed class ReplayRecorder :
                 HandleBattleResultChanged;
         }
 
-     // При уходе со сцены незавершённый бой
-// не становится готовым реплеем.
-IsRecording = false;
+        // При уходе со сцены незавершённый бой
+        // не становится готовым реплеем.
+        CancelRecording();
     }
 
     private void HandleInputTickCaptured(
@@ -114,7 +115,7 @@ IsRecording = false;
                 this
             );
 
-            FinishRecording(false);
+            CancelRecording();
             return;
         }
 
@@ -128,7 +129,17 @@ IsRecording = false;
         FinishRecording(
             result == BattleResult.Cleared
         );
-        
+    }
+
+    private void CancelRecording()
+    {
+        if (!IsRecording)
+        {
+            return;
+        }
+
+        IsRecording = false;
+        Recording = null;
     }
 
     private void FinishRecording(
@@ -146,9 +157,21 @@ IsRecording = false;
             cleared,
             GameRunContext.CurrentScore
         );
-ReplayRuntimeContext.StoreRecording(
-    Recording
-);
+
+        ReplayRuntimeContext.StoreRecording(
+            Recording
+        );
+
+        if (ReplayFileStorage.TrySave(
+                Recording,
+                out string savedPath))
+        {
+            Debug.Log(
+                $"Replay saved: {savedPath}",
+                this
+            );
+        }
+
         Debug.Log(
             $"Replay recorded: " +
             $"{Recording.TickCount} ticks, " +

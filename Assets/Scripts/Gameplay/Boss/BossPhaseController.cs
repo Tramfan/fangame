@@ -72,6 +72,11 @@ public event Action<BossPhaseController> Completed;
         DisableAllAttacks();
     }
 
+    public void PrepareEncounter()
+    {
+        DisableAllAttacks();
+    }
+
     private void OnEnable()
     {
         health.Died += HandleDeath;

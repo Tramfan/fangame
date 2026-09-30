@@ -177,3 +177,5 @@ MonoBehaviour:
   reflectedSpeedMultiplier: 6
   reflectedDamage: 1
   reflectedColor: {r: 1, g: 0.7383354, b: 0.25098038, a: 1}
+  shieldPowerCost: 1
+  logGrazeDiagnostics: 1

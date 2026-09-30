@@ -35,6 +35,10 @@ public sealed class Bullet : MonoBehaviour
     [SerializeField, Min(1)]
     private int shieldPowerCost = 1;
 
+    [Header("Diagnostics")]
+    [SerializeField]
+    private bool logGrazeDiagnostics;
+
     private Rigidbody2D body;
     private CircleCollider2D bulletCollider;
     private SpriteRenderer spriteRenderer;
@@ -43,13 +47,17 @@ public sealed class Bullet : MonoBehaviour
     private Color originalColor = Color.white;
     private Vector2 direction = Vector2.down;
     private Transform source;
+    private int spawnTick;
+    private Vector2 spawnPosition;
+    private Vector2 spawnDirection;
+    private string spawnSourceName;
 
     private BulletOwner owner = BulletOwner.Enemy;
 
     private bool hasGrantedGraze;
     private bool hasHitPlayer;
-private bool wasInsideGrazeArea;
-private bool ignoreGrazeUntilExit;
+    private bool wasInsideGrazeArea;
+    private bool ignoreGrazeUntilExit;
     private bool isTurning;
     private float turnSign;
     private float turnDegreesRemaining;
@@ -82,22 +90,36 @@ private bool ignoreGrazeUntilExit;
         speed = movementSpeed;
         source = bulletSource;
 
+        PlayerArea grazeArea = PlayerArea.GrazeArea;
+        PlayerInputSource inputSource =
+            grazeArea != null
+                ? grazeArea.GetComponentInParent<
+                    PlayerInputSource
+                >()
+                : null;
+
+        spawnTick = inputSource != null
+            ? inputSource.SimulationTick - 1
+            : -1;
+        spawnPosition = transform.position;
+        spawnDirection = direction;
+        spawnSourceName = bulletSource != null
+            ? bulletSource.name
+            : "(none)";
+
         owner = BulletOwner.Enemy;
 
         hasGrantedGraze = false;
         hasHitPlayer = false;
-PlayerArea grazeArea =
-    PlayerArea.GrazeArea;
+        wasInsideGrazeArea =
+            grazeArea != null &&
+            grazeArea.OverlapsCircle(
+                GetBulletCenter(transform.position),
+                GetBulletWorldRadius()
+            );
 
-wasInsideGrazeArea =
-    grazeArea != null &&
-  grazeArea.OverlapsCircle(
-    GetBulletCenter(transform.position),
-    GetBulletWorldRadius()
-);
-
-ignoreGrazeUntilExit =
-    wasInsideGrazeArea;
+        ignoreGrazeUntilExit =
+            wasInsideGrazeArea;
         isTurning = false;
         turnSign = 0f;
         turnDegreesRemaining = 0f;
@@ -106,6 +128,29 @@ ignoreGrazeUntilExit =
         if (spriteRenderer != null)
         {
             spriteRenderer.color = originalColor;
+        }
+
+        if (logGrazeDiagnostics &&
+            spawnSourceName == "Boss")
+        {
+            string runKind =
+                inputSource != null &&
+                inputSource.IsReplayInput
+                    ? "REPLAY"
+                    : "LIVE";
+
+            Debug.Log(
+                $"SpawnTrace {runKind}; " +
+                $"tick {spawnTick}; " +
+                $"bullet {transform.GetSiblingIndex()}; " +
+                $"position ({spawnPosition.x:F6}, " +
+                $"{spawnPosition.y:F6}); " +
+                $"direction ({spawnDirection.x:F6}, " +
+                $"{spawnDirection.y:F6}); " +
+                $"speed {speed:F6}; " +
+                $"source {spawnSourceName}.",
+                this
+            );
         }
     }
 
@@ -187,82 +232,140 @@ ignoreGrazeUntilExit =
         ReturnToPool();
     }
 
-   private void UpdateGrazeState(
-    Vector2 bulletPosition
-)
-{
-    if (owner != BulletOwner.Enemy ||
-        hasHitPlayer)
+    private void UpdateGrazeState(
+        Vector2 bulletPosition
+    )
     {
-        return;
-    }
-
-    PlayerArea grazeArea =
-        PlayerArea.GrazeArea;
-
-    if (grazeArea == null)
-    {
-        wasInsideGrazeArea = false;
-        ignoreGrazeUntilExit = false;
-        return;
-    }
-
-    bool isInside =
-        grazeArea.OverlapsCircle(
-    GetBulletCenter(bulletPosition),
-    GetBulletWorldRadius()
-);
-
-    PlayerShield playerShield =
-        grazeArea.GetComponentInParent<
-            PlayerShield
-        >();
-
-    bool shieldActive =
-        playerShield != null &&
-        playerShield.IsActive;
-
-    if (isInside && !wasInsideGrazeArea)
-    {
-        if (!ignoreGrazeUntilExit &&
-            !hasGrantedGraze &&
-            !shieldActive)
+        if (owner != BulletOwner.Enemy ||
+            hasHitPlayer)
         {
-            PlayerState playerState =
-                grazeArea.GetComponentInParent<
-                    PlayerState
-                >();
+            return;
+        }
 
-if (playerState != null)
-{
-    hasGrantedGraze = true;
-    playerState.RegisterGraze();
-}
-            else
+        PlayerArea grazeArea =
+            PlayerArea.GrazeArea;
+
+        if (grazeArea == null)
+        {
+            wasInsideGrazeArea = false;
+            ignoreGrazeUntilExit = false;
+            return;
+        }
+
+        bool isInside =
+            grazeArea.OverlapsCircle(
+                GetBulletCenter(bulletPosition),
+                GetBulletWorldRadius()
+            );
+
+        PlayerShield playerShield =
+            grazeArea.GetComponentInParent<
+                PlayerShield
+            >();
+
+        bool shieldActive =
+            playerShield != null &&
+            playerShield.IsActive;
+
+        if (isInside && !wasInsideGrazeArea)
+        {
+            if (!ignoreGrazeUntilExit &&
+                !hasGrantedGraze &&
+                !shieldActive)
             {
-                Debug.LogError(
-                    "Player has no PlayerState.",
-                    grazeArea
-                );
+                PlayerState playerState =
+                    grazeArea.GetComponentInParent<
+                        PlayerState
+                    >();
+
+                if (playerState != null)
+                {
+                    if (logGrazeDiagnostics)
+                    {
+                        LogGrazeDiagnostic(
+                            grazeArea,
+                            bulletPosition
+                        );
+                    }
+
+                    hasGrantedGraze = true;
+                    playerState.RegisterGraze();
+                }
+                else
+                {
+                    Debug.LogError(
+                        "Player has no PlayerState.",
+                        grazeArea
+                    );
+                }
             }
         }
-    }
-    else if (!isInside &&
-             wasInsideGrazeArea)
-    {
-        if (ignoreGrazeUntilExit)
+        else if (!isInside &&
+                 wasInsideGrazeArea)
         {
-            ignoreGrazeUntilExit = false;
+            if (ignoreGrazeUntilExit)
+            {
+                ignoreGrazeUntilExit = false;
+            }
+            else if (hasGrantedGraze &&
+                     !shieldActive)
+            {
+                Reflect(grazeArea.Center);
+            }
         }
-        else if (hasGrantedGraze &&
-                 !shieldActive)
-        {
-            Reflect(grazeArea.Center);
-        }
+
+        wasInsideGrazeArea = isInside;
     }
 
-    wasInsideGrazeArea = isInside;
-}
+    private void LogGrazeDiagnostic(
+        PlayerArea grazeArea,
+        Vector2 bulletPosition
+    )
+    {
+        PlayerInputSource inputSource =
+            grazeArea.GetComponentInParent<
+                PlayerInputSource
+            >();
+
+        int grazeTick =
+            inputSource != null
+                ? inputSource.SimulationTick - 1
+                : -1;
+
+        string runKind =
+            inputSource != null &&
+            inputSource.IsReplayInput
+                ? "REPLAY"
+                : "LIVE";
+
+        Vector2 bulletCenter =
+            GetBulletCenter(bulletPosition);
+
+        float distance =
+            Vector2.Distance(
+                bulletCenter,
+                grazeArea.Center
+            );
+
+        float overlapLimit =
+            grazeArea.WorldRadius +
+            GetBulletWorldRadius();
+
+        Debug.Log(
+            $"GrazeTrace {runKind}; " +
+            $"tick {grazeTick}; " +
+            $"bullet {transform.GetSiblingIndex()}; " +
+            $"distance {distance:F6}; " +
+            $"limit {overlapLimit:F6}; " +
+            $"bullet {bulletCenter}; " +
+            $"player {grazeArea.Center}; " +
+            $"spawn tick {spawnTick}; " +
+            $"spawn position {spawnPosition}; " +
+            $"spawn direction {spawnDirection}; " +
+            $"source {spawnSourceName}.",
+            this
+        );
+    }
 
     private void HandlePlayerAreaEnter(
     PlayerArea playerArea,
