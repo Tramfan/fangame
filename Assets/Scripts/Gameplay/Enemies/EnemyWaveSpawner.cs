@@ -15,7 +15,34 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
             new(4.5f, 0f);
 
         [SerializeField, Min(0)]
+        [Tooltip("Delay after the last repeat of this step.")]
         private int delayAfterSpawnTicks = 120;
+
+        [SerializeField, Min(1)]
+        [Tooltip("How many enemies this step spawns.")]
+        private int repeatCount = 1;
+
+        [SerializeField, Min(1)]
+        [Tooltip("Fixed ticks between repeated spawns.")]
+        private int repeatIntervalTicks = 18;
+
+        [Header("Arc Movement Override")]
+        [SerializeField]
+        private bool overrideArcMovement;
+
+        [SerializeField]
+        [Tooltip("0 right, 90 up, 180 left, -90 down.")]
+        private float movementAngleDegrees = -90f;
+
+        [SerializeField, Min(0f)]
+        private float movementDistance = 10.9f;
+
+        [SerializeField]
+        [Tooltip("Signed bend perpendicular to travel; 0 is straight.")]
+        private float movementArcOffset;
+
+        [SerializeField, Min(1)]
+        private int movementTicks = 180;
 
         public GameObject EnemyPrefab => enemyPrefab;
 
@@ -23,6 +50,27 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
 
         public int DelayAfterSpawnTicks =>
             Mathf.Max(0, delayAfterSpawnTicks);
+
+        public int RepeatCount =>
+            Mathf.Max(1, repeatCount);
+
+        public int RepeatIntervalTicks =>
+            Mathf.Max(1, repeatIntervalTicks);
+
+        public bool OverrideArcMovement =>
+            overrideArcMovement;
+
+        public float MovementAngleDegrees =>
+            movementAngleDegrees;
+
+        public float MovementDistance =>
+            Mathf.Max(0f, movementDistance);
+
+        public float MovementArcOffset =>
+            movementArcOffset;
+
+        public int MovementTicks =>
+            Mathf.Max(1, movementTicks);
     }
 
     [SerializeField]
@@ -44,6 +92,7 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         new();
 
     private int currentStepIndex;
+    private int currentRepeatIndex;
     private int ticksUntilNextSpawn;
 
     private bool sequenceRunning;
@@ -64,6 +113,7 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         completionRaised = false;
 
         currentStepIndex = 0;
+        currentRepeatIndex = 0;
         ticksUntilNextSpawn = 0;
 
         activeEnemies.Clear();
@@ -84,6 +134,7 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
     private void StartSequence()
     {
         currentStepIndex = 0;
+        currentRepeatIndex = 0;
         ticksUntilNextSpawn = 0;
 
         sequenceRunning = false;
@@ -176,15 +227,29 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
             }
 
             SpawnStep step = steps[currentStepIndex];
-            currentStepIndex++;
 
             if (step == null ||
                 step.EnemyPrefab == null)
             {
+                currentStepIndex++;
+                currentRepeatIndex = 0;
                 continue;
             }
 
             SpawnEnemy(step);
+
+            currentRepeatIndex++;
+
+            if (currentRepeatIndex < step.RepeatCount)
+            {
+                ticksUntilNextSpawn =
+                    step.RepeatIntervalTicks;
+
+                return;
+            }
+
+            currentRepeatIndex = 0;
+            currentStepIndex++;
 
             int delay = step.DelayAfterSpawnTicks;
 
@@ -243,6 +308,30 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
 
         activeEnemies.Add(enemy);
 
+        if (step.OverrideArcMovement)
+        {
+            ArcEnemyMover mover =
+                enemy.GetComponent<ArcEnemyMover>();
+
+            if (mover == null)
+            {
+                Debug.LogError(
+                    "Arc movement override requires " +
+                    "Arc Enemy Mover on the enemy prefab.",
+                    enemy
+                );
+            }
+            else
+            {
+                mover.ConfigureAngle(
+                    step.MovementAngleDegrees,
+                    step.MovementDistance,
+                    step.MovementArcOffset,
+                    step.MovementTicks
+                );
+            }
+        }
+
         AimedFanEmitter[] aimedEmitters =
             enemy.GetComponentsInChildren
                 <AimedFanEmitter>(true);
@@ -261,6 +350,14 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         {
             emitter.SetBulletPool(bulletPool);
         }
+        EnemyLaserEmitter[] laserEmitters =
+    enemy.GetComponentsInChildren
+        <EnemyLaserEmitter>(true);
+
+foreach (EnemyLaserEmitter emitter in laserEmitters)
+{
+    emitter.Configure(target);
+}
     }
 
     private void RemoveDestroyedEnemies()

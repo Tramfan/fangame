@@ -258,6 +258,130 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 10331512}
   m_CullTransparentMesh: 1
+--- !u!1001 &79516551
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -1699393519964558162, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: drops.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1699393519964558162, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: drops.Array.data[0].count
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1699393519964558162, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: drops.Array.data[0].pickupPrefab
+      value: 
+      objectReference: {fileID: 3659459172009174353, guid: 5dab3c64df7dca44d9996faeaf116b4f,
+        type: 3}
+    - target: {fileID: 3404545264645371791, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 305619750}
+    - target: {fileID: 3404545264645371791, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: bulletPool
+      value: 
+      objectReference: {fileID: 1913305738}
+    - target: {fileID: 3404545264645371791, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: bulletCount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404545264645371791, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: fireOnlyOnce
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404545264645371791, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: firstShotDelayTicks
+      value: 55
+      objectReference: {fileID: 0}
+    - target: {fileID: 6012566910578917993, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_Name
+      value: sineenemy 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6012566910578917993, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 4.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7579130173721111027, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a243e32f0c9f23b4596029a2a62fe3f9, type: 3}
 --- !u!1 &94141923
 GameObject:
   m_ObjectHideFlags: 0
@@ -2176,14 +2300,94 @@ MonoBehaviour:
   target: {fileID: 305619750}
   bulletPool: {fileID: 1913305738}
   steps:
+  - enemyPrefab: {fileID: 6012566910578917993, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+      type: 3}
+    spawnPosition: {x: 4.5, y: 2.7}
+    delayAfterSpawnTicks: 90
+    repeatCount: 6
+    repeatIntervalTicks: 18
+    overrideArcMovement: 0
+    movementAngleDegrees: 0
+    movementDistance: 10.9
+    movementArcOffset: 0.9
+    movementTicks: 180
+  - enemyPrefab: {fileID: 6012566910578917993, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+      type: 3}
+    spawnPosition: {x: -4.5, y: 2.7}
+    delayAfterSpawnTicks: 180
+    repeatCount: 6
+    repeatIntervalTicks: 18
+    overrideArcMovement: 0
+    movementAngleDegrees: 180
+    movementDistance: 10.9
+    movementArcOffset: 0.9
+    movementTicks: 180
   - enemyPrefab: {fileID: 6012566910578917993, guid: 72d16443c69d685439ba80fd0d11afbc,
       type: 3}
     spawnPosition: {x: 4.5, y: 3}
     delayAfterSpawnTicks: 120
+    repeatCount: 1
+    repeatIntervalTicks: 18
+    overrideArcMovement: 0
+    movementAngleDegrees: -90
+    movementDistance: 10.9
+    movementArcOffset: 0
+    movementTicks: 180
   - enemyPrefab: {fileID: 4217140370117118093, guid: e2d960ebdfb100145af27d0618ba2134,
       type: 3}
-    spawnPosition: {x: 4.5, y: 1}
-    delayAfterSpawnTicks: 300
+    spawnPosition: {x: 4.5, y: 3}
+    delayAfterSpawnTicks: 120
+    repeatCount: 1
+    repeatIntervalTicks: 18
+    overrideArcMovement: 0
+    movementAngleDegrees: -90
+    movementDistance: 10.9
+    movementArcOffset: 0
+    movementTicks: 180
+  - enemyPrefab: {fileID: 6012566910578917993, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+      type: 3}
+    spawnPosition: {x: 2.9, y: 5.4}
+    delayAfterSpawnTicks: 120
+    repeatCount: 5
+    repeatIntervalTicks: 18
+    overrideArcMovement: 1
+    movementAngleDegrees: -90
+    movementDistance: 10.9
+    movementArcOffset: -0.9
+    movementTicks: 180
+  - enemyPrefab: {fileID: 6012566910578917993, guid: a243e32f0c9f23b4596029a2a62fe3f9,
+      type: 3}
+    spawnPosition: {x: -2.9, y: 5.4}
+    delayAfterSpawnTicks: 120
+    repeatCount: 5
+    repeatIntervalTicks: 18
+    overrideArcMovement: 1
+    movementAngleDegrees: -90
+    movementDistance: 10.9
+    movementArcOffset: 0.9
+    movementTicks: 180
+  - enemyPrefab: {fileID: 6012566910578917993, guid: a6dc1079f734c6c499ab409cc68fd93a,
+      type: 3}
+    spawnPosition: {x: 2, y: 3}
+    delayAfterSpawnTicks: 0
+    repeatCount: 1
+    repeatIntervalTicks: 18
+    overrideArcMovement: 0
+    movementAngleDegrees: -90
+    movementDistance: 1.5
+    movementArcOffset: 0.9
+    movementTicks: 180
+  - enemyPrefab: {fileID: 6012566910578917993, guid: a6dc1079f734c6c499ab409cc68fd93a,
+      type: 3}
+    spawnPosition: {x: -2, y: 3}
+    delayAfterSpawnTicks: 120
+    repeatCount: 1
+    repeatIntervalTicks: 18
+    overrideArcMovement: 0
+    movementAngleDegrees: -90
+    movementDistance: 1.5
+    movementArcOffset: 0.9
+    movementTicks: 180
   loop: 0
   loopDelayTicks: 180
 --- !u!4 &575406369
@@ -6202,6 +6406,16 @@ PrefabInstance:
       propertyPath: bulletCount
       value: 24
       objectReference: {fileID: 0}
+    - target: {fileID: 8022991309534070768, guid: e2d960ebdfb100145af27d0618ba2134,
+        type: 3}
+      propertyPath: drops.Array.data[0].count
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 8022991309534070768, guid: e2d960ebdfb100145af27d0618ba2134,
+        type: 3}
+      propertyPath: drops.Array.data[1].count
+      value: 3
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -6215,6 +6429,33 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -1699393519964558162, guid: 72d16443c69d685439ba80fd0d11afbc,
+        type: 3}
+      propertyPath: drops.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -1699393519964558162, guid: 72d16443c69d685439ba80fd0d11afbc,
+        type: 3}
+      propertyPath: drops.Array.data[0].count
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -1699393519964558162, guid: 72d16443c69d685439ba80fd0d11afbc,
+        type: 3}
+      propertyPath: drops.Array.data[1].count
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -1699393519964558162, guid: 72d16443c69d685439ba80fd0d11afbc,
+        type: 3}
+      propertyPath: drops.Array.data[0].pickupPrefab
+      value: 
+      objectReference: {fileID: 3659459172009174353, guid: e86858d51c7aed4459592c9291dd512d,
+        type: 3}
+    - target: {fileID: -1699393519964558162, guid: 72d16443c69d685439ba80fd0d11afbc,
+        type: 3}
+      propertyPath: drops.Array.data[1].pickupPrefab
+      value: 
+      objectReference: {fileID: 3659459172009174353, guid: 5dab3c64df7dca44d9996faeaf116b4f,
+        type: 3}
     - target: {fileID: 3404545264645371791, guid: 72d16443c69d685439ba80fd0d11afbc,
         type: 3}
       propertyPath: target
@@ -6314,6 +6555,7 @@ SceneRoots:
   - {fileID: 1797915986}
   - {fileID: 436901127}
   - {fileID: 844504171}
+  - {fileID: 79516551}
   - {fileID: 2856092637909197748}
   - {fileID: 6403978788861098379}
   - {fileID: 575406369}

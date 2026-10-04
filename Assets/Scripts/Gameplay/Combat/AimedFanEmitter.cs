@@ -21,13 +21,21 @@ public sealed class AimedFanEmitter : MonoBehaviour
     [SerializeField, Min(1)]
     private int fireIntervalTicks = 90;
 
+    [SerializeField, Min(0)]
+    [Tooltip("Wait this many fixed ticks before the first shot.")]
+    private int firstShotDelayTicks;
+
+    [SerializeField]
+    [Tooltip("Stop firing after the first burst.")]
+    private bool fireOnlyOnce;
+
     private int ticksUntilFire;
     private bool initialBurstFired;
 
     private void OnEnable()
     {
         ticksUntilFire =
-            Mathf.Max(1, fireIntervalTicks);
+            Mathf.Max(0, firstShotDelayTicks);
 
         initialBurstFired = false;
 
@@ -43,12 +51,18 @@ public sealed class AimedFanEmitter : MonoBehaviour
 
         if (!initialBurstFired)
         {
-            TryFireInitialBurst();
-
-            if (!initialBurstFired)
+            if (ticksUntilFire > 0)
             {
-                return;
+                ticksUntilFire--;
             }
+
+            TryFireInitialBurst();
+            return;
+        }
+
+        if (fireOnlyOnce)
+        {
+            return;
         }
 
         ticksUntilFire--;
@@ -95,6 +109,7 @@ public sealed class AimedFanEmitter : MonoBehaviour
     {
         if (!isActiveAndEnabled ||
             initialBurstFired ||
+            ticksUntilFire > 0 ||
             bulletPool == null ||
             target == null)
         {
