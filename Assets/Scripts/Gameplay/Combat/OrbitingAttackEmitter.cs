@@ -3,7 +3,7 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(-200)]
-public sealed class OrbitingBossEmitter : MonoBehaviour
+public sealed class OrbitingAttackEmitter : MonoBehaviour
 {
     private sealed class EmitterInstance
     {

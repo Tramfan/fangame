@@ -56,7 +56,7 @@ public sealed class EnemyLaserEmitter : MonoBehaviour
     private int shieldDrainIntervalTicks = 6;
 
     private HoverReturnEnemyMover mover;
-    private OrbitingBossEmitter orbitEmitter;
+    private OrbitingAttackEmitter orbitEmitter;
 
     private PlayerArea hitbox;
     private PlayerState playerState;
@@ -76,10 +76,9 @@ public sealed class EnemyLaserEmitter : MonoBehaviour
     private void Awake()
     {
         orbitEmitter =
-            GetComponentInParent<
-                OrbitingBossEmitter
-            >();
-
+    GetComponentInParent<
+        OrbitingAttackEmitter
+    >();
         mover =
             GetComponentInParent<
                 HoverReturnEnemyMover
