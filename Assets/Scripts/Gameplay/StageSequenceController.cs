@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[DefaultExecutionOrder(-200)]
 [DisallowMultipleComponent]
 public sealed class StageSequenceController : MonoBehaviour
 {
@@ -12,12 +13,18 @@ public sealed class StageSequenceController : MonoBehaviour
     [SerializeField]
     private BulletPool bulletPool;
 
+    [Header("Boss Entrance")]
     [SerializeField, Min(0)]
+    [Tooltip("Pause after the last enemy bullet has disappeared.")]
     private int delayBeforeBossTicks = 60;
 
+    [SerializeField, Min(1)]
+    [Tooltip("Maximum time to wait for bullets that do not leave the screen.")]
+    private int maxBulletWaitTicks = 600;
+
     private int ticksUntilBoss;
+    private int ticksWaitingForBullets;
     private bool waitingForBoss;
-    private BossPhaseController boss;
 
     private void Awake()
     {
@@ -51,26 +58,7 @@ public sealed class StageSequenceController : MonoBehaviour
             );
 
             enabled = false;
-            return;
         }
-
-        boss = bossRoot.GetComponentInChildren<
-            BossPhaseController
-        >(true);
-
-        if (boss == null)
-        {
-            Debug.LogError(
-                "Boss root has no Boss Phase Controller.",
-                this
-            );
-
-            enabled = false;
-            return;
-        }
-
-        boss.PrepareEncounter();
-        bossRoot.SetActive(false);
     }
 
     private void OnEnable()
@@ -89,6 +77,7 @@ public sealed class StageSequenceController : MonoBehaviour
             return;
         }
 
+        bossRoot.SetActive(false);
         openingWave.gameObject.SetActive(true);
 
         Debug.Log(
@@ -113,6 +102,25 @@ public sealed class StageSequenceController : MonoBehaviour
             return;
         }
 
+        if (bulletPool.ActiveCount > 0)
+        {
+            ticksWaitingForBullets++;
+
+            if (ticksWaitingForBullets <
+                Mathf.Max(1, maxBulletWaitTicks))
+            {
+                return;
+            }
+
+            Debug.LogWarning(
+                "Stage sequence timed out waiting " +
+                "for the last enemy bullets.",
+                this
+            );
+
+            bulletPool.ClearActiveBullets();
+        }
+
         if (ticksUntilBoss > 0)
         {
             ticksUntilBoss--;
@@ -131,20 +139,22 @@ public sealed class StageSequenceController : MonoBehaviour
     )
     {
         openingWave.gameObject.SetActive(false);
-        bulletPool.ClearActiveBullets();
 
-        ticksUntilBoss = delayBeforeBossTicks;
+        ticksWaitingForBullets = 0;
+        ticksUntilBoss =
+            Mathf.Max(0, delayBeforeBossTicks);
+
         waitingForBoss = true;
 
-        if (ticksUntilBoss == 0)
-        {
-            StartBoss();
-        }
+        Debug.Log(
+            "Enemy wave completed; waiting for " +
+            "its bullets to leave.",
+            this
+        );
     }
 
     private void StartBoss()
     {
-        boss.PrepareEncounter();
         waitingForBoss = false;
         bossRoot.SetActive(true);
 

@@ -8,17 +8,50 @@ public sealed class AimedFanEmitter : MonoBehaviour
     [SerializeField]
     private Transform target;
 
-    [Header("Pattern")]
+    [Header("Fan Shape")]
     [SerializeField, Min(1)]
     private int bulletCount = 5;
 
     [SerializeField, Range(0f, 360f)]
+    [Tooltip("Total angle between the outer bullets.")]
     private float spreadAngle = 60f;
 
+    [SerializeField, Min(0f)]
+    [Tooltip("Maximum random angle added to each bullet.")]
+    private float angleJitterDegrees;
+
+    [Header("Speed")]
     [SerializeField, Min(0f)]
     private float bulletSpeed = 3f;
 
     [SerializeField, Min(1)]
+    [Tooltip("Each fan bullet is repeated once for every layer.")]
+    private int speedLayerCount = 1;
+
+    [SerializeField]
+    [Tooltip("Speed added by every layer after the first.")]
+    private float speedLayerStep;
+
+    [SerializeField, Min(0f)]
+    [Tooltip("Maximum random speed added or removed from each bullet.")]
+    private float speedJitter;
+
+    [Header("Fan Release")]
+    [SerializeField, Min(1)]
+    [Tooltip("Fixed ticks used to release one fan burst.")]
+    private int fanReleaseTicks = 1;
+
+    [Header("Burst Series")]
+    [SerializeField, Min(1)]
+    [Tooltip("How many fan bursts form one shot series.")]
+    private int burstCount = 1;
+
+    [SerializeField, Min(1)]
+    [Tooltip("Fixed ticks between bursts in one series.")]
+    private int burstIntervalTicks = 8;
+
+    [SerializeField, Min(1)]
+    [Tooltip("Fixed ticks after a completed series before the next one.")]
     private int fireIntervalTicks = 90;
 
     [SerializeField, Min(0)]
@@ -26,20 +59,32 @@ public sealed class AimedFanEmitter : MonoBehaviour
     private int firstShotDelayTicks;
 
     [SerializeField]
-    [Tooltip("Stop firing after the first burst.")]
+    [Tooltip("Stop after the first complete burst series.")]
     private bool fireOnlyOnce;
 
-    private int ticksUntilFire;
-    private bool initialBurstFired;
+    private int ticksUntilNextAction;
+    private int burstsRemaining;
+    private int releaseChunksRemaining;
+    private int nextBulletIndex;
+    private int activeBulletCount;
+    private float activeFirstAngle;
+    private float activeAngleStep;
+    private bool releasingFan;
+    private bool initialSeriesStarted;
 
     private void OnEnable()
     {
-        ticksUntilFire =
+        ticksUntilNextAction =
             Mathf.Max(0, firstShotDelayTicks);
 
-        initialBurstFired = false;
+        burstsRemaining = 0;
+        releaseChunksRemaining = 0;
+        nextBulletIndex = 0;
+        activeBulletCount = 0;
+        releasingFan = false;
+        initialSeriesStarted = false;
 
-        TryFireInitialBurst();
+        TryStartInitialSeries();
     }
 
     private void FixedUpdate()
@@ -49,14 +94,36 @@ public sealed class AimedFanEmitter : MonoBehaviour
             return;
         }
 
-        if (!initialBurstFired)
+        if (!initialSeriesStarted)
         {
-            if (ticksUntilFire > 0)
+            if (ticksUntilNextAction > 0)
             {
-                ticksUntilFire--;
+                ticksUntilNextAction--;
             }
 
-            TryFireInitialBurst();
+            TryStartInitialSeries();
+            return;
+        }
+
+        if (ticksUntilNextAction > 0)
+        {
+            ticksUntilNextAction--;
+
+            if (ticksUntilNextAction > 0)
+            {
+                return;
+            }
+        }
+
+        if (releasingFan)
+        {
+            ReleaseNextFanChunk();
+            return;
+        }
+
+        if (burstsRemaining > 0)
+        {
+            StartNextFanBurst();
             return;
         }
 
@@ -65,17 +132,7 @@ public sealed class AimedFanEmitter : MonoBehaviour
             return;
         }
 
-        ticksUntilFire--;
-
-        if (ticksUntilFire > 0)
-        {
-            return;
-        }
-
-        FireFan();
-
-        ticksUntilFire =
-            Mathf.Max(1, fireIntervalTicks);
+        StartBurstSeries();
     }
 
     public void Configure(
@@ -86,14 +143,14 @@ public sealed class AimedFanEmitter : MonoBehaviour
         target = newTarget;
         bulletPool = newBulletPool;
 
-        TryFireInitialBurst();
+        TryStartInitialSeries();
     }
 
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
 
-        TryFireInitialBurst();
+        TryStartInitialSeries();
     }
 
     public void SetBulletPool(
@@ -102,35 +159,41 @@ public sealed class AimedFanEmitter : MonoBehaviour
     {
         bulletPool = newBulletPool;
 
-        TryFireInitialBurst();
+        TryStartInitialSeries();
     }
 
-    private void TryFireInitialBurst()
+    private void TryStartInitialSeries()
     {
         if (!isActiveAndEnabled ||
-            initialBurstFired ||
-            ticksUntilFire > 0 ||
+            initialSeriesStarted ||
+            ticksUntilNextAction > 0 ||
             bulletPool == null ||
             target == null)
         {
             return;
         }
 
-        FireFan();
-        initialBurstFired = true;
-
-        ticksUntilFire =
-            Mathf.Max(1, fireIntervalTicks);
+        StartBurstSeries();
+        initialSeriesStarted = true;
     }
 
-    private void FireFan()
+    private void StartBurstSeries()
     {
+        burstsRemaining = Mathf.Max(1, burstCount);
+        StartNextFanBurst();
+    }
+
+    private void StartNextFanBurst()
+    {
+        burstsRemaining--;
+
         Vector2 directionToTarget =
             target.position - transform.position;
 
         if (directionToTarget.sqrMagnitude <
             0.0001f)
         {
+            ScheduleAfterFan();
             return;
         }
 
@@ -139,33 +202,109 @@ public sealed class AimedFanEmitter : MonoBehaviour
             directionToTarget.x
         ) * Mathf.Rad2Deg;
 
-        int count = Mathf.Max(1, bulletCount);
+        activeBulletCount = Mathf.Max(1, bulletCount);
 
-        float firstAngle = count == 1
+        activeFirstAngle = activeBulletCount == 1
             ? centerAngle
             : centerAngle - spreadAngle * 0.5f;
 
-        float angleStep = count == 1
+        activeAngleStep = activeBulletCount == 1
             ? 0f
-            : spreadAngle / (count - 1);
+            : spreadAngle / (activeBulletCount - 1);
 
-        for (int index = 0; index < count; index++)
+        nextBulletIndex = 0;
+        releaseChunksRemaining = Mathf.Min(
+            activeBulletCount,
+            Mathf.Max(1, fanReleaseTicks)
+        );
+        releasingFan = true;
+
+        ReleaseNextFanChunk();
+    }
+
+    private void ReleaseNextFanChunk()
+    {
+        int bulletsLeft =
+            activeBulletCount - nextBulletIndex;
+
+        int bulletsThisChunk = Mathf.CeilToInt(
+            bulletsLeft / (float)releaseChunksRemaining
+        );
+
+        for (int index = 0;
+             index < bulletsThisChunk;
+             index++)
         {
-            float angle =
-                (firstAngle + angleStep * index) *
-                Mathf.Deg2Rad;
+            FireBulletAtIndex(nextBulletIndex);
+            nextBulletIndex++;
+        }
 
-            Vector2 direction = new(
-                Mathf.Cos(angle),
-                Mathf.Sin(angle)
+        releaseChunksRemaining--;
+
+        if (nextBulletIndex >= activeBulletCount)
+        {
+            releasingFan = false;
+            ScheduleAfterFan();
+            return;
+        }
+
+        ticksUntilNextAction = 1;
+    }
+
+    private void ScheduleAfterFan()
+    {
+        ticksUntilNextAction = burstsRemaining > 0
+            ? Mathf.Max(1, burstIntervalTicks)
+            : Mathf.Max(1, fireIntervalTicks);
+    }
+
+    private void FireBulletAtIndex(int bulletIndex)
+    {
+        float fanAngle =
+            activeFirstAngle + activeAngleStep * bulletIndex;
+
+        float angle = fanAngle + RandomOffset(
+            Mathf.Max(0f, angleJitterDegrees)
+        );
+
+        float radians = angle * Mathf.Deg2Rad;
+
+        Vector2 direction = new(
+            Mathf.Cos(radians),
+            Mathf.Sin(radians)
+        );
+
+        for (int layerIndex = 0;
+             layerIndex < Mathf.Max(1, speedLayerCount);
+             layerIndex++)
+        {
+            float speed = Mathf.Max(
+                0f,
+                bulletSpeed +
+                speedLayerStep * layerIndex +
+                RandomOffset(Mathf.Max(0f, speedJitter))
             );
 
             bulletPool.Spawn(
                 transform.position,
                 direction,
-                bulletSpeed,
+                speed,
                 transform.root
             );
         }
+    }
+
+    private static float RandomOffset(float maximum)
+    {
+        if (maximum <= 0f)
+        {
+            return 0f;
+        }
+
+        GameplayRandom random = GameplayRandom.Instance;
+
+        return random == null
+            ? 0f
+            : random.Range(-maximum, maximum);
     }
 }

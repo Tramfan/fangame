@@ -14,6 +14,7 @@ public sealed class BulletPool : MonoBehaviour
         new(Comparer<Bullet>.Create(CompareBullets));
 
     private readonly HashSet<Bullet> activeBullets = new();
+    public int ActiveCount => activeBullets.Count;
     private readonly Dictionary<Bullet, Rigidbody2D> bodies = new();
 
     private void Awake()
@@ -39,7 +40,8 @@ public sealed class BulletPool : MonoBehaviour
         Vector2 position,
         Vector2 direction,
         float speed,
-        Transform source = null
+        Transform source = null,
+        bool patternControlled = false
     )
     {
         if (!enabled || bulletPrefab == null)
@@ -71,7 +73,13 @@ public sealed class BulletPool : MonoBehaviour
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
 
-        bullet.Initialize(direction, speed, source);
+        bullet.Initialize(
+            direction,
+            speed,
+            source,
+            patternControlled
+        );
+
         bullet.gameObject.SetActive(true);
 
         activeBullets.Add(bullet);
@@ -158,14 +166,10 @@ public sealed class BulletPool : MonoBehaviour
             return 1;
         }
 
-        int siblingComparison =
-            left.transform
-                .GetSiblingIndex()
-                .CompareTo(
-                    right.transform
-                        .GetSiblingIndex()
-                );
-
-        return siblingComparison;
+        return left.transform
+            .GetSiblingIndex()
+            .CompareTo(
+                right.transform.GetSiblingIndex()
+            );
     }
 }

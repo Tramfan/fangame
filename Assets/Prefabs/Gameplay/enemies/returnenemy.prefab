@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2112228790077569754}
-  - component: {fileID: 4054177459735425968}
+  - component: {fileID: 6149605033262269642}
   m_Layer: 0
-  m_Name: EnemyLaserEmitter
+  m_Name: AimedFanEmitter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7579130173721111027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4054177459735425968
+--- !u!114 &6149605033262269642
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,21 +41,24 @@ MonoBehaviour:
   m_GameObject: {fileID: 2987483042084814859}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c82ecfeaa58eda449778667d8b6ed66, type: 3}
+  m_Script: {fileID: 11500000, guid: af1bec9900641f34297396a389bad619, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyLaserEmitter
-  laserCount: 1
-  angleDegrees: -90
-  spreadDegrees: 30
-  laserLength: 10
-  warningTicks: 30
-  activeTicks: 60
-  warningWidth: 0.035
-  activeWidth: 0.3
-  warningColor: {r: 0.25098038, g: 1, b: 0.9349193, a: 0.8}
-  activeColor: {r: 0.19999999, g: 0.75331944, b: 1, a: 1}
-  shieldPowerCost: 1
-  shieldDrainIntervalTicks: 6
+  m_EditorClassIdentifier: Assembly-CSharp::AimedFanEmitter
+  bulletPool: {fileID: 0}
+  target: {fileID: 0}
+  bulletCount: 5
+  spreadAngle: 0
+  angleJitterDegrees: 18
+  bulletSpeed: 2.2
+  speedLayerCount: 2
+  speedLayerStep: 0.7
+  speedJitter: 0.1
+  fanReleaseTicks: 1
+  burstCount: 3
+  burstIntervalTicks: 14
+  fireIntervalTicks: 8
+  firstShotDelayTicks: 0
+  fireOnlyOnce: 1
 --- !u!1 &6012566910578917993
 GameObject:
   m_ObjectHideFlags: 0
@@ -70,7 +73,6 @@ GameObject:
   - component: {fileID: -146006695629538788}
   - component: {fileID: -1699393519964558162}
   - component: {fileID: -4305067275085634141}
-  - component: {fileID: -8201945616605227920}
   m_Layer: 0
   m_Name: returnenemy
   m_TagString: Untagged
@@ -254,27 +256,3 @@ MonoBehaviour:
   approachTicks: 60
   hoverTicks: 120
   returnTicks: 60
---- !u!114 &-8201945616605227920
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6012566910578917993}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c82ecfeaa58eda449778667d8b6ed66, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyLaserEmitter
-  laserCount: 1
-  angleDegrees: -90
-  spreadDegrees: 30
-  laserLength: 10
-  warningTicks: 30
-  activeTicks: 60
-  warningWidth: 0.035
-  activeWidth: 0.3
-  warningColor: {r: 1, g: 0.85, b: 0.25, a: 0.8}
-  activeColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-  shieldPowerCost: 1
-  shieldDrainIntervalTicks: 6

@@ -5,6 +5,7 @@ public enum BulletOwner
     Enemy,
     Player
 }
+
 [DefaultExecutionOrder(-800)]
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
@@ -63,6 +64,13 @@ public sealed class Bullet : MonoBehaviour
     private float turnDegreesRemaining;
     private Vector2 turnCenter;
 
+    private bool isPatternControlled;
+    private bool grazedBeforePatternRelease;
+
+    public bool IsPatternControlled =>
+        isPatternControlled &&
+        owner == BulletOwner.Enemy;
+
     private void Awake()
     {
         bulletCollider = GetComponent<CircleCollider2D>();
@@ -83,34 +91,25 @@ public sealed class Bullet : MonoBehaviour
     public void Initialize(
         Vector2 movementDirection,
         float movementSpeed,
-        Transform bulletSource = null
+        Transform bulletSource = null,
+        bool patternControlled = false
     )
     {
         direction = movementDirection.normalized;
         speed = movementSpeed;
         source = bulletSource;
-
-        PlayerArea grazeArea = PlayerArea.GrazeArea;
-        PlayerInputSource inputSource =
-            grazeArea != null
-                ? grazeArea.GetComponentInParent<
-                    PlayerInputSource
-                >()
-                : null;
-
-        spawnTick = inputSource != null
-            ? inputSource.SimulationTick - 1
-            : -1;
-        spawnPosition = transform.position;
-        spawnDirection = direction;
-        spawnSourceName = bulletSource != null
-            ? bulletSource.name
-            : "(none)";
+        bulletCollider.enabled = true;
 
         owner = BulletOwner.Enemy;
+        isPatternControlled = patternControlled;
+        grazedBeforePatternRelease = false;
 
         hasGrantedGraze = false;
         hasHitPlayer = false;
+
+        PlayerArea grazeArea =
+            PlayerArea.GrazeArea;
+
         wasInsideGrazeArea =
             grazeArea != null &&
             grazeArea.OverlapsCircle(
@@ -120,6 +119,7 @@ public sealed class Bullet : MonoBehaviour
 
         ignoreGrazeUntilExit =
             wasInsideGrazeArea;
+
         isTurning = false;
         turnSign = 0f;
         turnDegreesRemaining = 0f;
@@ -129,34 +129,40 @@ public sealed class Bullet : MonoBehaviour
         {
             spriteRenderer.color = originalColor;
         }
+    }
 
-        if (logGrazeDiagnostics &&
-            spawnSourceName == "Boss")
+    public void ReleasePatternControl(
+        Vector2 launchVelocity
+    )
+    {
+        if (!IsPatternControlled)
         {
-            string runKind =
-                inputSource != null &&
-                inputSource.IsReplayInput
-                    ? "REPLAY"
-                    : "LIVE";
-
-            Debug.Log(
-                $"SpawnTrace {runKind}; " +
-                $"tick {spawnTick}; " +
-                $"bullet {transform.GetSiblingIndex()}; " +
-                $"position ({spawnPosition.x:F6}, " +
-                $"{spawnPosition.y:F6}); " +
-                $"direction ({spawnDirection.x:F6}, " +
-                $"{spawnDirection.y:F6}); " +
-                $"speed {speed:F6}; " +
-                $"source {spawnSourceName}.",
-                this
-            );
+            return;
         }
+
+        // Запоминаем грейз, полученный именно
+        // во время неподвижной фазы.
+        grazedBeforePatternRelease =
+            hasGrantedGraze;
+
+        direction =
+            launchVelocity.sqrMagnitude > 0f
+                ? launchVelocity.normalized
+                : Vector2.zero;
+
+        speed = launchVelocity.magnitude;
+        isPatternControlled = false;
     }
 
     private void FixedUpdate()
     {
         UpdateGrazeState(body.position);
+
+        if (IsPatternControlled)
+        {
+            return;
+        }
+
         Vector2 nextPosition;
 
         if (isTurning)
@@ -183,15 +189,20 @@ public sealed class Bullet : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(
+        Collider2D other
+    )
     {
         PlayerShield playerShield =
-            other.GetComponentInParent<PlayerShield>();
+            other.GetComponentInParent<
+                PlayerShield
+            >();
 
         if (playerShield != null &&
             playerShield.OwnsCollider(other))
         {
             if (owner == BulletOwner.Enemy &&
+                !IsPatternControlled &&
                 playerShield.TryAbsorb(
                     shieldPowerCost
                 ))
@@ -221,14 +232,19 @@ public sealed class Bullet : MonoBehaviour
         }
 
         IDamageable damageable =
-            other.GetComponentInParent<IDamageable>();
+            other.GetComponentInParent<
+                IDamageable
+            >();
 
         if (damageable == null)
         {
             return;
         }
 
-        damageable.TakeDamage(reflectedDamage);
+        damageable.TakeDamage(
+            reflectedDamage
+        );
+
         ReturnToPool();
     }
 
@@ -267,7 +283,8 @@ public sealed class Bullet : MonoBehaviour
             playerShield != null &&
             playerShield.IsActive;
 
-        if (isInside && !wasInsideGrazeArea)
+        if (isInside &&
+            !wasInsideGrazeArea)
         {
             if (!ignoreGrazeUntilExit &&
                 !hasGrantedGraze &&
@@ -308,7 +325,9 @@ public sealed class Bullet : MonoBehaviour
                 ignoreGrazeUntilExit = false;
             }
             else if (hasGrantedGraze &&
-                     !shieldActive)
+                     !shieldActive &&
+                     !IsPatternControlled &&
+                     !grazedBeforePatternRelease)
             {
                 Reflect(grazeArea.Center);
             }
@@ -368,80 +387,96 @@ public sealed class Bullet : MonoBehaviour
     }
 
     private void HandlePlayerAreaEnter(
-    PlayerArea playerArea,
-    Collider2D other
-)
-{
-    if (owner != BulletOwner.Enemy)
+        PlayerArea playerArea,
+        Collider2D other
+    )
     {
-        return;
+        if (owner != BulletOwner.Enemy)
+        {
+            return;
+        }
+
+        PlayerShield playerShield =
+            other.GetComponentInParent<
+                PlayerShield
+            >();
+
+        // Пока щит активен, попадания в другие
+        // зоны игрока не обрабатываются.
+        if (playerShield != null &&
+            playerShield.IsActive)
+        {
+            return;
+        }
+
+        if (playerArea.AreaType !=
+            PlayerAreaType.Hitbox)
+        {
+            return;
+        }
+
+        hasHitPlayer = true;
+
+        PlayerState playerState =
+            other.GetComponentInParent<
+                PlayerState
+            >();
+
+        if (playerState != null)
+        {
+            playerState.TakeHit();
+        }
+        else
+        {
+            Debug.LogError(
+                "Player has no PlayerState.",
+                other
+            );
+        }
+
+        ReturnToPool();
     }
 
-    PlayerShield playerShield =
-        other.GetComponentInParent<PlayerShield>();
-
-    // Пока щит активен, попадания в другие
-    // зоны игрока не обрабатываются.
-    if (playerShield != null &&
-        playerShield.IsActive)
+    private Vector2 GetBulletCenter(
+        Vector2 position
+    )
     {
-        return;
+        return position +
+            (Vector2)transform.TransformVector(
+                bulletCollider.offset
+            );
     }
 
-    if (playerArea.AreaType !=
-        PlayerAreaType.Hitbox)
+    private float GetBulletWorldRadius()
     {
-        return;
+        Vector3 scale =
+            transform.lossyScale;
+
+        float largestScale =
+            Mathf.Max(
+                Mathf.Abs(scale.x),
+                Mathf.Abs(scale.y)
+            );
+
+        return bulletCollider.radius *
+            largestScale;
     }
 
-    hasHitPlayer = true;
-
-    PlayerState playerState =
-        other.GetComponentInParent<PlayerState>();
-
-    if (playerState != null)
-    {
-        playerState.TakeHit();
-    }
-    else
-    {
-        Debug.LogError(
-            "Player has no PlayerState.",
-            other
-        );
-    }
-
-    ReturnToPool();
-}
-private Vector2 GetBulletCenter(Vector2 position)
-{
-    return position +
-        (Vector2)transform.TransformVector(
-            bulletCollider.offset
-        );
-}
-
-private float GetBulletWorldRadius()
-{
-    Vector3 scale = transform.lossyScale;
-
-    float largestScale = Mathf.Max(
-        Mathf.Abs(scale.x),
-        Mathf.Abs(scale.y)
-    );
-
-    return bulletCollider.radius * largestScale;
-}
-    private void Reflect(Vector2 playerCenter)
+    private void Reflect(
+        Vector2 playerCenter
+    )
     {
         owner = BulletOwner.Player;
 
         Vector2 directionToPlayer =
-            playerCenter - body.position;
+            playerCenter -
+            body.position;
 
         float cross =
-            direction.x * directionToPlayer.y -
-            direction.y * directionToPlayer.x;
+            direction.x *
+                directionToPlayer.y -
+            direction.y *
+                directionToPlayer.x;
 
         if (Mathf.Abs(cross) > 0.0001f)
         {
@@ -450,13 +485,17 @@ private float GetBulletWorldRadius()
         else
         {
             turnSign =
-                body.position.x >= playerCenter.x
+                body.position.x >=
+                playerCenter.x
                     ? 1f
                     : -1f;
         }
 
         Vector2 leftNormal =
-            new(-direction.y, direction.x);
+            new(
+                -direction.y,
+                direction.x
+            );
 
         turnCenter =
             body.position +
@@ -469,7 +508,8 @@ private float GetBulletWorldRadius()
 
         if (spriteRenderer != null)
         {
-            spriteRenderer.color = reflectedColor;
+            spriteRenderer.color =
+                reflectedColor;
         }
     }
 
@@ -480,15 +520,19 @@ private float GetBulletWorldRadius()
             reflectionTurnRadius *
             Mathf.Rad2Deg;
 
-        float angleStep = Mathf.Min(
-            angularSpeed * Time.fixedDeltaTime,
-            turnDegreesRemaining
-        );
+        float angleStep =
+            Mathf.Min(
+                angularSpeed *
+                    Time.fixedDeltaTime,
+                turnDegreesRemaining
+            );
 
-        float signedAngle = angleStep * turnSign;
+        float signedAngle =
+            angleStep * turnSign;
 
         Vector2 relativePosition =
-            body.position - turnCenter;
+            body.position -
+            turnCenter;
 
         relativePosition =
             RotateVector(
@@ -502,14 +546,19 @@ private float GetBulletWorldRadius()
                 signedAngle
             ).normalized;
 
-        turnDegreesRemaining -= angleStep;
+        turnDegreesRemaining -=
+            angleStep;
 
         Vector2 nextPosition =
-            turnCenter + relativePosition;
+            turnCenter +
+            relativePosition;
 
-        if (turnDegreesRemaining <= 0.001f)
+        if (turnDegreesRemaining <=
+            0.001f)
         {
-            FinishReflectionTurn(nextPosition);
+            FinishReflectionTurn(
+                nextPosition
+            );
         }
 
         return nextPosition;
@@ -520,15 +569,17 @@ private float GetBulletWorldRadius()
     )
     {
         isTurning = false;
-        speed *= reflectedSpeedMultiplier;
+        speed *=
+            reflectedSpeedMultiplier;
 
         Transform target = source;
 
         if (target == null)
         {
-            target = FindNearestEnemy(
-                currentPosition
-            );
+            target =
+                FindNearestEnemy(
+                    currentPosition
+                );
         }
 
         if (target != null)
@@ -537,11 +588,13 @@ private float GetBulletWorldRadius()
                 (Vector2)target.position -
                 currentPosition;
 
-            if (directionToTarget.sqrMagnitude >
+            if (directionToTarget
+                    .sqrMagnitude >
                 0.0001f)
             {
                 direction =
-                    directionToTarget.normalized;
+                    directionToTarget
+                        .normalized;
 
                 return;
             }
@@ -550,29 +603,39 @@ private float GetBulletWorldRadius()
         direction.Normalize();
     }
 
-    private static Transform FindNearestEnemy(
-        Vector2 currentPosition
-    )
+    private static Transform
+        FindNearestEnemy(
+            Vector2 currentPosition
+        )
     {
         EnemyHealth[] enemies =
-            FindObjectsByType<EnemyHealth>(
+            FindObjectsByType<
+                EnemyHealth
+            >(
                 FindObjectsSortMode.None
             );
 
-        EnemyHealth nearestEnemy = null;
+        EnemyHealth nearestEnemy =
+            null;
 
         float nearestDistanceSquared =
             float.PositiveInfinity;
 
-        foreach (EnemyHealth enemy in enemies)
+        foreach (
+            EnemyHealth enemy
+            in enemies
+        )
         {
-            if (enemy == null || enemy.IsDead)
+            if (enemy == null ||
+                enemy.IsDead)
             {
                 continue;
             }
 
             Vector2 offset =
-                (Vector2)enemy.transform.position -
+                (Vector2)
+                    enemy.transform
+                        .position -
                 currentPosition;
 
             float distanceSquared =
@@ -600,15 +663,21 @@ private float GetBulletWorldRadius()
         float degrees
     )
     {
-        float radians = degrees * Mathf.Deg2Rad;
-        float sine = Mathf.Sin(radians);
-        float cosine = Mathf.Cos(radians);
+        float radians =
+            degrees *
+            Mathf.Deg2Rad;
+
+        float sine =
+            Mathf.Sin(radians);
+
+        float cosine =
+            Mathf.Cos(radians);
 
         return new Vector2(
             vector.x * cosine -
-            vector.y * sine,
+                vector.y * sine,
             vector.x * sine +
-            vector.y * cosine
+                vector.y * cosine
         );
     }
 
