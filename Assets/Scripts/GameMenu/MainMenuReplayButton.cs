@@ -83,7 +83,8 @@ public sealed class MainMenuReplayButton :
             ReplayRuntimeContext.StopPlayback();
             return;
         }
-
+        PracticeRunContext.End();
+        GameRunContext.BeginNewRun();
         GameRunContext.SelectDifficulty(
             replay.Difficulty
         );

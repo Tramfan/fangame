@@ -1200,6 +1200,7 @@ GameObject:
   - component: {fileID: 305619756}
   - component: {fileID: 305619757}
   - component: {fileID: 305619758}
+  - component: {fileID: 305619760}
   - component: {fileID: 305619759}
   m_Layer: 0
   m_Name: Player
@@ -1442,6 +1443,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReplayPlayer
   inputSource: {fileID: 0}
   battleFlow: {fileID: 870805359}
+--- !u!114 &305619760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305619747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c90de8d353d932c4e9155d31454ec4e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RunResultRecorder
+  battleFlow: {fileID: 870805359}
+  replayRecorder: {fileID: 305619758}
 --- !u!1 &323885130
 GameObject:
   m_ObjectHideFlags: 0

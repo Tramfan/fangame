@@ -100,6 +100,66 @@ MonoBehaviour:
     m_Localized: AUTO-COLLECT LINE
     m_Metadata:
       m_Items: []
+  - m_Id: 28348363060092928
+    m_Localized: Boss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28348498976514048
+    m_Localized: Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28349007766560768
+    m_Localized: Practice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28354706395439104
+    m_Localized: Back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28555638504759296
+    m_Localized: Score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28555942583410688
+    m_Localized: Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28556151380058112
+    m_Localized: Difficulty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28556522630488064
+    m_Localized: Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28556748745416704
+    m_Localized: Date
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28559880938397696
+    m_Localized: Records
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28560043526397952
+    m_Localized: Replays
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28563959219560448
+    m_Localized: No saved results yet.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28564246361612288
+    m_Localized: Unable to open replay.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28564608707534848
+    m_Localized: StageTest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28565082743578624
+    m_Localized: Select Level
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds:

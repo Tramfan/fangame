@@ -159,7 +159,7 @@ public static class ReplayFileStorage
         return false;
     }
 
-    private static bool TryLoad(
+     public static bool TryLoad(
         string replayPath,
         out ReplayRunData replay
     )
@@ -210,12 +210,13 @@ public static class ReplayFileStorage
         }
     }
 
-    private static bool IsCompleteReplay(
+ private static bool IsCompleteReplay(
         ReplayRunData replay
     )
     {
         return replay != null &&
             replay.Finished &&
+            replay.Cleared &&
             replay.TickCount > 0;
     }
 

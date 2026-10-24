@@ -95,6 +95,78 @@ MonoBehaviour:
     m_Key: autocollect_line
     m_Metadata:
       m_Items: []
+  - m_Id: 28348363060092928
+    m_Key: fromboss
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28348498976514048
+    m_Key: fromlevelbeginning
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28349007766560768
+    m_Key: training
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28354706395439104
+    m_Key: back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28555638504759296
+    m_Key: score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28555942583410688
+    m_Key: Character
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28556151380058112
+    m_Key: Difficulty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28556522630488064
+    m_Key: Level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28556748745416704
+    m_Key: Date
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28559880938397696
+    m_Key: Records
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28560043526397952
+    m_Key: Replays
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28563959219560448
+    m_Key: EmptyResults
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28564246361612288
+    m_Key: ReplayError
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28564608707534848
+    m_Key: StageTest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28565034983038976
+    m_Key: New Entry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28565082743578624
+    m_Key: Select
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28571702382895104
+    m_Key: New Entry 1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 28572695757660160
+    m_Key: New Entry 2
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

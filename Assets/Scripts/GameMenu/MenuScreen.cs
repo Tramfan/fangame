@@ -3,9 +3,13 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class MenuScreen : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject firstSelectedObject;
+    [SerializeField] private GameObject firstSelectedObject;
 
     public GameObject FirstSelectedObject =>
         firstSelectedObject;
+
+    public void SetFirstSelectedObject(GameObject target)
+    {
+        firstSelectedObject = target;
+    }
 }

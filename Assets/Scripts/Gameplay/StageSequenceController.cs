@@ -59,6 +59,12 @@ public sealed class StageSequenceController : MonoBehaviour
 
             enabled = false;
         }
+         if (PracticeRunContext.StartPoint ==
+                PracticeStart.Boss &&
+            !ReplayRuntimeContext.IsPlaybackActive)
+        {
+            openingWave.gameObject.SetActive(false);
+        }
     }
 
     private void OnEnable()
@@ -70,10 +76,24 @@ public sealed class StageSequenceController : MonoBehaviour
         }
     }
 
-    private void Start()
+      private void Start()
     {
         if (!enabled)
         {
+            return;
+        }
+
+        if (PracticeRunContext.StartPoint ==
+                PracticeStart.Boss &&
+            !ReplayRuntimeContext.IsPlaybackActive)
+        {
+            openingWave.gameObject.SetActive(false);
+            bossRoot.SetActive(true);
+
+            Debug.Log(
+                "Boss practice started.",
+                this
+            );
             return;
         }
 

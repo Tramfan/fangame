@@ -8,14 +8,16 @@ public sealed class RunSetupController : MonoBehaviour
     private MenuNavigator navigator;
 
     [SerializeField]
+    private MenuScreen practiceScreen;
+
+    [SerializeField]
     private MenuScreen difficultyScreen;
 
     [SerializeField]
     private MenuScreen characterScreen;
 
     [SerializeField]
-    private string gameplaySceneName =
-        "TestStage";
+    private string gameplaySceneName = "TestStage";
 
     private bool sceneLoading;
 
@@ -26,6 +28,37 @@ public sealed class RunSetupController : MonoBehaviour
             return;
         }
 
+        PracticeRunContext.End();
+        GameRunContext.BeginNewRun();
+        navigator.Open(difficultyScreen);
+    }
+
+    public void OpenPracticeMenu()
+    {
+        if (CanOpen(practiceScreen))
+        {
+            navigator.Open(practiceScreen);
+        }
+    }
+
+    public void BeginStagePractice()
+    {
+        BeginPractice(PracticeStart.Stage);
+    }
+
+    public void BeginBossPractice()
+    {
+        BeginPractice(PracticeStart.Boss);
+    }
+
+    private void BeginPractice(PracticeStart startPoint)
+    {
+        if (!CanOpen(difficultyScreen))
+        {
+            return;
+        }
+
+        PracticeRunContext.Begin(startPoint);
         GameRunContext.BeginNewRun();
         navigator.Open(difficultyScreen);
     }
@@ -39,9 +72,7 @@ public sealed class RunSetupController : MonoBehaviour
             return;
         }
 
-        GameRunContext.SelectDifficulty(
-            difficulty
-        );
+        GameRunContext.SelectDifficulty(difficulty);
 
         Debug.Log(
             $"Run difficulty: {difficulty}; " +
@@ -62,14 +93,12 @@ public sealed class RunSetupController : MonoBehaviour
             return;
         }
 
-        if (character == null ||
-            shotType == null)
+        if (character == null || shotType == null)
         {
             Debug.LogError(
                 "Cannot confirm an incomplete loadout.",
                 this
             );
-
             return;
         }
 
@@ -79,25 +108,19 @@ public sealed class RunSetupController : MonoBehaviour
                 "Difficulty was not selected.",
                 this
             );
-
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(
-                gameplaySceneName))
+        if (string.IsNullOrWhiteSpace(gameplaySceneName))
         {
             Debug.LogError(
                 "Gameplay Scene Name is empty.",
                 this
             );
-
             return;
         }
 
-GameRunContext.SelectLoadout(
-    character,
-    shotType
-);
+        GameRunContext.SelectLoadout(character, shotType);
 
         GameplayRandom.SetSeedForNextRun(
             GameRunContext.Seed
@@ -108,6 +131,7 @@ GameRunContext.SelectLoadout(
             $"{GameRunContext.Difficulty}, " +
             $"{GameRunContext.CharacterId}, " +
             $"{GameRunContext.ShotTypeId}, " +
+            $"practice {PracticeRunContext.StartPoint}, " +
             $"seed {GameRunContext.Seed}",
             this
         );
@@ -128,7 +152,6 @@ GameRunContext.SelectLoadout(
                 "Run Setup has no Menu Navigator.",
                 this
             );
-
             return false;
         }
 
@@ -138,7 +161,6 @@ GameRunContext.SelectLoadout(
                 "Run Setup target screen is not assigned.",
                 this
             );
-
             return false;
         }
 

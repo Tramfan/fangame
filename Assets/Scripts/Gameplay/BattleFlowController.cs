@@ -174,7 +174,7 @@ private void ReplayLatestRecording()
 
         return;
     }
-
+PracticeRunContext.End();
     ReplayRunData replay =
         ReplayRuntimeContext.ActivePlayback;
 
@@ -212,7 +212,9 @@ private void ReplayLatestRecording()
         SceneManager.LoadScene(
             mainMenuSceneName,
             LoadSceneMode.Single
+            
         );
+        PracticeRunContext.End();
     }
 
     private void OnDestroy()

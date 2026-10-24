@@ -1,107 +1,75 @@
 using UnityEngine;
 
 [DisallowMultipleComponent]
-public sealed class ReplayRecorder :
-    MonoBehaviour
+public sealed class ReplayRecorder : MonoBehaviour
 {
-    [SerializeField]
-    private PlayerInputSource inputSource;
+    [SerializeField] private PlayerInputSource inputSource;
+    [SerializeField] private BattleFlowController battleFlow;
 
-    [SerializeField]
-    private BattleFlowController battleFlow;
-
-    public ReplayRunData Recording
-    {
-        get;
-        private set;
-    }
-
-    public bool IsRecording
-    {
-        get;
-        private set;
-    }
+    public ReplayRunData Recording { get; private set; }
+    public bool IsRecording { get; private set; }
+    public string SavedReplayPath { get; private set; } = string.Empty;
 
     private void Awake()
     {
         if (inputSource == null)
         {
-            inputSource =
-                GetComponentInParent<
-                    PlayerInputSource
-                >();
+            inputSource = GetComponentInParent<PlayerInputSource>();
         }
 
-        if (inputSource == null)
+        if (inputSource == null || battleFlow == null)
         {
             Debug.LogError(
-                "Replay Recorder has no Input Source.",
+                "Replay Recorder requires Input Source and Battle Flow.",
                 this
             );
-
-            enabled = false;
-            return;
-        }
-
-        if (battleFlow == null)
-        {
-            Debug.LogError(
-                "Replay Recorder has no Battle Flow.",
-                this
-            );
-
             enabled = false;
         }
     }
 
     private void OnEnable()
     {
-        if (ReplayRuntimeContext.IsPlaybackActive)
+        if (inputSource == null || battleFlow == null)
+        {
+            return;
+        }
+
+        if (ReplayRuntimeContext.IsPlaybackActive ||
+            PracticeRunContext.IsPractice)
         {
             enabled = false;
             return;
         }
 
-        Recording =
-            new ReplayRunData();
-
+        SavedReplayPath = string.Empty;
+        Recording = new ReplayRunData();
         Recording.BeginFromCurrentRun();
-
         IsRecording = true;
 
-        inputSource.InputTickCaptured +=
-            HandleInputTickCaptured;
-
-        battleFlow.ResultChanged +=
-            HandleBattleResultChanged;
+        inputSource.InputTickCaptured += HandleInputTickCaptured;
+        battleFlow.ResultChanged += HandleBattleResultChanged;
     }
 
     private void OnDisable()
     {
         if (inputSource != null)
         {
-            inputSource.InputTickCaptured -=
-                HandleInputTickCaptured;
+            inputSource.InputTickCaptured -= HandleInputTickCaptured;
         }
 
         if (battleFlow != null)
         {
-            battleFlow.ResultChanged -=
-                HandleBattleResultChanged;
+            battleFlow.ResultChanged -= HandleBattleResultChanged;
         }
 
-        // При уходе со сцены незавершённый бой
-        // не становится готовым реплеем.
         CancelRecording();
     }
 
     private void HandleInputTickCaptured(
         int tick,
-        PlayerInputButtons buttons
-    )
+        PlayerInputButtons buttons)
     {
-        if (!IsRecording ||
-            inputSource.IsReplayInput)
+        if (!IsRecording || inputSource.IsReplayInput)
         {
             return;
         }
@@ -109,12 +77,10 @@ public sealed class ReplayRecorder :
         if (tick != Recording.TickCount)
         {
             Debug.LogError(
-                $"Replay input tick mismatch: " +
-                $"expected {Recording.TickCount}, " +
-                $"received {tick}.",
+                $"Replay input tick mismatch: expected " +
+                $"{Recording.TickCount}, received {tick}.",
                 this
             );
-
             CancelRecording();
             return;
         }
@@ -122,13 +88,12 @@ public sealed class ReplayRecorder :
         Recording.RecordFrame(buttons);
     }
 
-    private void HandleBattleResultChanged(
-        BattleResult result
-    )
+    private void HandleBattleResultChanged(BattleResult result)
     {
-        FinishRecording(
-            result == BattleResult.Cleared
-        );
+        if (result != BattleResult.Running)
+        {
+            FinishRecording(result == BattleResult.Cleared);
+        }
     }
 
     private void CancelRecording()
@@ -142,42 +107,41 @@ public sealed class ReplayRecorder :
         Recording = null;
     }
 
-    private void FinishRecording(
-        bool cleared
-    )
+    public string FinishRecording(bool cleared)
     {
+        if (!cleared)
+        {
+            CancelRecording();
+            return string.Empty;
+        }
+
+        // Повторный вызов возвращает уже сохранённый путь.
         if (!IsRecording)
         {
-            return;
+            return SavedReplayPath;
         }
 
         IsRecording = false;
 
         Recording.Finish(
-            cleared,
+            true,
             GameRunContext.CurrentScore
         );
 
-        ReplayRuntimeContext.StoreRecording(
-            Recording
-        );
+        ReplayRuntimeContext.StoreRecording(Recording);
 
-        if (ReplayFileStorage.TrySave(
-                Recording,
-                out string savedPath))
+        if (ReplayFileStorage.TrySave(Recording, out string path))
         {
-            Debug.Log(
-                $"Replay saved: {savedPath}",
-                this
-            );
+            SavedReplayPath = path;
+            Debug.Log($"Replay saved: {path}", this);
         }
 
         Debug.Log(
-            $"Replay recorded: " +
-            $"{Recording.TickCount} ticks, " +
-            $"score {Recording.FinalScore}, " +
-            $"cleared {Recording.Cleared}.",
+            $"Replay recorded: {Recording.TickCount} ticks, " +
+            $"score {Recording.FinalScore}, cleared true.",
             this
         );
+
+        return SavedReplayPath;
     }
 }
