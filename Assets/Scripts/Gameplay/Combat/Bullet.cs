@@ -153,7 +153,23 @@ public sealed class Bullet : MonoBehaviour
         speed = launchVelocity.magnitude;
         isPatternControlled = false;
     }
+ public bool TrySetEnemyVelocity(Vector2 velocity)
+    {
+        if (owner != BulletOwner.Enemy ||
+            IsPatternControlled ||
+            isTurning)
+        {
+            return false;
+        }
 
+        speed = velocity.magnitude;
+
+        direction = speed > 0f
+            ? velocity / speed
+            : Vector2.zero;
+
+        return true;
+    }
     private void FixedUpdate()
     {
         UpdateGrazeState(body.position);

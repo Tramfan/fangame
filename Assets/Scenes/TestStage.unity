@@ -1202,6 +1202,7 @@ GameObject:
   - component: {fileID: 305619758}
   - component: {fileID: 305619760}
   - component: {fileID: 305619759}
+  - component: {fileID: 305619761}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1457,6 +1458,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RunResultRecorder
   battleFlow: {fileID: 870805359}
   replayRecorder: {fileID: 305619758}
+--- !u!114 &305619761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305619747}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11bf2611895af534c99fcb615c5cb3fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpriteAnimator
+  inputSource: {fileID: 305619754}
+  spriteRenderer: {fileID: 305619749}
+  idleFrameTicks: 6
+  turnFrameTicks: 3
 --- !u!1 &323885130
 GameObject:
   m_ObjectHideFlags: 0

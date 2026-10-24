@@ -170,14 +170,21 @@ if (playerOptionController == null)
         return true;
     }
 
-    private void ApplyCharacter(
+     private void ApplyCharacter(
         CharacterDefinition character
     )
     {
         if (character.PlayerSprite != null)
         {
-            playerRenderer.sprite =
-                character.PlayerSprite;
+            playerRenderer.sprite = character.PlayerSprite;
+        }
+
+        PlayerSpriteAnimator spriteAnimator =
+            playerRenderer.GetComponent<PlayerSpriteAnimator>();
+
+        if (spriteAnimator != null)
+        {
+            spriteAnimator.Configure(character, playerRenderer);
         }
 
         playerController.ConfigureMovement(

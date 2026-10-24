@@ -27,6 +27,24 @@ MonoBehaviour:
   shotTypes:
   - {fileID: 11400000, guid: 1faee0ac9dee5eb4b883ca27656f64a5, type: 2}
   - {fileID: 11400000, guid: 350595f68988f954098bf703afb251a5, type: 2}
+  playerSprite: {fileID: -833189110, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  normalSpeed: 5
+  focusSpeed: 2
+  idleSprites:
+  - {fileID: -833189110, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: -1698780070, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: -1816071689, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: 1369241026, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  turnLeftSprites:
+  - {fileID: 1760140653, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: -274520594, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: -503183209, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: 1803378067, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  turnRightSprites:
+  - {fileID: 2082926618, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: 1513826693, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: -1310836440, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
+  - {fileID: -1503764205, guid: 0e2c1652ae4f2c0459396a568b2f5d6e, type: 3}
   references:
     version: 2
     RefIds: []

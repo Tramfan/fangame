@@ -5,8 +5,7 @@ using UnityEngine.Localization;
     fileName = "Character",
     menuName = "Fangame/Character Definition"
 )]
-public sealed class CharacterDefinition :
-    ScriptableObject
+public sealed class CharacterDefinition : ScriptableObject
 {
     [SerializeField]
     private string id;
@@ -33,24 +32,35 @@ public sealed class CharacterDefinition :
     [SerializeField, Min(0f)]
     private float focusSpeed = 2f;
 
+    [Header("Player Animation")]
+    [SerializeField]
+    private Sprite[] idleSprites;
+
+    [SerializeField]
+    private Sprite[] turnLeftSprites;
+
+    [SerializeField]
+    private Sprite[] turnRightSprites;
+
     public string Id => id;
 
     public string CampaignId => campaignId;
 
-    public LocalizedString DisplayName =>
-        displayName;
+    public LocalizedString DisplayName => displayName;
 
     public Sprite Portrait => portrait;
 
-    public ShotTypeDefinition[] ShotTypes =>
-        shotTypes;
+    public ShotTypeDefinition[] ShotTypes => shotTypes;
 
-    public Sprite PlayerSprite =>
-        playerSprite;
+    public Sprite PlayerSprite => playerSprite;
 
-    public float NormalSpeed =>
-        normalSpeed;
+    public float NormalSpeed => normalSpeed;
 
-    public float FocusSpeed =>
-        focusSpeed;
+    public float FocusSpeed => focusSpeed;
+
+    public Sprite[] IdleSprites => idleSprites;
+
+    public Sprite[] TurnLeftSprites => turnLeftSprites;
+
+    public Sprite[] TurnRightSprites => turnRightSprites;
 }
