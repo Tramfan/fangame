@@ -10589,7 +10589,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BulletPool
   bulletPrefab: {fileID: 170877814814272871, guid: 7b5ddf06bef4ffd4590ef0cdd4866cad,
     type: 3}
-  initialSize: 256
+  initialSize: 2048
 --- !u!4 &1913305739
 Transform:
   m_ObjectHideFlags: 0

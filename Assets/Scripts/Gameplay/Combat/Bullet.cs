@@ -410,7 +410,10 @@ private void UpdateVisualRotation()
                 GetBulletCenter(bulletPosition),
                 GetBulletWorldRadius()
             );
-
+        if (isInside == wasInsideGrazeArea)
+        {
+            return;
+        }
         PlayerShield playerShield =
             grazeArea.GetComponentInParent<
                 PlayerShield
