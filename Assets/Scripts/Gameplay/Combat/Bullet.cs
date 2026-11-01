@@ -48,6 +48,13 @@ public sealed class Bullet : MonoBehaviour
 private Sprite originalSprite;
 private Material originalMaterial;
 private Color originalColor = Color.white;
+private bool alignVisualToMovement;
+private float visualRotationOffset;
+private bool originalVisualRotationSaved;
+private Quaternion originalVisualRotation;
+private Vector3 originalVisualScale = Vector3.one;
+private float originalHitboxRadius;
+private Vector2 originalHitboxOffset;
 private Vector2 direction = Vector2.down;
     private Transform source;
     private int spawnTick;
@@ -79,6 +86,9 @@ private void Awake()
     bulletCollider = GetComponent<CircleCollider2D>();
     body = GetComponent<Rigidbody2D>();
 
+    originalHitboxRadius = bulletCollider.radius;
+    originalHitboxOffset = bulletCollider.offset;
+
     spriteRenderer =
         GetComponentInChildren<SpriteRenderer>(true);
 
@@ -87,9 +97,41 @@ private void Awake()
         originalSprite = spriteRenderer.sprite;
         originalMaterial = spriteRenderer.sharedMaterial;
         originalColor = spriteRenderer.color;
+
+        originalVisualScale =
+            spriteRenderer.transform.localScale;
     }
 }
+internal void ApplyStyleGeometry(
+    BulletStyleDefinition style
+)
+{
+    bool useStyleHitbox =
+        style != null && style.OverrideHitbox;
 
+    bulletCollider.radius = useStyleHitbox
+        ? style.HitboxRadius
+        : originalHitboxRadius;
+
+    bulletCollider.offset = useStyleHitbox
+        ? style.HitboxOffset
+        : originalHitboxOffset;
+
+    if (spriteRenderer == null)
+    {
+        return;
+    }
+
+    if (spriteRenderer.transform != transform)
+    {
+        float multiplier = style != null
+            ? style.VisualScale
+            : 1f;
+
+        spriteRenderer.transform.localScale =
+            originalVisualScale * multiplier;
+    }
+}
 internal void AssignPool(BulletPool bulletPool)
 {
     pool = bulletPool;
@@ -105,6 +147,14 @@ internal void ApplyAppearance(
         return;
     }
 
+    Transform visual = spriteRenderer.transform;
+
+    if (!originalVisualRotationSaved)
+    {
+        originalVisualRotation = visual.localRotation;
+        originalVisualRotationSaved = true;
+    }
+
     spriteRenderer.sprite =
         style != null && style.Sprite != null
             ? style.Sprite
@@ -116,6 +166,46 @@ internal void ApplyAppearance(
             : originalMaterial;
 
     spriteRenderer.color = originalColor * tint;
+
+    alignVisualToMovement =
+        style != null &&
+        style.AlignToMovement &&
+        visual != transform;
+
+    visualRotationOffset = style != null
+        ? style.RotationOffsetDegrees
+        : 0f;
+
+    // Убираем поворот от предыдущего использования.
+    visual.localRotation = originalVisualRotation;
+
+    UpdateVisualRotation();
+}
+
+private void LateUpdate()
+{
+    UpdateVisualRotation();
+}
+
+private void UpdateVisualRotation()
+{
+    if (!alignVisualToMovement ||
+        spriteRenderer == null ||
+        direction.sqrMagnitude < 0.0001f)
+    {
+        return;
+    }
+
+    float angle =
+        Mathf.Atan2(direction.y, direction.x) *
+        Mathf.Rad2Deg;
+
+    spriteRenderer.transform.rotation =
+        Quaternion.Euler(
+            0f,
+            0f,
+            angle + visualRotationOffset
+        );
 }
 
 

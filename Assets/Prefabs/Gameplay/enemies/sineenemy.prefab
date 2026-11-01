@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4125927578087586452}
-  - component: {fileID: 3404545264645371791}
+  - component: {fileID: 8337120970217374157}
   m_Layer: 0
-  m_Name: AimedFanEmitter
+  m_Name: RingEmitter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7579130173721111027}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3404545264645371791
+--- !u!114 &8337120970217374157
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,14 +41,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 2924359535242268952}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af1bec9900641f34297396a389bad619, type: 3}
+  m_Script: {fileID: 11500000, guid: 72c3a84c30a8d0540b350415302fc801, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PrototypeAimedFanEmitter
+  m_EditorClassIdentifier: Assembly-CSharp::RingEmitter
   bulletPool: {fileID: 0}
-  target: {fileID: 0}
-  bulletCount: 5
-  spreadAngle: 60
-  bulletSpeed: 3
+  bulletStyle: {fileID: 0}
+  bulletTint: {r: 1, g: 1, b: 1, a: 1}
+  bulletCount: 16
+  bulletSpeed: 2.5
+  rotationPerRing: 8
   fireIntervalTicks: 90
 --- !u!1 &6012566910578917993
 GameObject:

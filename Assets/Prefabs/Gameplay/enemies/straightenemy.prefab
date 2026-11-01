@@ -241,6 +241,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PrototypeRingEmitter
   bulletPool: {fileID: 0}
+  bulletStyle: {fileID: 11400000, guid: 5a4787d0c899ea64390f143f2b9d1c41, type: 2}
+  bulletTint: {r: 0, g: 1, b: 0.14926535, a: 1}
   bulletCount: 16
   bulletSpeed: 2.5
   rotationPerRing: 7.5

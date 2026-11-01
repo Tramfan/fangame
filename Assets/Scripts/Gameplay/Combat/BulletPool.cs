@@ -75,16 +75,20 @@ public Bullet Spawn(
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
 
+bullet.ApplyStyleGeometry(style);
+
 bullet.Initialize(
     direction,
     speed,
     source,
     patternControlled
 );
+
 bullet.ApplyAppearance(
     style,
     tint ?? Color.white
 );
+
 
         bullet.gameObject.SetActive(true);
 

@@ -5,6 +5,12 @@ public sealed class RingEmitter : MonoBehaviour
     [SerializeField]
     private BulletPool bulletPool;
 
+[Header("Bullet Appearance")]
+[SerializeField]
+private BulletStyleDefinition bulletStyle;
+
+[SerializeField]
+private Color bulletTint = Color.white;
     [Header("Pattern")]
     [SerializeField, Min(1)]
     private int bulletCount = 16;
@@ -104,12 +110,14 @@ public sealed class RingEmitter : MonoBehaviour
                 Mathf.Sin(angle)
             );
 
-            bulletPool.Spawn(
-                transform.position,
-                direction,
-                bulletSpeed,
-                transform.root
-            );
+              bulletPool.Spawn(
+    transform.position,
+    direction,
+    bulletSpeed,
+    transform.root,
+    style: bulletStyle,
+    tint: bulletTint
+);
         }
 
         currentAngle += rotationPerRing;
