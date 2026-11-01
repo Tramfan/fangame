@@ -36,13 +36,15 @@ public sealed class BulletPool : MonoBehaviour
         }
     }
 
-    public Bullet Spawn(
-        Vector2 position,
-        Vector2 direction,
-        float speed,
-        Transform source = null,
-        bool patternControlled = false
-    )
+public Bullet Spawn(
+    Vector2 position,
+    Vector2 direction,
+    float speed,
+    Transform source = null,
+    bool patternControlled = false,
+    BulletStyleDefinition style = null,
+    Color? tint = null
+)
     {
         if (!enabled || bulletPrefab == null)
         {
@@ -73,12 +75,16 @@ public sealed class BulletPool : MonoBehaviour
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
 
-        bullet.Initialize(
-            direction,
-            speed,
-            source,
-            patternControlled
-        );
+bullet.Initialize(
+    direction,
+    speed,
+    source,
+    patternControlled
+);
+bullet.ApplyAppearance(
+    style,
+    tint ?? Color.white
+);
 
         bullet.gameObject.SetActive(true);
 

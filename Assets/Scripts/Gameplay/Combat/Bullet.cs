@@ -45,8 +45,10 @@ public sealed class Bullet : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private BulletPool pool;
 
-    private Color originalColor = Color.white;
-    private Vector2 direction = Vector2.down;
+private Sprite originalSprite;
+private Material originalMaterial;
+private Color originalColor = Color.white;
+private Vector2 direction = Vector2.down;
     private Transform source;
     private int spawnTick;
     private Vector2 spawnPosition;
@@ -71,22 +73,51 @@ public sealed class Bullet : MonoBehaviour
         isPatternControlled &&
         owner == BulletOwner.Enemy;
 
-    private void Awake()
-    {
-        bulletCollider = GetComponent<CircleCollider2D>();
-        body = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
 
-        if (spriteRenderer != null)
-        {
-            originalColor = spriteRenderer.color;
-        }
+private void Awake()
+{
+    bulletCollider = GetComponent<CircleCollider2D>();
+    body = GetComponent<Rigidbody2D>();
+
+    spriteRenderer =
+        GetComponentInChildren<SpriteRenderer>(true);
+
+    if (spriteRenderer != null)
+    {
+        originalSprite = spriteRenderer.sprite;
+        originalMaterial = spriteRenderer.sharedMaterial;
+        originalColor = spriteRenderer.color;
+    }
+}
+
+internal void AssignPool(BulletPool bulletPool)
+{
+    pool = bulletPool;
+}
+
+internal void ApplyAppearance(
+    BulletStyleDefinition style,
+    Color tint
+)
+{
+    if (spriteRenderer == null)
+    {
+        return;
     }
 
-    internal void AssignPool(BulletPool bulletPool)
-    {
-        pool = bulletPool;
-    }
+    spriteRenderer.sprite =
+        style != null && style.Sprite != null
+            ? style.Sprite
+            : originalSprite;
+
+    spriteRenderer.sharedMaterial =
+        style != null && style.Material != null
+            ? style.Material
+            : originalMaterial;
+
+    spriteRenderer.color = originalColor * tint;
+}
+
 
     public void Initialize(
         Vector2 movementDirection,
