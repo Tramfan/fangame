@@ -307,7 +307,14 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         );
 
         activeEnemies.Add(enemy);
+BulletVolleyEmitter[] volleyEmitters =
+    enemy.GetComponentsInChildren<BulletVolleyEmitter>(true);
 
+foreach (BulletVolleyEmitter emitter in volleyEmitters)
+{
+    emitter.SetBulletPool(bulletPool);
+    emitter.SetTarget(target);
+}
         if (step.OverrideArcMovement)
         {
             ArcEnemyMover mover =

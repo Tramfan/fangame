@@ -2475,21 +2475,10 @@ MonoBehaviour:
   target: {fileID: 305619750}
   bulletPool: {fileID: 1913305738}
   steps:
-  - enemyPrefab: {fileID: 4217140370117118093, guid: e2d960ebdfb100145af27d0618ba2134,
+  - enemyPrefab: {fileID: 4217140370117118093, guid: 0b98c4e912e66f2429de0156a6a6b0ff,
       type: 3}
-    spawnPosition: {x: 4.5, y: 2.7}
+    spawnPosition: {x: 0, y: 4}
     delayAfterSpawnTicks: 90
-    repeatCount: 1
-    repeatIntervalTicks: 18
-    overrideArcMovement: 0
-    movementAngleDegrees: 0
-    movementDistance: 10.9
-    movementArcOffset: 0.9
-    movementTicks: 180
-  - enemyPrefab: {fileID: 4217140370117118093, guid: f1583fa1daa008f4d8695feeb9726438,
-      type: 3}
-    spawnPosition: {x: 4.5, y: 2.7}
-    delayAfterSpawnTicks: 180
     repeatCount: 1
     repeatIntervalTicks: 18
     overrideArcMovement: 0
