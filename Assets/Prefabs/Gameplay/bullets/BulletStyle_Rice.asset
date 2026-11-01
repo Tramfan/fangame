@@ -14,3 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BulletStyleDefinition
   sprite: {fileID: -1898312451107336064, guid: c92112b299eab0540ae4024812d53859, type: 3}
   material: {fileID: 0}
+  visualScale: 1
+  alignToMovement: 1
+  rotationOffsetDegrees: 90
+  overrideHitbox: 0
+  hitboxRadius: 0.1
+  hitboxOffset: {x: 0, y: 0}
