@@ -12,6 +12,12 @@ public sealed class PlayerArea : MonoBehaviour
     [SerializeField]
     private PlayerAreaType areaType;
 
+    [Header("Reflection")]
+    [SerializeField]
+    private bool reflectionEnabled = true;
+
+    public bool ReflectionEnabled => reflectionEnabled;     
+
     private CircleCollider2D circleCollider;
 
     public static PlayerArea GrazeArea

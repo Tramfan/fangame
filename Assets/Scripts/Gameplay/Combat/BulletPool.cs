@@ -145,6 +145,14 @@ bullet.ApplyAppearance(
             Instantiate(bulletPrefab, transform);
 
         bullet.AssignPool(this);
+        SpriteRenderer visual =
+            bullet.GetComponentInChildren<SpriteRenderer>(true);
+
+        if (visual != null)
+        {
+            // Постоянный уникальный приоритет внутри пула.
+            visual.sortingOrder = bodies.Count;
+        }
 
         Rigidbody2D body =
             bullet.GetComponent<Rigidbody2D>();

@@ -29,8 +29,7 @@ public sealed class Bullet : MonoBehaviour
     private int reflectedDamage = 1;
 
     [SerializeField]
-    private Color reflectedColor =
-        new(0.25f, 1f, 1f, 1f);
+    private Color reflectedColor = new(0.25f, 1f, 1f, 1f);
 
     [Header("Shield")]
     [SerializeField, Min(1)]
@@ -45,18 +44,22 @@ public sealed class Bullet : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private BulletPool pool;
 
-private Sprite originalSprite;
-private Material originalMaterial;
-private Color originalColor = Color.white;
-private bool alignVisualToMovement;
-private float visualRotationOffset;
-private bool originalVisualRotationSaved;
-private Quaternion originalVisualRotation;
-private Vector3 originalVisualScale = Vector3.one;
-private float originalHitboxRadius;
-private Vector2 originalHitboxOffset;
-private Vector2 direction = Vector2.down;
+    private Sprite originalSprite;
+    private Material originalMaterial;
+    private Color originalColor = Color.white;
+    private Vector3 originalVisualScale = Vector3.one;
+    private Quaternion originalVisualRotation;
+    private bool originalVisualRotationSaved;
+
+    private bool alignVisualToMovement;
+    private float visualRotationOffset;
+
+    private float originalHitboxRadius;
+    private Vector2 originalHitboxOffset;
+
+    private Vector2 direction = Vector2.down;
     private Transform source;
+
     private int spawnTick;
     private Vector2 spawnPosition;
     private Vector2 spawnDirection;
@@ -68,6 +71,7 @@ private Vector2 direction = Vector2.down;
     private bool hasHitPlayer;
     private bool wasInsideGrazeArea;
     private bool ignoreGrazeUntilExit;
+
     private bool isTurning;
     private float turnSign;
     private float turnDegreesRemaining;
@@ -77,137 +81,118 @@ private Vector2 direction = Vector2.down;
     private bool grazedBeforePatternRelease;
 
     public bool IsPatternControlled =>
-        isPatternControlled &&
-        owner == BulletOwner.Enemy;
+        isPatternControlled && owner == BulletOwner.Enemy;
 
-
-private void Awake()
-{
-    bulletCollider = GetComponent<CircleCollider2D>();
-    body = GetComponent<Rigidbody2D>();
-
-    originalHitboxRadius = bulletCollider.radius;
-    originalHitboxOffset = bulletCollider.offset;
-
-    spriteRenderer =
-        GetComponentInChildren<SpriteRenderer>(true);
-
-    if (spriteRenderer != null)
+    private void Awake()
     {
-        originalSprite = spriteRenderer.sprite;
-        originalMaterial = spriteRenderer.sharedMaterial;
-        originalColor = spriteRenderer.color;
+        bulletCollider = GetComponent<CircleCollider2D>();
+        body = GetComponent<Rigidbody2D>();
 
-        originalVisualScale =
-            spriteRenderer.transform.localScale;
-    }
-}
-internal void ApplyStyleGeometry(
-    BulletStyleDefinition style
-)
-{
-    bool useStyleHitbox =
-        style != null && style.OverrideHitbox;
+        originalHitboxRadius = bulletCollider.radius;
+        originalHitboxOffset = bulletCollider.offset;
 
-    bulletCollider.radius = useStyleHitbox
-        ? style.HitboxRadius
-        : originalHitboxRadius;
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
 
-    bulletCollider.offset = useStyleHitbox
-        ? style.HitboxOffset
-        : originalHitboxOffset;
-
-    if (spriteRenderer == null)
-    {
-        return;
+        if (spriteRenderer != null)
+        {
+            originalSprite = spriteRenderer.sprite;
+            originalMaterial = spriteRenderer.sharedMaterial;
+            originalColor = spriteRenderer.color;
+            originalVisualScale = spriteRenderer.transform.localScale;
+        }
     }
 
-    if (spriteRenderer.transform != transform)
+    internal void AssignPool(BulletPool bulletPool)
     {
-        float multiplier = style != null
-            ? style.VisualScale
-            : 1f;
-
-        spriteRenderer.transform.localScale =
-            originalVisualScale * multiplier;
-    }
-}
-internal void AssignPool(BulletPool bulletPool)
-{
-    pool = bulletPool;
-}
-
-internal void ApplyAppearance(
-    BulletStyleDefinition style,
-    Color tint
-)
-{
-    if (spriteRenderer == null)
-    {
-        return;
+        pool = bulletPool;
     }
 
-    Transform visual = spriteRenderer.transform;
-
-    if (!originalVisualRotationSaved)
+    internal void ApplyStyleGeometry(BulletStyleDefinition style)
     {
-        originalVisualRotation = visual.localRotation;
-        originalVisualRotationSaved = true;
+        bool useStyleHitbox = style != null && style.OverrideHitbox;
+
+        bulletCollider.radius = useStyleHitbox
+            ? style.HitboxRadius
+            : originalHitboxRadius;
+
+        bulletCollider.offset = useStyleHitbox
+            ? style.HitboxOffset
+            : originalHitboxOffset;
+
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        if (spriteRenderer.transform != transform)
+        {
+            float multiplier = style != null
+                ? style.VisualScale
+                : 1f;
+
+            spriteRenderer.transform.localScale =
+                originalVisualScale * multiplier;
+        }
     }
 
-    spriteRenderer.sprite =
-        style != null && style.Sprite != null
+    internal void ApplyAppearance(
+        BulletStyleDefinition style,
+        Color tint
+    )
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        Transform visual = spriteRenderer.transform;
+
+        if (!originalVisualRotationSaved)
+        {
+            originalVisualRotation = visual.localRotation;
+            originalVisualRotationSaved = true;
+        }
+
+        spriteRenderer.sprite = style != null && style.Sprite != null
             ? style.Sprite
             : originalSprite;
 
-    spriteRenderer.sharedMaterial =
-        style != null && style.Material != null
-            ? style.Material
-            : originalMaterial;
+        spriteRenderer.sharedMaterial =
+            style != null && style.Material != null
+                ? style.Material
+                : originalMaterial;
 
-    spriteRenderer.color = originalColor * tint;
+        spriteRenderer.color = originalColor * tint;
 
-    alignVisualToMovement =
-        style != null &&
-        style.AlignToMovement &&
-        visual != transform;
+        alignVisualToMovement =
+            style != null &&
+            style.AlignToMovement &&
+            visual != transform;
 
-    visualRotationOffset = style != null
-        ? style.RotationOffsetDegrees
-        : 0f;
+        visualRotationOffset = style != null
+            ? style.RotationOffsetDegrees
+            : 0f;
 
-    // Убираем поворот от предыдущего использования.
-    visual.localRotation = originalVisualRotation;
+        visual.localRotation = originalVisualRotation;
 
-    UpdateVisualRotation();
-}
-
-private void LateUpdate()
-{
-    UpdateVisualRotation();
-}
-
-private void UpdateVisualRotation()
-{
-    if (!alignVisualToMovement ||
-        spriteRenderer == null ||
-        direction.sqrMagnitude < 0.0001f)
-    {
-        return;
+        UpdateVisualRotation();
     }
 
-    float angle =
-        Mathf.Atan2(direction.y, direction.x) *
-        Mathf.Rad2Deg;
+    private void UpdateVisualRotation()
+    {
+        if (!alignVisualToMovement ||
+            spriteRenderer == null ||
+            direction.sqrMagnitude < 0.0001f)
+        {
+            return;
+        }
 
-    spriteRenderer.transform.rotation =
-        Quaternion.Euler(
-            0f,
-            0f,
-            angle + visualRotationOffset
-        );
-}
+        float angle =
+            Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
 
+        spriteRenderer.transform.rotation =
+            Quaternion.Euler(0f, 0f, angle + visualRotationOffset);
+    }
 
     public void Initialize(
         Vector2 movementDirection,
@@ -228,8 +213,7 @@ private void UpdateVisualRotation()
         hasGrantedGraze = false;
         hasHitPlayer = false;
 
-        PlayerArea grazeArea =
-            PlayerArea.GrazeArea;
+        PlayerArea grazeArea = PlayerArea.GrazeArea;
 
         wasInsideGrazeArea =
             grazeArea != null &&
@@ -238,8 +222,7 @@ private void UpdateVisualRotation()
                 GetBulletWorldRadius()
             );
 
-        ignoreGrazeUntilExit =
-            wasInsideGrazeArea;
+        ignoreGrazeUntilExit = wasInsideGrazeArea;
 
         isTurning = false;
         turnSign = 0f;
@@ -250,31 +233,31 @@ private void UpdateVisualRotation()
         {
             spriteRenderer.color = originalColor;
         }
+
+        // Оформление и угол при выдаче из пула
+        // устанавливаются следующим вызовом ApplyAppearance().
     }
 
-    public void ReleasePatternControl(
-        Vector2 launchVelocity
-    )
+    public void ReleasePatternControl(Vector2 launchVelocity)
     {
         if (!IsPatternControlled)
         {
             return;
         }
 
-        // Запоминаем грейз, полученный именно
-        // во время неподвижной фазы.
-        grazedBeforePatternRelease =
-            hasGrantedGraze;
+        grazedBeforePatternRelease = hasGrantedGraze;
 
-        direction =
-            launchVelocity.sqrMagnitude > 0f
-                ? launchVelocity.normalized
-                : Vector2.zero;
+        direction = launchVelocity.sqrMagnitude > 0f
+            ? launchVelocity.normalized
+            : Vector2.zero;
 
         speed = launchVelocity.magnitude;
         isPatternControlled = false;
+
+        UpdateVisualRotation();
     }
- public bool TrySetEnemyVelocity(Vector2 velocity)
+
+    public bool TrySetEnemyVelocity(Vector2 velocity)
     {
         if (owner != BulletOwner.Enemy ||
             IsPatternControlled ||
@@ -289,8 +272,11 @@ private void UpdateVisualRotation()
             ? velocity / speed
             : Vector2.zero;
 
+        UpdateVisualRotation();
+
         return true;
     }
+
     private void FixedUpdate()
     {
         UpdateGrazeState(body.position);
@@ -305,44 +291,37 @@ private void UpdateVisualRotation()
         if (isTurning)
         {
             nextPosition = CalculateTurnPosition();
+
+            // При отражении направление действительно меняется.
+            // Включает окончательное направление после разворота.
+            UpdateVisualRotation();
         }
         else
         {
             nextPosition =
                 body.position +
-                direction *
-                speed *
-                Time.fixedDeltaTime;
+                direction * speed * Time.fixedDeltaTime;
         }
 
         body.MovePosition(nextPosition);
 
-        if (Mathf.Abs(nextPosition.x) >
-                removalBounds.x ||
-            Mathf.Abs(nextPosition.y) >
-                removalBounds.y)
+        if (Mathf.Abs(nextPosition.x) > removalBounds.x ||
+            Mathf.Abs(nextPosition.y) > removalBounds.y)
         {
             ReturnToPool();
         }
     }
 
-    private void OnTriggerEnter2D(
-        Collider2D other
-    )
+    private void OnTriggerEnter2D(Collider2D other)
     {
         PlayerShield playerShield =
-            other.GetComponentInParent<
-                PlayerShield
-            >();
+            other.GetComponentInParent<PlayerShield>();
 
-        if (playerShield != null &&
-            playerShield.OwnsCollider(other))
+        if (playerShield != null && playerShield.OwnsCollider(other))
         {
             if (owner == BulletOwner.Enemy &&
                 !IsPatternControlled &&
-                playerShield.TryAbsorb(
-                    shieldPowerCost
-                ))
+                playerShield.TryAbsorb(shieldPowerCost))
             {
                 ReturnToPool();
             }
@@ -350,16 +329,11 @@ private void UpdateVisualRotation()
             return;
         }
 
-        PlayerArea playerArea =
-            other.GetComponent<PlayerArea>();
+        PlayerArea playerArea = other.GetComponent<PlayerArea>();
 
         if (playerArea != null)
         {
-            HandlePlayerAreaEnter(
-                playerArea,
-                other
-            );
-
+            HandlePlayerAreaEnter(playerArea, other);
             return;
         }
 
@@ -369,34 +343,25 @@ private void UpdateVisualRotation()
         }
 
         IDamageable damageable =
-            other.GetComponentInParent<
-                IDamageable
-            >();
+            other.GetComponentInParent<IDamageable>();
 
         if (damageable == null)
         {
             return;
         }
 
-        damageable.TakeDamage(
-            reflectedDamage
-        );
-
+        damageable.TakeDamage(reflectedDamage);
         ReturnToPool();
     }
 
-    private void UpdateGrazeState(
-        Vector2 bulletPosition
-    )
+    private void UpdateGrazeState(Vector2 bulletPosition)
     {
-        if (owner != BulletOwner.Enemy ||
-            hasHitPlayer)
+        if (owner != BulletOwner.Enemy || hasHitPlayer)
         {
             return;
         }
 
-        PlayerArea grazeArea =
-            PlayerArea.GrazeArea;
+        PlayerArea grazeArea = PlayerArea.GrazeArea;
 
         if (grazeArea == null)
         {
@@ -405,44 +370,36 @@ private void UpdateVisualRotation()
             return;
         }
 
-        bool isInside =
-            grazeArea.OverlapsCircle(
-                GetBulletCenter(bulletPosition),
-                GetBulletWorldRadius()
-            );
+        bool isInside = grazeArea.OverlapsCircle(
+            GetBulletCenter(bulletPosition),
+            GetBulletWorldRadius()
+        );
+
         if (isInside == wasInsideGrazeArea)
         {
             return;
         }
+
         PlayerShield playerShield =
-            grazeArea.GetComponentInParent<
-                PlayerShield
-            >();
+            grazeArea.GetComponentInParent<PlayerShield>();
 
         bool shieldActive =
-            playerShield != null &&
-            playerShield.IsActive;
+            playerShield != null && playerShield.IsActive;
 
-        if (isInside &&
-            !wasInsideGrazeArea)
+        if (isInside && !wasInsideGrazeArea)
         {
             if (!ignoreGrazeUntilExit &&
                 !hasGrantedGraze &&
                 !shieldActive)
             {
                 PlayerState playerState =
-                    grazeArea.GetComponentInParent<
-                        PlayerState
-                    >();
+                    grazeArea.GetComponentInParent<PlayerState>();
 
                 if (playerState != null)
                 {
                     if (logGrazeDiagnostics)
                     {
-                        LogGrazeDiagnostic(
-                            grazeArea,
-                            bulletPosition
-                        );
+                        LogGrazeDiagnostic(grazeArea, bulletPosition);
                     }
 
                     hasGrantedGraze = true;
@@ -457,8 +414,7 @@ private void UpdateVisualRotation()
                 }
             }
         }
-        else if (!isInside &&
-                 wasInsideGrazeArea)
+        else if (!isInside && wasInsideGrazeArea)
         {
             if (ignoreGrazeUntilExit)
             {
@@ -469,7 +425,10 @@ private void UpdateVisualRotation()
                      !IsPatternControlled &&
                      !grazedBeforePatternRelease)
             {
-                Reflect(grazeArea.Center);
+                 if (grazeArea.ReflectionEnabled)
+                {
+                    Reflect(grazeArea.Center);
+                }
             }
         }
 
@@ -482,33 +441,26 @@ private void UpdateVisualRotation()
     )
     {
         PlayerInputSource inputSource =
-            grazeArea.GetComponentInParent<
-                PlayerInputSource
-            >();
+            grazeArea.GetComponentInParent<PlayerInputSource>();
 
-        int grazeTick =
-            inputSource != null
-                ? inputSource.SimulationTick - 1
-                : -1;
+        int grazeTick = inputSource != null
+            ? inputSource.SimulationTick - 1
+            : -1;
 
         string runKind =
-            inputSource != null &&
-            inputSource.IsReplayInput
+            inputSource != null && inputSource.IsReplayInput
                 ? "REPLAY"
                 : "LIVE";
 
-        Vector2 bulletCenter =
-            GetBulletCenter(bulletPosition);
+        Vector2 bulletCenter = GetBulletCenter(bulletPosition);
 
-        float distance =
-            Vector2.Distance(
-                bulletCenter,
-                grazeArea.Center
-            );
+        float distance = Vector2.Distance(
+            bulletCenter,
+            grazeArea.Center
+        );
 
         float overlapLimit =
-            grazeArea.WorldRadius +
-            GetBulletWorldRadius();
+            grazeArea.WorldRadius + GetBulletWorldRadius();
 
         Debug.Log(
             $"GrazeTrace {runKind}; " +
@@ -537,20 +489,14 @@ private void UpdateVisualRotation()
         }
 
         PlayerShield playerShield =
-            other.GetComponentInParent<
-                PlayerShield
-            >();
+            other.GetComponentInParent<PlayerShield>();
 
-        // Пока щит активен, попадания в другие
-        // зоны игрока не обрабатываются.
-        if (playerShield != null &&
-            playerShield.IsActive)
+        if (playerShield != null && playerShield.IsActive)
         {
             return;
         }
 
-        if (playerArea.AreaType !=
-            PlayerAreaType.Hitbox)
+        if (playerArea.AreaType != PlayerAreaType.Hitbox)
         {
             return;
         }
@@ -558,9 +504,7 @@ private void UpdateVisualRotation()
         hasHitPlayer = true;
 
         PlayerState playerState =
-            other.GetComponentInParent<
-                PlayerState
-            >();
+            other.GetComponentInParent<PlayerState>();
 
         if (playerState != null)
         {
@@ -568,55 +512,39 @@ private void UpdateVisualRotation()
         }
         else
         {
-            Debug.LogError(
-                "Player has no PlayerState.",
-                other
-            );
+            Debug.LogError("Player has no PlayerState.", other);
         }
 
         ReturnToPool();
     }
 
-    private Vector2 GetBulletCenter(
-        Vector2 position
-    )
+    private Vector2 GetBulletCenter(Vector2 position)
     {
         return position +
-            (Vector2)transform.TransformVector(
-                bulletCollider.offset
-            );
+            (Vector2)transform.TransformVector(bulletCollider.offset);
     }
 
     private float GetBulletWorldRadius()
     {
-        Vector3 scale =
-            transform.lossyScale;
+        Vector3 scale = transform.lossyScale;
 
-        float largestScale =
-            Mathf.Max(
-                Mathf.Abs(scale.x),
-                Mathf.Abs(scale.y)
-            );
+        float largestScale = Mathf.Max(
+            Mathf.Abs(scale.x),
+            Mathf.Abs(scale.y)
+        );
 
-        return bulletCollider.radius *
-            largestScale;
+        return bulletCollider.radius * largestScale;
     }
 
-    private void Reflect(
-        Vector2 playerCenter
-    )
+    private void Reflect(Vector2 playerCenter)
     {
         owner = BulletOwner.Player;
 
-        Vector2 directionToPlayer =
-            playerCenter -
-            body.position;
+        Vector2 directionToPlayer = playerCenter - body.position;
 
         float cross =
-            direction.x *
-                directionToPlayer.y -
-            direction.y *
-                directionToPlayer.x;
+            direction.x * directionToPlayer.y -
+            direction.y * directionToPlayer.x;
 
         if (Mathf.Abs(cross) > 0.0001f)
         {
@@ -624,118 +552,82 @@ private void UpdateVisualRotation()
         }
         else
         {
-            turnSign =
-                body.position.x >=
-                playerCenter.x
-                    ? 1f
-                    : -1f;
+            turnSign = body.position.x >= playerCenter.x
+                ? 1f
+                : -1f;
         }
 
-        Vector2 leftNormal =
-            new(
-                -direction.y,
-                direction.x
-            );
+        Vector2 leftNormal = new(-direction.y, direction.x);
 
         turnCenter =
             body.position +
-            leftNormal *
-            turnSign *
-            reflectionTurnRadius;
+            leftNormal * turnSign * reflectionTurnRadius;
 
         turnDegreesRemaining = 180f;
         isTurning = true;
 
         if (spriteRenderer != null)
         {
-            spriteRenderer.color =
-                reflectedColor;
+            spriteRenderer.color = reflectedColor;
         }
     }
 
     private Vector2 CalculateTurnPosition()
     {
         float angularSpeed =
-            speed /
-            reflectionTurnRadius *
-            Mathf.Rad2Deg;
+            speed / reflectionTurnRadius * Mathf.Rad2Deg;
 
-        float angleStep =
-            Mathf.Min(
-                angularSpeed *
-                    Time.fixedDeltaTime,
-                turnDegreesRemaining
-            );
+        float angleStep = Mathf.Min(
+            angularSpeed * Time.fixedDeltaTime,
+            turnDegreesRemaining
+        );
 
-        float signedAngle =
-            angleStep * turnSign;
+        float signedAngle = angleStep * turnSign;
 
-        Vector2 relativePosition =
-            body.position -
-            turnCenter;
+        Vector2 relativePosition = body.position - turnCenter;
 
-        relativePosition =
-            RotateVector(
-                relativePosition,
-                signedAngle
-            );
+        relativePosition = RotateVector(
+            relativePosition,
+            signedAngle
+        );
 
-        direction =
-            RotateVector(
-                direction,
-                signedAngle
-            ).normalized;
+        direction = RotateVector(
+            direction,
+            signedAngle
+        ).normalized;
 
-        turnDegreesRemaining -=
-            angleStep;
+        turnDegreesRemaining -= angleStep;
 
-        Vector2 nextPosition =
-            turnCenter +
-            relativePosition;
+        Vector2 nextPosition = turnCenter + relativePosition;
 
-        if (turnDegreesRemaining <=
-            0.001f)
+        if (turnDegreesRemaining <= 0.001f)
         {
-            FinishReflectionTurn(
-                nextPosition
-            );
+            FinishReflectionTurn(nextPosition);
         }
 
         return nextPosition;
     }
 
-    private void FinishReflectionTurn(
-        Vector2 currentPosition
-    )
+    private void FinishReflectionTurn(Vector2 currentPosition)
     {
         isTurning = false;
-        speed *=
-            reflectedSpeedMultiplier;
+        speed *= reflectedSpeedMultiplier;
 
         Transform target = source;
 
         if (target == null)
         {
-            target =
-                FindNearestEnemy(
-                    currentPosition
-                );
+            target = FindNearestEnemy(currentPosition);
         }
 
         if (target != null)
         {
             Vector2 directionToTarget =
-                (Vector2)target.position -
-                currentPosition;
+                (Vector2)target.position - currentPosition;
 
-            if (directionToTarget
-                    .sqrMagnitude >
-                0.0001f)
+            if (directionToTarget.sqrMagnitude > 0.0001f)
             {
-                direction =
-                    directionToTarget
-                        .normalized;
-
+                direction = directionToTarget.normalized;
                 return;
             }
         }
@@ -743,53 +635,33 @@ private void UpdateVisualRotation()
         direction.Normalize();
     }
 
-    private static Transform
-        FindNearestEnemy(
-            Vector2 currentPosition
-        )
+    private static Transform FindNearestEnemy(Vector2 currentPosition)
     {
-        EnemyHealth[] enemies =
-            FindObjectsByType<
-                EnemyHealth
-            >(
-                FindObjectsSortMode.None
-            );
+        EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(
+            FindObjectsSortMode.None
+        );
 
-        EnemyHealth nearestEnemy =
-            null;
+        EnemyHealth nearestEnemy = null;
+        float nearestDistanceSquared = float.PositiveInfinity;
 
-        float nearestDistanceSquared =
-            float.PositiveInfinity;
-
-        foreach (
-            EnemyHealth enemy
-            in enemies
-        )
+        foreach (EnemyHealth enemy in enemies)
         {
-            if (enemy == null ||
-                enemy.IsDead)
+            if (enemy == null || enemy.IsDead)
             {
                 continue;
             }
 
             Vector2 offset =
-                (Vector2)
-                    enemy.transform
-                        .position -
-                currentPosition;
+                (Vector2)enemy.transform.position - currentPosition;
 
-            float distanceSquared =
-                offset.sqrMagnitude;
+            float distanceSquared = offset.sqrMagnitude;
 
-            if (distanceSquared >=
-                nearestDistanceSquared)
+            if (distanceSquared >= nearestDistanceSquared)
             {
                 continue;
             }
 
-            nearestDistanceSquared =
-                distanceSquared;
-
+            nearestDistanceSquared = distanceSquared;
             nearestEnemy = enemy;
         }
 
@@ -798,26 +670,15 @@ private void UpdateVisualRotation()
             : null;
     }
 
-    private static Vector2 RotateVector(
-        Vector2 vector,
-        float degrees
-    )
+    private static Vector2 RotateVector(Vector2 vector, float degrees)
     {
-        float radians =
-            degrees *
-            Mathf.Deg2Rad;
-
-        float sine =
-            Mathf.Sin(radians);
-
-        float cosine =
-            Mathf.Cos(radians);
+        float radians = degrees * Mathf.Deg2Rad;
+        float sine = Mathf.Sin(radians);
+        float cosine = Mathf.Cos(radians);
 
         return new Vector2(
-            vector.x * cosine -
-                vector.y * sine,
-            vector.x * sine +
-                vector.y * cosine
+            vector.x * cosine - vector.y * sine,
+            vector.x * sine + vector.y * cosine
         );
     }
 
@@ -830,11 +691,7 @@ private void UpdateVisualRotation()
 
         if (pool == null)
         {
-            Debug.LogError(
-                "Bullet has no pool assigned.",
-                this
-            );
-
+            Debug.LogError("Bullet has no pool assigned.", this);
             gameObject.SetActive(false);
             return;
         }
