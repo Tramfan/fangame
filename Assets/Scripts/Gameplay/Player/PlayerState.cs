@@ -3,6 +3,10 @@ using UnityEngine;
 
 public sealed class PlayerState : MonoBehaviour
 {
+    [Header("Debug")]
+    [SerializeField]
+    [Tooltip("Ignore damage while demonstrating or testing patterns.")]
+    private bool debugInvulnerable;
     [SerializeField]
     private BattleFlowController battleState;
 [SerializeField, Min(0)]
@@ -38,7 +42,12 @@ private int scorePerGraze = 100;
     }
 
     public void TakeHit()
+
     {
+        if (debugInvulnerable)
+        {
+            return;
+        }
         if (battleState != null)
         {
             battleState.Defeat();

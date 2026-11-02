@@ -43,8 +43,10 @@ public Bullet Spawn(
     Transform source = null,
     bool patternControlled = false,
     BulletStyleDefinition style = null,
-    Color? tint = null
+    Color? tint = null,
+    BulletMotionDefinition motion = null
 )
+
     {
         if (!enabled || bulletPrefab == null)
         {
@@ -77,11 +79,13 @@ public Bullet Spawn(
 
 bullet.ApplyStyleGeometry(style);
 
-bullet.Initialize(
-    direction,
-    speed,
-    source,
-    patternControlled
+        bullet.Initialize(
+            direction,
+            speed,
+            source,
+            patternControlled,
+            motion
+       
 );
 
 bullet.ApplyAppearance(

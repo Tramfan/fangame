@@ -194,15 +194,28 @@ public sealed class Bullet : MonoBehaviour
             Quaternion.Euler(0f, 0f, angle + visualRotationOffset);
     }
 
+       private bool useMotionFunction;
+    private BulletMotionType motionType;
+    private Vector2 motionOrigin;
+    private Vector2 motionDirection;
+    private float motionInitialSpeed;
+    private float motionAcceleration;
+    private float motionAccelerationPower;
+    private float motionSineAmplitude;
+    private float motionSinePeriod;
+    private float motionSpiralAngularSpeed;
+    private int motionAgeTicks;
+
     public void Initialize(
         Vector2 movementDirection,
         float movementSpeed,
         Transform bulletSource = null,
-        bool patternControlled = false
+        bool patternControlled = false,
+        BulletMotionDefinition motion = null
     )
     {
         direction = movementDirection.normalized;
-        speed = movementSpeed;
+        speed = Mathf.Max(0f, movementSpeed);
         source = bulletSource;
         bulletCollider.enabled = true;
 
@@ -212,6 +225,62 @@ public sealed class Bullet : MonoBehaviour
 
         hasGrantedGraze = false;
         hasHitPlayer = false;
+
+        useMotionFunction = motion != null;
+
+        motionType = motion != null
+            ? motion.MotionType
+            : BulletMotionType.Straight;
+
+        motionOrigin = transform.position;
+        motionDirection = direction;
+        motionInitialSpeed = speed;
+
+        motionAcceleration = motion != null
+            ? motion.Acceleration
+            : 0f;
+
+        motionAccelerationPower = motion != null
+            ? motion.AccelerationPower
+            : 1f;
+
+        motionSineAmplitude = motion != null
+            ? motion.SineAmplitude
+            : 0f;
+
+        motionSinePeriod = motion != null
+            ? motion.SinePeriodSeconds
+            : 1f;
+
+        motionSpiralAngularSpeed = motion != null
+            ? motion.SpiralAngularSpeedDegreesPerSecond
+            : 0f;
+
+        motionAgeTicks = 0;
+
+        // На початку синусоїди дотична може відрізнятися
+        // від основного напрямку польоту.
+        if (useMotionFunction &&
+            motionType == BulletMotionType.Sine)
+        {
+            MotionMath.EvaluateSine(
+                motionOrigin,
+                motionDirection,
+                motionInitialSpeed,
+                motionSineAmplitude,
+                motionSinePeriod,
+                0f,
+                out _,
+                out Vector2 initialVelocity
+            );
+
+            speed = initialVelocity.magnitude;
+
+            if (initialVelocity.sqrMagnitude > 0.00000001f)
+            {
+                direction = initialVelocity / speed;
+            }
+        }
 
         PlayerArea grazeArea = PlayerArea.GrazeArea;
 
@@ -234,8 +303,8 @@ public sealed class Bullet : MonoBehaviour
             spriteRenderer.color = originalColor;
         }
 
-        // Оформление и угол при выдаче из пула
-        // устанавливаются следующим вызовом ApplyAppearance().
+        // ApplyAppearance() встановить вигляд
+        // та орієнтацію підготовленої кулі.
     }
 
     public void ReleasePatternControl(Vector2 launchVelocity)
@@ -246,6 +315,10 @@ public sealed class Bullet : MonoBehaviour
         }
 
         grazedBeforePatternRelease = hasGrantedGraze;
+
+        // После освобождения движением управляет
+        // переданная скорость, как в прежних паттернах.
+        useMotionFunction = false;
 
         direction = launchVelocity.sqrMagnitude > 0f
             ? launchVelocity.normalized
@@ -266,6 +339,9 @@ public sealed class Bullet : MonoBehaviour
             return false;
         }
 
+        // Явная команда скорости заменяет прежнюю траекторию.
+        useMotionFunction = false;
+
         speed = velocity.magnitude;
 
         direction = speed > 0f
@@ -277,7 +353,7 @@ public sealed class Bullet : MonoBehaviour
         return true;
     }
 
-    private void FixedUpdate()
+         private void FixedUpdate()
     {
         UpdateGrazeState(body.position);
 
@@ -291,10 +367,75 @@ public sealed class Bullet : MonoBehaviour
         if (isTurning)
         {
             nextPosition = CalculateTurnPosition();
-
-            // При отражении направление действительно меняется.
-            // Включает окончательное направление после разворота.
             UpdateVisualRotation();
+        }
+        else if (useMotionFunction && owner == BulletOwner.Enemy)
+        {
+            motionAgeTicks++;
+
+            float ageSeconds =
+                motionAgeTicks * Time.fixedDeltaTime;
+
+            Vector2 velocity;
+
+            switch (motionType)
+            {
+                case BulletMotionType.Sine:
+                    MotionMath.EvaluateSine(
+                        motionOrigin,
+                        motionDirection,
+                        motionInitialSpeed,
+                        motionSineAmplitude,
+                        motionSinePeriod,
+                        ageSeconds,
+                        out nextPosition,
+                        out velocity
+                    );
+                    break;
+
+                case BulletMotionType.Spiral:
+                    MotionMath.EvaluateSpiral(
+                        motionOrigin,
+                        motionDirection,
+                        motionInitialSpeed,
+                        motionSpiralAngularSpeed,
+                        ageSeconds,
+                        out nextPosition,
+                        out velocity
+                    );
+                    break;
+
+                default:
+ MotionMath.EvaluateLinear(
+                        motionOrigin,
+                        motionDirection,
+                        motionInitialSpeed,
+                        motionAcceleration,
+                        ageSeconds,
+                        out nextPosition,
+                        out velocity,
+                        motionAccelerationPower
+                    );
+                    break;
+            }
+
+            speed = velocity.magnitude;
+
+            bool curvedMotion =
+                motionType == BulletMotionType.Sine ||
+                motionType == BulletMotionType.Spiral;
+
+            if (curvedMotion &&
+                velocity.sqrMagnitude > 0.00000001f)
+            {
+                Vector2 nextDirection = velocity / speed;
+
+                if (direction != nextDirection)
+                {
+                    direction = nextDirection;
+                    UpdateVisualRotation();
+                }
+            }
         }
         else
         {

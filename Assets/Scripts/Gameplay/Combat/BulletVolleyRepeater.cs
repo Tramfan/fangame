@@ -14,31 +14,44 @@ public sealed class BulletVolleyRepeater : MonoBehaviour
     [SerializeField, Min(0)]
     private int initialDelayTicks;
 
-[SerializeField]
-[Tooltip("Keep firing until stopped or disabled.")]
-private bool repeatForever;
+    [SerializeField]
+    [Tooltip("Keep firing until stopped or disabled.")]
+    private bool repeatForever;
 
-[SerializeField, Min(1)]
-private int repeatCount = 5;
+    [SerializeField, Min(1)]
+    private int repeatCount = 5;
 
     [SerializeField, Min(1)]
     private int intervalTicks = 15;
-[SerializeField, Min(1)]
-[Tooltip("Ticks from the last volley of a series to the first volley of the next series.")]
-private int seriesDelayTicks = 60;
-    [Header("Rotation")]
+
+    [SerializeField, Min(1)]
+    [Tooltip("Ticks from the last volley of a series to the next series.")]
+    private int seriesDelayTicks = 60;
+
+    [Header("Rotation By Volley")]
     [SerializeField]
     private float initialAngleOffsetDegrees;
 
     [SerializeField]
     private float angleStepDegrees = 7f;
 
+    [Header("Rotation By Time")]
+    [SerializeField]
+    [Tooltip("Degrees per second. Positive: counterclockwise.")]
+    private float rotationSpeedDegreesPerSecond;
+
     private bool isRunning;
     private int firedCount;
     private int ticksUntilFire;
+    private int elapsedTicks;
     private float inheritedAngleOffset;
 
     public bool IsRunning => isRunning;
+
+    public int ElapsedTicks => elapsedTicks;
+
+    public float ElapsedSeconds =>
+        elapsedTicks * Time.fixedDeltaTime;
 
     private void OnEnable()
     {
@@ -59,8 +72,7 @@ private int seriesDelayTicks = 60;
     {
         Stop();
 
-        if (!Application.isPlaying ||
-            !isActiveAndEnabled)
+        if (!Application.isPlaying || !isActiveAndEnabled)
         {
             return;
         }
@@ -85,6 +97,7 @@ private int seriesDelayTicks = 60;
         isRunning = false;
         firedCount = 0;
         ticksUntilFire = 0;
+        elapsedTicks = 0;
         inheritedAngleOffset = 0f;
     }
 
@@ -102,6 +115,10 @@ private int seriesDelayTicks = 60;
             return;
         }
 
+        // Время идёт и между залпами, и между сериями.
+        float attackTime = ElapsedSeconds;
+        elapsedTicks++;
+
         if (ticksUntilFire > 0)
         {
             ticksUntilFire--;
@@ -115,42 +132,42 @@ private int seriesDelayTicks = 60;
         float angleOffset =
             inheritedAngleOffset +
             initialAngleOffsetDegrees +
-            angleStepDegrees * firedCount;
+            angleStepDegrees * firedCount +
+            rotationSpeedDegreesPerSecond * attackTime;
 
-volleyEmitter.Fire(angleOffset);
-firedCount++;
+        volleyEmitter.Fire(angleOffset);
+        firedCount++;
 
-int volleysPerSeries = Mathf.Max(1, repeatCount);
-bool seriesFinished = firedCount % volleysPerSeries == 0;
+        int volleysPerSeries = Mathf.Max(1, repeatCount);
 
-if (seriesFinished)
-{
-    if (!repeatForever)
-    {
-        isRunning = false;
-        return;
-    }
+        bool seriesFinished =
+            firedCount % volleysPerSeries == 0;
 
-    ticksUntilFire = Mathf.Max(1, seriesDelayTicks);
-}
-else
-{
-    ticksUntilFire = Mathf.Max(1, intervalTicks);
-}
-
-    if (seriesFinished)
-    {
-        if (!repeatForever)
+        if (seriesFinished)
         {
-            isRunning = false;
-            return;
-        }
+            if (!repeatForever)
+            {
+                isRunning = false;
+                return;
+            }
 
-        ticksUntilFire = Mathf.Max(1, seriesDelayTicks);
+            ticksUntilFire = Mathf.Max(1, seriesDelayTicks);
+        }
+        else
+        {
+            ticksUntilFire = Mathf.Max(1, intervalTicks);
+        }
     }
-    else
+
+    [ContextMenu("Play Test Series")]
+    private void PlayTestSeries()
     {
-        ticksUntilFire = Mathf.Max(1, intervalTicks);
+        Play();
     }
- }
-  }
+
+    [ContextMenu("Stop Test Series")]
+    private void StopTestSeries()
+    {
+        Stop();
+    }
+}

@@ -49,7 +49,9 @@ private bool aimAtPlayer;
 
 [SerializeField]
 private Transform target;
-
+[Header("Bullet Movement")]
+[SerializeField]
+private BulletMotionDefinition bulletMotion;
 public void SetTarget(Transform newTarget)
 {
     target = newTarget;
@@ -137,13 +139,14 @@ float firstAngle = directionAngle + angleOffsetDegrees;
                 Mathf.Sin(radians)
             );
 
-            bulletPool.Spawn(
+  bulletPool.Spawn(
                 transform.position,
                 direction,
                 Mathf.Max(0f, bulletSpeed),
                 transform.root,
                 style: bulletStyle,
-                tint: bulletTint
+                tint: bulletTint,
+                motion: bulletMotion
             );
         }
     }
