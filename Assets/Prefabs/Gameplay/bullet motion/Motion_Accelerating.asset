@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 412b94df0b836b94e9d4a913ecd6cb29, type: 3}
   m_Name: Motion_Accelerating
   m_EditorClassIdentifier: Assembly-CSharp::BulletMotionDefinition
-  motionType: 1
+  motionType: 0
   acceleration: 3
+  accelerationPower: 1
+  minimumSpeed: 0
   sineAmplitude: 0.3
   sinePeriodSeconds: 2
+  spiralAngularSpeedDegreesPerSecond: 30
+  accelerateCurvedMotion: 0

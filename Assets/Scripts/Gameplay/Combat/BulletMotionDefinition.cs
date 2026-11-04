@@ -25,7 +25,11 @@ public sealed class BulletMotionDefinition : ScriptableObject
     [SerializeField, Min(1f)]
     [Tooltip("1: linear speed growth, 2: quadratic, 3: cubic.")]
     private float accelerationPower = 1f;
+ [SerializeField, Min(0f)]
+    [Tooltip("Speed maintained after braking. In Sine it is forward speed; in Spiral it is radial speed.")]
+    private float minimumSpeed;
 
+    public float MinimumSpeed => Mathf.Max(0f, minimumSpeed);
     [Header("Sine")]
     [SerializeField]
     [Tooltip("Maximum sideways offset in world units. Negative values mirror the wave.")]
@@ -43,12 +47,21 @@ public sealed class BulletMotionDefinition : ScriptableObject
     public BulletMotionType MotionType => motionType;
 
     public float Acceleration =>
-        motionType == BulletMotionType.Accelerating
+        motionType == BulletMotionType.Accelerating ||
+        (accelerateCurvedMotion &&
+            (motionType == BulletMotionType.Sine ||
+             motionType == BulletMotionType.Spiral))
             ? acceleration
             : 0f;
 
     public float AccelerationPower =>
+    
         Mathf.Max(1f, accelerationPower);
+    [SerializeField]
+    [Tooltip("Apply acceleration to forward motion in Sine or radial motion in Spiral.")]
+
+    
+    private bool accelerateCurvedMotion;
 
     public float SineAmplitude => sineAmplitude;
 

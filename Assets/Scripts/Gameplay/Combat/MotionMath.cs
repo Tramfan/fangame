@@ -2,8 +2,7 @@ using UnityEngine;
 
 public static class MotionMath
 {
-     // Рух уздовж прямої зі степеневим законом швидкості.
-    // Від'ємний коефіцієнт гальмує об'єкт до зупинки.
+    // Напрямок має бути нормалізованим до виклику.
     public static void EvaluateLinear(
         Vector2 origin,
         Vector2 direction,
@@ -12,54 +11,24 @@ public static class MotionMath
         float ageSeconds,
         out Vector2 position,
         out Vector2 velocity,
-        float accelerationPower = 1f
+        float accelerationPower = 1f,
+        float minimumSpeed = 0f
     )
     {
-        float time = Mathf.Max(0f, ageSeconds);
-        float startSpeed = Mathf.Max(0f, initialSpeed);
-
-        // Для сталої швидкості степеневі обчислення не потрібні.
-        if (acceleration == 0f)
-        {
-            position = origin + direction * startSpeed * time;
-            velocity = direction * startSpeed;
-            return;
-        }
-
-        float power = Mathf.Max(1f, accelerationPower);
-        float movementTime = time;
-
-        if (acceleration < 0f)
-        {
-            float stopRatio = startSpeed / -acceleration;
-
-            float stopTime = power == 1f
-                ? stopRatio
-                : Mathf.Pow(stopRatio, 1f / power);
-
-            movementTime = Mathf.Min(time, stopTime);
-        }
-
-        float timePower = power == 1f
-            ? movementTime
-            : Mathf.Pow(movementTime, power);
-
-        // Відстань є інтегралом швидкості:
-        // v0 * t + a * t^(p + 1) / (p + 1).
-        float distance =
-            startSpeed * movementTime +
-            acceleration * movementTime * timePower / (power + 1f);
-
-        float currentSpeed = Mathf.Max(
-            0f,
-            startSpeed + acceleration * timePower
+        EvaluateTravel(
+            initialSpeed,
+            acceleration,
+            accelerationPower,
+            minimumSpeed,
+            ageSeconds,
+            out float distance,
+            out float speed
         );
 
         position = origin + direction * distance;
-        velocity = direction * currentSpeed;
+        velocity = direction * speed;
     }
 
-    // Волна относительно исходного направления полёта.
     public static void EvaluateSine(
         Vector2 origin,
         Vector2 direction,
@@ -68,36 +37,43 @@ public static class MotionMath
         float periodSeconds,
         float ageSeconds,
         out Vector2 position,
-        out Vector2 velocity
+        out Vector2 velocity,
+        float acceleration = 0f,
+        float accelerationPower = 1f,
+        float minimumSpeed = 0f
     )
     {
         float time = Mathf.Max(0f, ageSeconds);
-        float speed = Mathf.Max(0f, forwardSpeed);
-        float period = Mathf.Max(0.01f, periodSeconds);
+
+        EvaluateTravel(
+            forwardSpeed,
+            acceleration,
+            accelerationPower,
+            minimumSpeed,
+            time,
+            out float forwardDistance,
+            out float currentForwardSpeed
+        );
 
         Vector2 sideways = new(-direction.y, direction.x);
-
+        float period = Mathf.Max(0.01f, periodSeconds);
         float angularFrequency = 2f * Mathf.PI / period;
         float phase = angularFrequency * time;
 
         float sideOffset = amplitude * Mathf.Sin(phase);
-
         float sideSpeed =
             amplitude * angularFrequency * Mathf.Cos(phase);
 
         position =
             origin +
-            direction * speed * time +
+            direction * forwardDistance +
             sideways * sideOffset;
 
-        // Производная позиции — скорость по касательной.
         velocity =
-            direction * speed +
+            direction * currentForwardSpeed +
             sideways * sideSpeed;
-            
     }
-     // direction має бути нормалізованим.
-    // Початкова точка залишається нерухомим центром спіралі.
+
     public static void EvaluateSpiral(
         Vector2 origin,
         Vector2 direction,
@@ -105,18 +81,28 @@ public static class MotionMath
         float angularSpeedDegreesPerSecond,
         float ageSeconds,
         out Vector2 position,
-        out Vector2 velocity
+        out Vector2 velocity,
+        float acceleration = 0f,
+        float accelerationPower = 1f,
+        float minimumSpeed = 0f
     )
     {
         float time = Mathf.Max(0f, ageSeconds);
-        float speed = Mathf.Max(0f, radialSpeed);
+
+        EvaluateTravel(
+            radialSpeed,
+            acceleration,
+            accelerationPower,
+            minimumSpeed,
+            time,
+            out float radius,
+            out float currentRadialSpeed
+        );
 
         float angularSpeed =
             angularSpeedDegreesPerSecond * Mathf.Deg2Rad;
 
         float angle = angularSpeed * time;
-        float radius = speed * time;
-
         Vector2 sideways = new(-direction.y, direction.x);
 
         Vector2 radialDirection =
@@ -130,10 +116,63 @@ public static class MotionMath
 
         position = origin + radialDirection * radius;
 
-        // Повна швидкість поєднує віддалення від центру
-        // та рух навколо нього.
+        // Швидкість має радіальну й дотичну складові.
         velocity =
-            radialDirection * speed +
+            radialDirection * currentRadialSpeed +
             tangentDirection * (radius * angularSpeed);
+    }
+
+    private static void EvaluateTravel(
+        float initialSpeed,
+        float acceleration,
+        float accelerationPower,
+        float minimumSpeed,
+        float ageSeconds,
+        out float distance,
+        out float speed
+    )
+    {
+        float time = Mathf.Max(0f, ageSeconds);
+        float startSpeed = Mathf.Max(0f, initialSpeed);
+
+        if (acceleration == 0f)
+        {
+            distance = startSpeed * time;
+            speed = startSpeed;
+            return;
+        }
+
+        float power = Mathf.Max(1f, accelerationPower);
+        float travelTime = time;
+        float speedFloor = 0f;
+        bool reachedFloor = false;
+
+        if (acceleration < 0f)
+        {
+            speedFloor = Mathf.Clamp(minimumSpeed, 0f, startSpeed);
+            float speedDrop = startSpeed - speedFloor;
+            float brakingRatio = speedDrop / -acceleration;
+
+            float brakingTime = power == 1f
+                ? brakingRatio
+                : Mathf.Pow(brakingRatio, 1f / power);
+
+            travelTime = Mathf.Min(time, brakingTime);
+            reachedFloor = time >= brakingTime;
+        }
+
+        float timePower = power == 1f
+            ? travelTime
+            : Mathf.Pow(travelTime, power);
+
+        // Після гальмування додаємо шлях, пройдений зі сталою швидкістю.
+        distance =
+            startSpeed * travelTime +
+            acceleration * travelTime * timePower / (power + 1f) +
+            speedFloor * (time - travelTime);
+
+        speed = reachedFloor
+            ? speedFloor
+            : Mathf.Max(speedFloor, startSpeed + acceleration * timePower);
     }
 }

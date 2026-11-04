@@ -194,17 +194,68 @@ public sealed class Bullet : MonoBehaviour
             Quaternion.Euler(0f, 0f, angle + visualRotationOffset);
     }
 
-       private bool useMotionFunction;
+        private bool useMotionFunction;
     private BulletMotionType motionType;
     private Vector2 motionOrigin;
     private Vector2 motionDirection;
     private float motionInitialSpeed;
     private float motionAcceleration;
     private float motionAccelerationPower;
+    private float motionMinimumSpeed;
     private float motionSineAmplitude;
     private float motionSinePeriod;
     private float motionSpiralAngularSpeed;
     private int motionAgeTicks;
+    private BulletVolleyEmitter timedVolleyEmitter;
+    private int ticksUntilTimedVolley = -1;
+    private bool returnAfterTimedVolley;
+
+    internal void ArmTimedVolley(
+        BulletVolleyEmitter emitter,
+        int delayTicks,
+        bool returnAfterVolley
+    )
+    {
+        timedVolleyEmitter = emitter;
+        ticksUntilTimedVolley = Mathf.Max(1, delayTicks);
+        returnAfterTimedVolley = returnAfterVolley;
+    }
+
+    private bool TryReleaseTimedVolley()
+    {
+        if (ticksUntilTimedVolley < 0)
+        {
+            return false;
+        }
+
+        if (owner != BulletOwner.Enemy ||
+            timedVolleyEmitter == null ||
+            !timedVolleyEmitter.isActiveAndEnabled)
+        {
+            timedVolleyEmitter = null;
+            ticksUntilTimedVolley = -1;
+            return false;
+        }
+
+        if (ticksUntilTimedVolley > 0)
+        {
+            ticksUntilTimedVolley--;
+            return false;
+        }
+
+        // Знімаємо подію перед пострілом, щоб вона спрацювала один раз.
+        BulletVolleyEmitter emitter = timedVolleyEmitter;
+        timedVolleyEmitter = null;
+        ticksUntilTimedVolley = -1;
+
+        if (emitter.FireAt(body.position, source) && returnAfterTimedVolley)
+        {
+            ReturnToPool();
+            return true;
+        }
+
+        return false;
+    }
 
     public void Initialize(
         Vector2 movementDirection,
@@ -214,6 +265,11 @@ public sealed class Bullet : MonoBehaviour
         BulletMotionDefinition motion = null
     )
     {
+        // Під час повторної видачі з пулу скидаємо попередню подію.
+        timedVolleyEmitter = null;
+        ticksUntilTimedVolley = -1;
+        returnAfterTimedVolley = false;
+
         direction = movementDirection.normalized;
         speed = Mathf.Max(0f, movementSpeed);
         source = bulletSource;
@@ -243,6 +299,10 @@ public sealed class Bullet : MonoBehaviour
         motionAccelerationPower = motion != null
             ? motion.AccelerationPower
             : 1f;
+
+        motionMinimumSpeed = motion != null
+            ? motion.MinimumSpeed
+            : 0f;
 
         motionSineAmplitude = motion != null
             ? motion.SineAmplitude
@@ -361,7 +421,10 @@ public sealed class Bullet : MonoBehaviour
         {
             return;
         }
-
+ if (TryReleaseTimedVolley())
+        {
+            return;
+        }
         Vector2 nextPosition;
 
         if (isTurning)
@@ -389,7 +452,10 @@ public sealed class Bullet : MonoBehaviour
                         motionSinePeriod,
                         ageSeconds,
                         out nextPosition,
-                        out velocity
+                        out velocity,
+                        acceleration: motionAcceleration,
+                        accelerationPower: motionAccelerationPower,
+                        minimumSpeed: motionMinimumSpeed
                     );
                     break;
 
@@ -401,12 +467,15 @@ public sealed class Bullet : MonoBehaviour
                         motionSpiralAngularSpeed,
                         ageSeconds,
                         out nextPosition,
-                        out velocity
+                        out velocity,
+                        acceleration: motionAcceleration,
+                        accelerationPower: motionAccelerationPower,
+                        minimumSpeed: motionMinimumSpeed
                     );
                     break;
 
                 default:
- MotionMath.EvaluateLinear(
+                    MotionMath.EvaluateLinear(
                         motionOrigin,
                         motionDirection,
                         motionInitialSpeed,
@@ -414,7 +483,8 @@ public sealed class Bullet : MonoBehaviour
                         ageSeconds,
                         out nextPosition,
                         out velocity,
-                        motionAccelerationPower
+                        accelerationPower: motionAccelerationPower,
+                        minimumSpeed: motionMinimumSpeed
                     );
                     break;
             }

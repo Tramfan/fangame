@@ -31,126 +31,202 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     private float bulletSpeed = 2.5f;
 
     [SerializeField]
-    [Tooltip("0 right, 90 up, 180 left, -90 down.")]
     private float baseAngleDegrees = -90f;
 
     [SerializeField, Range(0f, 360f)]
-    [Tooltip("Total angle between the outer bullets of a fan.")]
     private float fanSpreadDegrees = 60f;
-[Header("Groups")]
-[SerializeField, Min(1)]
-private int groupCount = 1;
 
-[SerializeField]
-private float groupAngleStepDegrees = 30f;
-[Header("Aiming")]
-[SerializeField]
-private bool aimAtPlayer;
+    [Header("Random Variation")]
+    [SerializeField, Min(0)]
+    private int bulletCountJitter;
 
-[SerializeField]
-private Transform target;
-[Header("Bullet Movement")]
-[SerializeField]
-private BulletMotionDefinition bulletMotion;
-public void SetTarget(Transform newTarget)
-{
-    target = newTarget;
-}
+    [SerializeField, Min(0f)]
+    private float angleJitterDegrees;
+
+    [SerializeField, Min(0f)]
+    private float speedJitter;
+
+    [Header("Groups")]
+    [SerializeField, Min(1)]
+    private int groupCount = 1;
+
+    [SerializeField]
+    private float groupAngleStepDegrees = 30f;
+
+    [Header("Aiming")]
+    [SerializeField]
+    private bool aimAtPlayer;
+
+    [SerializeField]
+    private Transform target;
+
+    [Header("Bullet Movement")]
+    [SerializeField]
+    private BulletMotionDefinition bulletMotion;
+
+    [Header("Child Volley")]
+    [SerializeField]
+    private BulletVolleyEmitter childEmitter;
+
+    [SerializeField, Min(1)]
+    private int childVolleyDelayTicks = 45;
+
+    [SerializeField]
+    private bool returnAfterChildVolley = true;
+
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+    }
+
     public void SetBulletPool(BulletPool newBulletPool)
     {
         bulletPool = newBulletPool;
     }
 
-   public void Fire(float angleOffsetDegrees = 0f)
-{
-    if (!Application.isPlaying || !isActiveAndEnabled)
+    public void Fire(float angleOffsetDegrees = 0f)
     {
-        return;
+        FireAt(transform.position, transform.root, angleOffsetDegrees);
     }
 
-    if (bulletPool == null)
+    public bool FireAt(
+        Vector2 origin,
+        Transform source,
+        float angleOffsetDegrees = 0f
+    )
     {
-        Debug.LogError(
-            "Bullet Volley Emitter has no Bullet Pool assigned.",
-            this
-        );
-
-        return;
-    }
-
-    int count = Mathf.Max(1, bulletCount);
-    int groups = Mathf.Max(1, groupCount);
-
-    float directionAngle = baseAngleDegrees;
-
-if (aimAtPlayer)
-{
-    if (target == null)
-    {
-        Debug.LogError(
-            "Bullet Volley Emitter has no target assigned.",
-            this
-        );
-
-        return;
-    }
-
-    Vector2 toTarget =
-        (Vector2)target.position - (Vector2)transform.position;
-
-    if (toTarget.sqrMagnitude > 0.000001f)
-    {
-        directionAngle =
-            Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
-    }
-}
-
-float firstAngle = directionAngle + angleOffsetDegrees;
-    float bulletAngleStep = 0f;
-
-    if (shape == VolleyShape.Ring)
-    {
-        bulletAngleStep = 360f / count;
-    }
-    else if (count > 1)
-    {
-        float spread = Mathf.Clamp(fanSpreadDegrees, 0f, 360f);
-
-        firstAngle -= spread * 0.5f;
-        bulletAngleStep = spread / (count - 1);
-    }
-
-    for (int groupIndex = 0; groupIndex < groups; groupIndex++)
-    {
-        float groupAngleOffset =
-            groupAngleStepDegrees * groupIndex;
-
-        for (int bulletIndex = 0; bulletIndex < count; bulletIndex++)
+        if (!Application.isPlaying || !isActiveAndEnabled)
         {
-            float angle =
-                firstAngle +
-                groupAngleOffset +
-                bulletAngleStep * bulletIndex;
-
-            float radians = angle * Mathf.Deg2Rad;
-
-            Vector2 direction = new Vector2(
-                Mathf.Cos(radians),
-                Mathf.Sin(radians)
-            );
-
-  bulletPool.Spawn(
-                transform.position,
-                direction,
-                Mathf.Max(0f, bulletSpeed),
-                transform.root,
-                style: bulletStyle,
-                tint: bulletTint,
-                motion: bulletMotion
-            );
+            return false;
         }
+
+        if (bulletPool == null)
+        {
+            Debug.LogError(
+                "Bullet Volley Emitter has no Bullet Pool assigned.",
+                this
+            );
+            return false;
+        }
+
+        float directionAngle = baseAngleDegrees;
+
+        if (aimAtPlayer)
+        {
+            if (target == null)
+            {
+                Debug.LogError(
+                    "Bullet Volley Emitter has no target assigned.",
+                    this
+                );
+                return false;
+            }
+
+            Vector2 toTarget = (Vector2)target.position - origin;
+
+            if (toTarget.sqrMagnitude > 0.000001f)
+            {
+                directionAngle =
+                    Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
+            }
+        }
+
+        GameplayRandom random = GameplayRandom.Instance;
+        int count = Mathf.Max(1, bulletCount);
+
+        if (random != null && bulletCountJitter > 0)
+        {
+            int minCount = Mathf.Max(1, count - bulletCountJitter);
+            int maxCount = (int)System.Math.Min(
+                (long)count + bulletCountJitter,
+                int.MaxValue - 1L
+            );
+
+            // Верхня межа цілочисельного Range не входить у діапазон.
+            count = random.Range(minCount, maxCount + 1);
+        }
+
+        int groups = Mathf.Max(1, groupCount);
+        float firstAngle = directionAngle + angleOffsetDegrees;
+        float bulletAngleStep = 0f;
+
+        if (shape == VolleyShape.Ring)
+        {
+            bulletAngleStep = 360f / count;
+        }
+        else if (count > 1)
+        {
+            float spread = Mathf.Clamp(fanSpreadDegrees, 0f, 360f);
+            firstAngle -= spread * 0.5f;
+            bulletAngleStep = spread / (count - 1);
+        }
+
+        bool spawnedAny = false;
+
+        for (int groupIndex = 0; groupIndex < groups; groupIndex++)
+        {
+            float groupAngleOffset = groupAngleStepDegrees * groupIndex;
+
+            for (int bulletIndex = 0; bulletIndex < count; bulletIndex++)
+            {
+                float angle =
+                    firstAngle +
+                    groupAngleOffset +
+                    bulletAngleStep * bulletIndex +
+                    RandomOffset(random, angleJitterDegrees);
+
+                float radians = angle * Mathf.Deg2Rad;
+
+                Vector2 direction = new(
+                    Mathf.Cos(radians),
+                    Mathf.Sin(radians)
+                );
+
+                float speed = Mathf.Max(
+                    0f,
+                    bulletSpeed + RandomOffset(random, speedJitter)
+                );
+
+                Bullet bullet = bulletPool.Spawn(
+                    origin,
+                    direction,
+                    speed,
+                    source,
+                    style: bulletStyle,
+                    tint: bulletTint,
+                    motion: bulletMotion
+                );
+
+                if (bullet == null)
+                {
+                    return spawnedAny;
+                }
+
+                spawnedAny = true;
+
+                if (childEmitter != null)
+                {
+                    bullet.ArmTimedVolley(
+                        childEmitter,
+                        childVolleyDelayTicks,
+                        returnAfterChildVolley
+                    );
+                }
+            }
+        }
+
+        return spawnedAny;
     }
-}
+
+    private static float RandomOffset(GameplayRandom random, float maximum)
+    {
+        if (random == null || maximum <= 0f)
+        {
+            return 0f;
+        }
+
+        return random.Range(-maximum, maximum);
+    }
 
     [ContextMenu("Fire Test Volley")]
     private void FireTestVolley()
