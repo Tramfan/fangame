@@ -78,6 +78,7 @@ public sealed class Bullet : MonoBehaviour
     private Vector2 turnCenter;
 
     private bool isPatternControlled;
+     internal int SpawnGeneration { get; private set; }
     private bool grazedBeforePatternRelease;
 
     public bool IsPatternControlled =>
@@ -257,14 +258,23 @@ public sealed class Bullet : MonoBehaviour
         return false;
     }
 
-    public void Initialize(
+    public void Initialize
+    
+    (
+
         Vector2 movementDirection,
         float movementSpeed,
         Transform bulletSource = null,
         bool patternControlled = false,
         BulletMotionDefinition motion = null
     )
+    
     {
+        // Кожна видача з пулу отримує новий номер.
+        unchecked
+        {
+            SpawnGeneration++;
+        }
         // Під час повторної видачі з пулу скидаємо попередню подію.
         timedVolleyEmitter = null;
         ticksUntilTimedVolley = -1;
