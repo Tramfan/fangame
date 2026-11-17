@@ -58,14 +58,12 @@ public sealed class BulletFormationAttack : MonoBehaviour
     private readonly struct Member
     {
         public readonly Bullet Bullet;
-        public readonly Rigidbody2D Body;
         public readonly Vector2 Offset;
         public readonly int Generation;
 
         public Member(Bullet bullet, Vector2 offset)
         {
             Bullet = bullet;
-            Body = bullet.GetComponent<Rigidbody2D>();
             Offset = offset;
             Generation = bullet.SpawnGeneration;
         }
@@ -263,8 +261,7 @@ public sealed class BulletFormationAttack : MonoBehaviour
     private static bool CanControl(Member member)
     {
         return member.Bullet != null &&
-            member.Body != null &&
-            member.Bullet.gameObject.activeInHierarchy &&
+            member.Bullet.IsActiveInPool &&
             member.Bullet.SpawnGeneration == member.Generation &&
             member.Bullet.IsPatternControlled;
     }

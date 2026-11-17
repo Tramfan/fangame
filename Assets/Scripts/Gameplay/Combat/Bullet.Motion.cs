@@ -2,31 +2,22 @@ using UnityEngine;
 
 public sealed partial class Bullet
 {
-   
-public void ReleasePatternControl()
-{
-    Vector2 playerCenter = PlayerArea.GrazeArea != null
-        ? PlayerArea.GrazeArea.Center
-        : Vector2.zero;
-
-    ReleasePatternControl(playerCenter);
-}
-
-public void ReleasePatternControl(Vector2 playerCenter)
-{
-    if (!isPatternControlled)
+    public void ReleasePatternControl()
     {
-        return;
-    }
+        if (!isPatternControlled)
+        {
+            return;
+        }
 
-    isPatternControlled = false;
-
-    if (grazedBeforePatternRelease)
-    {
+        isPatternControlled = false;
         grazedBeforePatternRelease = false;
-        Reflect(playerCenter);
     }
-}
+
+    public void ReleasePatternControl(Vector2 playerCenter)
+    {
+        ReleasePatternControl();
+    }
+
     internal void StepSimulation()
     {
         if (!IsActiveInPool)

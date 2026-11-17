@@ -14,10 +14,14 @@ public sealed class BulletPool : MonoBehaviour
     private Bullet[] allBullets = Array.Empty<Bullet>();
     private Bullet[] activeBullets = Array.Empty<Bullet>();
     private int[] freeIndices = Array.Empty<int>();
+    private int[] pendingFreeIndices = Array.Empty<int>();
+    private bool[] isPendingFree = Array.Empty<bool>();
 
     private int totalCreated;
     private int activeCount;
     private int freeCount;
+    private int pendingFreeCount;
+    private bool isSimulatingTick;
     private bool hasDeadSlotsInActive;
 
     public int ActiveCount => activeCount;
@@ -44,18 +48,28 @@ public sealed class BulletPool : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Снимок длины: пули, рождённые внутри этого тика,
-        // начнут движение со следующего тика.
-        int countThisTick = activeCount;
+        isSimulatingTick = true;
 
-        for (int index = 0; index < countThisTick; index++)
+        try
         {
-            Bullet bullet = activeBullets[index];
+            // Снимок длины: пули, рождённые внутри этого тика,
+            // начнут движение со следующего тика.
+            int countThisTick = activeCount;
 
-            if (bullet != null && bullet.IsActiveInPool)
+            for (int index = 0; index < countThisTick; index++)
             {
-                bullet.StepSimulation();
+                Bullet bullet = activeBullets[index];
+
+                if (bullet != null && bullet.IsActiveInPool)
+                {
+                    bullet.StepSimulation();
+                }
             }
+        }
+        finally
+        {
+            isSimulatingTick = false;
+            FlushPendingFreeIndices();
         }
 
         if (hasDeadSlotsInActive)
@@ -93,6 +107,8 @@ public sealed class BulletPool : MonoBehaviour
             bullet = CreateBulletAndTake();
         }
 
+        isPendingFree[bullet.PoolIndex] = false;
+
         bullet.ApplyStyleGeometry(style);
 
         bullet.Initialize(
@@ -128,12 +144,20 @@ public sealed class BulletPool : MonoBehaviour
 
             if (bullet != null && bullet.IsActiveInPool)
             {
-                ReturnInternal(bullet);
+                ReturnInternal(bullet, deferFreeIndex: false);
             }
 
             activeBullets[index] = null;
         }
 
+        for (int index = 0; index < pendingFreeCount; index++)
+        {
+            int poolIndex = pendingFreeIndices[index];
+            isPendingFree[poolIndex] = false;
+            PushFreeIndex(poolIndex);
+        }
+
+        pendingFreeCount = 0;
         activeCount = 0;
         hasDeadSlotsInActive = false;
     }
@@ -145,21 +169,76 @@ public sealed class BulletPool : MonoBehaviour
             return;
         }
 
-        ReturnInternal(bullet);
+        ReturnInternal(bullet, deferFreeIndex: isSimulatingTick);
         hasDeadSlotsInActive = true;
     }
 
-    private void ReturnInternal(Bullet bullet)
+    private void ReturnInternal(Bullet bullet, bool deferFreeIndex)
     {
         bullet.IsActiveInPool = false;
         bullet.gameObject.SetActive(false);
 
+        int poolIndex = bullet.PoolIndex;
+
+        if (deferFreeIndex)
+        {
+            if (isPendingFree[poolIndex])
+            {
+                return;
+            }
+
+            isPendingFree[poolIndex] = true;
+
+            if (pendingFreeCount >= pendingFreeIndices.Length)
+            {
+                Array.Resize(
+                    ref pendingFreeIndices,
+                    pendingFreeIndices.Length * 2
+                );
+            }
+
+            pendingFreeIndices[pendingFreeCount] = poolIndex;
+            pendingFreeCount++;
+            return;
+        }
+
+        if (isPendingFree[poolIndex])
+        {
+            return;
+        }
+
+        PushFreeIndex(poolIndex);
+    }
+
+    private void FlushPendingFreeIndices()
+    {
+        if (pendingFreeCount == 0)
+        {
+            return;
+        }
+
+        for (int index = 0; index < pendingFreeCount; index++)
+        {
+            int poolIndex = pendingFreeIndices[index];
+
+            if (isPendingFree[poolIndex])
+            {
+                isPendingFree[poolIndex] = false;
+                PushFreeIndex(poolIndex);
+            }
+        }
+
+        pendingFreeCount = 0;
+    }
+
+    private void PushFreeIndex(int poolIndex)
+    {
         if (freeCount >= freeIndices.Length)
         {
             Array.Resize(ref freeIndices, freeIndices.Length * 2);
         }
 
-        freeIndices[freeCount] = bullet.PoolIndex;
+        freeIndices[freeCount] = poolIndex;
         freeCount++;
     }
 
@@ -192,6 +271,8 @@ public sealed class BulletPool : MonoBehaviour
         allBullets = new Bullet[capacity];
         activeBullets = new Bullet[capacity];
         freeIndices = new int[capacity];
+        pendingFreeIndices = new int[capacity];
+        isPendingFree = new bool[capacity];
     }
 
     private Bullet CreateBullet()
@@ -204,6 +285,8 @@ public sealed class BulletPool : MonoBehaviour
             Array.Resize(ref allBullets, newCapacity);
             Array.Resize(ref activeBullets, newCapacity);
             Array.Resize(ref freeIndices, newCapacity);
+            Array.Resize(ref pendingFreeIndices, newCapacity);
+            Array.Resize(ref isPendingFree, newCapacity);
         }
 
         Bullet bullet = Instantiate(bulletPrefab, transform);
@@ -221,7 +304,6 @@ public sealed class BulletPool : MonoBehaviour
     }
 
     private Bullet CreateBulletAndTake()
-
     {
         Debug.LogWarning(
             $"BulletPool expanded at runtime to {totalCreated + 1}. " +
@@ -233,5 +315,4 @@ public sealed class BulletPool : MonoBehaviour
         freeCount--;
         return bullet;
     }
-
 }

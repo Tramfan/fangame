@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public enum BulletOwner : byte
@@ -5,7 +6,7 @@ public enum BulletOwner : byte
     Enemy = 0,
     Player = 1
 }
-
+[DefaultExecutionOrder(-800)]
 [DisallowMultipleComponent]
 public sealed partial class Bullet : MonoBehaviour
 {
