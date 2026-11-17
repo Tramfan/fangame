@@ -89,9 +89,16 @@ public sealed class BulletPool : MonoBehaviour
         BulletMotionDefinition motion = null
     )
     {
-        if (!enabled || bulletPrefab == null)
+ if (!enabled || bulletPrefab == null)
         {
             return null;
+        }
+
+        // Прибираємо старі записи перед повторним використанням куль.
+        // Під час симуляції індекси звільняються відкладено.
+        if (!isSimulatingTick && hasDeadSlotsInActive)
+        {
+            CompactActiveBullets();
         }
 
         Bullet bullet;

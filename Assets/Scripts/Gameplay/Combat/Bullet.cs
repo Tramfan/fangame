@@ -133,6 +133,9 @@ public sealed partial class Bullet : MonoBehaviour
         BulletMotionDefinition motion = null
     )
     {
+       // Кожен новий спавн починається з увімкненими зіткненнями.
+        CollisionEnabled = true;
+
         unchecked
         {
             SpawnGeneration++;
