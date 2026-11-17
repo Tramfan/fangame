@@ -29,7 +29,13 @@ public sealed class AcceleratingExplosionPlayerBullet :
     [SerializeField]
     private float lowerRemovalY = -6f;
 
-    private readonly HashSet<EnemyHealth> hitEnemies = new();
+       private const int ExplosionBufferCapacity = 64;
+
+    private readonly List<Collider2D> hitColliders =
+        new(ExplosionBufferCapacity);
+
+    private readonly HashSet<EnemyHealth> hitEnemies =
+        new(ExplosionBufferCapacity);
 
     private Rigidbody2D body;
     private Vector2 direction = Vector2.up;
@@ -136,7 +142,7 @@ public sealed class AcceleratingExplosionPlayerBullet :
         Explode();
     }
 
-    private void Explode()
+        private void Explode()
     {
         hasExploded = true;
 
@@ -145,22 +151,33 @@ public sealed class AcceleratingExplosionPlayerBullet :
             body.linearVelocity = Vector2.zero;
         }
 
-        Collider2D[] hitColliders =
-            Physics2D.OverlapCircleAll(
-                transform.position,
-                explosionRadius
-            );
-
+        hitColliders.Clear();
         hitEnemies.Clear();
 
-        foreach (Collider2D hitCollider
-                 in hitColliders)
+        // Зберігаємо попередні налаштування шарів і тригерів.
+        ContactFilter2D filter = new()
         {
+            useTriggers = Physics2D.queriesHitTriggers,
+            useLayerMask = true,
+            layerMask = Physics2D.DefaultRaycastLayers
+        };
+
+        Physics2D.OverlapCircle(
+            transform.position,
+            explosionRadius,
+            filter,
+            hitColliders
+        );
+
+        foreach (Collider2D hitCollider in hitColliders)
+        {
+            if (hitCollider == null)
+            {
+                continue;
+            }
+
             EnemyHealth enemy =
-                hitCollider
-                    .GetComponentInParent<
-                        EnemyHealth
-                    >();
+                hitCollider.GetComponentInParent<EnemyHealth>();
 
             if (enemy == null ||
                 enemy.IsDead ||
@@ -170,8 +187,13 @@ public sealed class AcceleratingExplosionPlayerBullet :
                 continue;
             }
 
+            // Кілька колайдерів одного ворога дають лише одне влучання.
             enemy.TakeDamage(damage);
         }
+
+        // Очищення прибирає посилання, зберігаючи місткість буферів.
+        hitColliders.Clear();
+        hitEnemies.Clear();
 
         PlayerProjectilePool.Despawn(gameObject);
     }

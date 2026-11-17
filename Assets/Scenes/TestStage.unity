@@ -1262,8 +1262,8 @@ MonoBehaviour:
   playerController: {fileID: 305619748}
   playerShooter: {fileID: 714653873}
   playerOptionController: {fileID: 0}
-  fallbackCharacter: {fileID: 11400000, guid: fe42c21201aff6740905eec7e503e7f5, type: 2}
-  fallbackShotType: {fileID: 11400000, guid: 1faee0ac9dee5eb4b883ca27656f64a5, type: 2}
+  fallbackCharacter: {fileID: 11400000, guid: aa2c18bbcbce6754eba586b492124836, type: 2}
+  fallbackShotType: {fileID: 11400000, guid: 8d6a327a9b5d0424e9434c7b495aa6e4, type: 2}
 --- !u!114 &305619756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2698,6 +2698,8 @@ MonoBehaviour:
   inputSource: {fileID: 0}
   firePoint: {fileID: 714653872}
   playerOptionController: {fileID: 0}
+  projectilePool: {fileID: 0}
+  prewarmPerProjectilePrefab: 64
   bulletPrefab: {fileID: 8797406539021003959, guid: 812a39f8f4543694ca600f7c5cbdff2d,
     type: 3}
   fireIntervalTicks: 6
