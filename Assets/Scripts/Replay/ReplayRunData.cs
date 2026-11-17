@@ -6,6 +6,7 @@ using UnityEngine;
 public sealed class ReplayRunData
 {
     public const int CurrentFormatVersion = 1;
+    private const int DefaultInitialCapacity = 36000;
 
     [SerializeField]
     private int formatVersion =
@@ -35,7 +36,7 @@ public sealed class ReplayRunData
 
     [SerializeField]
     private List<byte> inputFrames =
-        new();
+        new(DefaultInitialCapacity);
 
     [SerializeField]
     private long finalScore;
@@ -90,9 +91,9 @@ public sealed class ReplayRunData
         gameVersion =
             Application.version;
 
-       seed = GameplayRandom.Instance != null
-    ? GameplayRandom.Instance.Seed
-    : GameRunContext.Seed;
+        seed = GameplayRandom.Instance != null
+            ? GameplayRandom.Instance.Seed
+            : GameRunContext.Seed;
 
         difficulty =
             GameRunContext.Difficulty;
@@ -107,6 +108,11 @@ public sealed class ReplayRunData
             GameRunContext.ShotTypeId;
 
         inputFrames.Clear();
+
+        if (inputFrames.Capacity < DefaultInitialCapacity)
+        {
+            inputFrames.Capacity = DefaultInitialCapacity;
+        }
 
         finalScore = 0;
         finished = false;

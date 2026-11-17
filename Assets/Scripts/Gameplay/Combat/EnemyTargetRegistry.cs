@@ -91,4 +91,37 @@ public static class EnemyTargetRegistry
             ? nearestEnemy.transform
             : null;
     }
+   
+public static EnemyHealth FindFirstHit(
+    Vector2 segmentStart,
+    Vector2 segmentEnd,
+    float bulletRadius
+)
+{
+    for (int index = 0; index < activeEnemies.Count; index++)
+    {
+        EnemyHealth enemy = activeEnemies[index];
+
+        if (enemy == null ||
+            !enemy.isActiveAndEnabled ||
+            enemy.IsDead ||
+            enemy.IsInvulnerable)
+        {
+            continue;
+        }
+
+        if (BulletHitboxMath.SegmentOverlapsCircle(
+                segmentStart,
+                segmentEnd,
+                bulletRadius,
+                enemy.WorldPosition,
+                enemy.HitRadius
+            ))
+        {
+            return enemy;
+        }
+    }
+
+    return null;
+}
 }

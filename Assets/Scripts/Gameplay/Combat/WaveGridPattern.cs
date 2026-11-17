@@ -43,20 +43,13 @@ public sealed class WaveGridPattern : MonoBehaviour
     [Tooltip("Extra safe ticks after the grid is complete.")]
     private int safeTicksAfterBuild = 30;
 
-    private sealed class PatternBullet
-    {
-        public Bullet bullet;
-        public Rigidbody2D body;
-        public CircleCollider2D collider;
-    }
-
     private sealed class GridNode
     {
         public Vector2 localCenter;
-        public PatternBullet right;
-        public PatternBullet left;
-        public PatternBullet up;
-        public PatternBullet down;
+        public Bullet right;
+        public Bullet left;
+        public Bullet up;
+        public Bullet down;
     }
 
     private readonly List<GridNode> nodes = new();
@@ -184,7 +177,7 @@ public sealed class WaveGridPattern : MonoBehaviour
         );
     }
 
-    private PatternBullet CreateBullet(
+    private Bullet CreateBullet(
         Vector2 position
     )
     {
@@ -196,22 +189,12 @@ public sealed class WaveGridPattern : MonoBehaviour
             true
         );
 
-        if (bullet == null)
+        if (bullet != null)
         {
-            return null;
+            bullet.CollisionEnabled = false;
         }
 
-        CircleCollider2D bulletCollider =
-            bullet.GetComponent<CircleCollider2D>();
-
-        bulletCollider.enabled = false;
-
-        return new PatternBullet
-        {
-            bullet = bullet,
-            body = bullet.GetComponent<Rigidbody2D>(),
-            collider = bulletCollider
-        };
+        return bullet;
     }
 
     private void UpdateGrid()
@@ -281,51 +264,48 @@ public sealed class WaveGridPattern : MonoBehaviour
     }
 
     private static void ArmBullet(
-        PatternBullet patternBullet,
+        Bullet bullet,
         PlayerArea grazeArea
     )
     {
-        if (!CanControl(patternBullet) ||
-            patternBullet.collider.enabled)
+        if (!CanControl(bullet) ||
+            bullet.CollisionEnabled)
         {
             return;
         }
 
         if (grazeArea != null &&
-            OverlapsPlayerArea(
-                patternBullet.collider,
-                grazeArea
+            grazeArea.OverlapsCircle(
+                bullet.HitboxWorldCenter,
+                bullet.HitboxWorldRadius
             ))
         {
             return;
         }
 
-        patternBullet.collider.enabled = true;
+        bullet.CollisionEnabled = true;
     }
 
     private static void SetBulletPosition(
-        PatternBullet patternBullet,
+        Bullet bullet,
         Vector2 position
     )
     {
-        if (!CanControl(patternBullet))
+        if (!CanControl(bullet))
         {
             return;
         }
 
-        patternBullet.body.position =
-            position;
+        bullet.SetExternalPosition(position);
     }
 
     private void ReturnBullet(
-        PatternBullet patternBullet
+        Bullet bullet
     )
     {
-        if (CanControl(patternBullet))
+        if (CanControl(bullet))
         {
-            bulletPool.Return(
-                patternBullet.bullet
-            );
+            bulletPool.Return(bullet);
         }
     }
 
@@ -337,41 +317,12 @@ public sealed class WaveGridPattern : MonoBehaviour
     }
 
     private static bool CanControl(
-        PatternBullet patternBullet
+        Bullet bullet
     )
     {
-        return patternBullet != null &&
-            patternBullet.bullet != null &&
-            patternBullet.body != null &&
-            patternBullet.collider != null &&
-            patternBullet.bullet.gameObject.activeSelf &&
-            patternBullet.bullet.IsPatternControlled;
-    }
-
-    private static bool OverlapsPlayerArea(
-        CircleCollider2D bulletCollider,
-        PlayerArea area
-    )
-    {
-        Vector2 bulletCenter =
-            bulletCollider.transform.TransformPoint(
-                bulletCollider.offset
-            );
-
-        Vector3 scale =
-            bulletCollider.transform.lossyScale;
-
-        float bulletRadius =
-            bulletCollider.radius *
-            Mathf.Max(
-                Mathf.Abs(scale.x),
-                Mathf.Abs(scale.y)
-            );
-
-        return area.OverlapsCircle(
-            bulletCenter,
-            bulletRadius
-        );
+        return bullet != null &&
+            bullet.gameObject.activeSelf &&
+            bullet.IsPatternControlled;
     }
 
     private static int CompareNodesFromCenter(

@@ -13,128 +13,145 @@ public sealed partial class Bullet
     private bool ignoreGrazeUntilExit;
     private bool grazedBeforePatternRelease;
 
-    private void OnTriggerEnter2D(Collider2D other)
+private void UpdateGrazeState(
+        Vector2 bulletCenter,
+        PlayerArea grazeArea,
+        bool shieldActive
+    )
     {
-        PlayerShield playerShield =
-            other.GetComponentInParent<PlayerShield>();
-
-        if (playerShield != null && playerShield.OwnsCollider(other))
-        {
-            if (owner == BulletOwner.Enemy &&
-                !IsPatternControlled &&
-                playerShield.TryAbsorb(shieldPowerCost))
-            {
-                ReturnToPool();
-            }
-
-            return;
-        }
-
-        PlayerArea playerArea = other.GetComponent<PlayerArea>();
-
-        if (playerArea != null)
-        {
-            HandlePlayerAreaEnter(playerArea, other);
-            return;
-        }
-
-        if (owner != BulletOwner.Player)
-        {
-            return;
-        }
-
-        IDamageable damageable =
-            other.GetComponentInParent<IDamageable>();
-
-        if (damageable == null)
-        {
-            return;
-        }
-
-        damageable.TakeDamage(reflectedDamage);
-        ReturnToPool();
-    }
-
-    private void UpdateGrazeState(Vector2 bulletPosition)
-    {
-        if (owner != BulletOwner.Enemy || hasHitPlayer)
-        {
-            return;
-        }
-
-        PlayerArea grazeArea = PlayerArea.GrazeArea;
-
-        if (grazeArea == null)
+        if (shieldActive || grazeArea == null || !grazeArea.isActiveAndEnabled)
         {
             wasInsideGrazeArea = false;
             ignoreGrazeUntilExit = false;
             return;
         }
 
-        bool isInside = grazeArea.OverlapsCircle(
-            GetBulletCenter(bulletPosition),
-            GetBulletWorldRadius()
+        bool isInsideGrazeArea = grazeArea.OverlapsCircle(
+            bulletCenter,
+            cachedHitboxRadius
         );
 
-        if (isInside == wasInsideGrazeArea)
+        if (ignoreGrazeUntilExit)
+        {
+            if (!isInsideGrazeArea)
+            {
+                ignoreGrazeUntilExit = false;
+                wasInsideGrazeArea = false;
+            }
+
+            return;
+        }
+
+        if (isInsideGrazeArea && !wasInsideGrazeArea)
+        {
+            wasInsideGrazeArea = true;
+
+            if (!hasGrantedGraze && grazeArea.OwnerState != null)
+            {
+                hasGrantedGraze = true;
+                grazeArea.OwnerState.RegisterGraze();
+            }
+        }
+        else if (!isInsideGrazeArea && wasInsideGrazeArea)
+        {
+            wasInsideGrazeArea = false;
+
+            if (grazeArea.ReflectionEnabled)
+            {
+                if (IsPatternControlled)
+                {
+                    grazedBeforePatternRelease = true;
+                }
+                else
+                {
+                   Reflect(grazeArea.Center);
+                }
+            }
+        }
+    }
+   
+private void EvaluateCollisions()
+    {
+        if (!CollisionEnabled)
         {
             return;
         }
 
-        PlayerShield playerShield =
-            grazeArea.GetComponentInParent<PlayerShield>();
+        Vector2 bulletCenter = position + cachedHitboxOffset;
 
-        bool shieldActive =
-            playerShield != null && playerShield.IsActive;
-
-        if (isInside && !wasInsideGrazeArea)
+    if (owner == BulletOwner.Enemy)
+    {
+        if (hasHitPlayer)
         {
-            if (!ignoreGrazeUntilExit &&
-                !hasGrantedGraze &&
-                !shieldActive)
-            {
-                PlayerState playerState =
-                    grazeArea.GetComponentInParent<PlayerState>();
-
-                if (playerState != null)
-                {
-                    if (logGrazeDiagnostics)
-                    {
-                        LogGrazeDiagnostic(grazeArea, bulletPosition);
-                    }
-
-                    hasGrantedGraze = true;
-                    playerState.RegisterGraze();
-                }
-                else
-                {
-                    Debug.LogError(
-                        "Player has no PlayerState.",
-                        grazeArea
-                    );
-                }
-            }
+            return;
         }
-        else if (!isInside && wasInsideGrazeArea)
+
+        PlayerArea hitboxArea = PlayerArea.HitboxArea;
+        PlayerArea grazeArea = PlayerArea.GrazeArea;
+
+        PlayerShield shield = hitboxArea != null
+            ? hitboxArea.OwnerShield
+            : (grazeArea != null ? grazeArea.OwnerShield : null);
+
+        bool shieldActive = shield != null && shield.IsActive;
+
+        // 1. Проверка поглощения щитом.
+        if (shieldActive &&
+            !IsPatternControlled &&
+            BulletHitboxMath.OverlapsCircle(
+                bulletCenter,
+                cachedHitboxRadius,
+                shield.transform.position,
+                shield.ShieldWorldRadius
+            ))
         {
-            if (ignoreGrazeUntilExit)
+            if (shield.TryAbsorb(shieldPowerCost))
             {
-                ignoreGrazeUntilExit = false;
-            }
-            else if (hasGrantedGraze &&
-                     !shieldActive &&
-                     !IsPatternControlled &&
-                     !grazedBeforePatternRelease)
-            {
-                if (grazeArea.ReflectionEnabled)
-                {
-                    Reflect(grazeArea.Center);
-                }
+                ReturnToPool();
+                return;
             }
         }
 
-        wasInsideGrazeArea = isInside;
+        // 2. Проверка попадания в хитбокс игрока.
+        if (!shieldActive &&
+            hitboxArea != null &&
+            BulletHitboxMath.OverlapsCircle(
+                bulletCenter,
+                cachedHitboxRadius,
+                hitboxArea.Center,
+                hitboxArea.WorldRadius
+            ))
+        {
+            hasHitPlayer = true;
+
+            if (hitboxArea.OwnerState != null)
+            {
+                hitboxArea.OwnerState.TakeHit();
+            }
+
+            ReturnToPool();
+            return;
+        }
+
+      
+        UpdateGrazeState(bulletCenter, grazeArea, shieldActive);
+        return;
     }
+ // Перевіряємо шлях відбитої кулі між попередньою та поточною позиціями.
+    Vector2 prevCenter = previousPosition + cachedHitboxOffset;
+
+    EnemyHealth hitEnemy = EnemyTargetRegistry.FindFirstHit(
+        prevCenter,
+        bulletCenter,
+        cachedHitboxRadius
+    );
+
+    if (hitEnemy != null)
+    {
+        hitEnemy.TakeDamage(reflectedDamage);
+        ReturnToPool();
+    }
+}
 
     private void LogGrazeDiagnostic(
         PlayerArea grazeArea,
@@ -222,18 +239,11 @@ public sealed partial class Bullet
     private Vector2 GetBulletCenter(Vector2 position)
     {
         return position +
-            (Vector2)transform.TransformVector(bulletCollider.offset);
+            (Vector2)transform.TransformVector(cachedHitboxOffset);
     }
 
-    private float GetBulletWorldRadius()
+   private float GetBulletWorldRadius()
     {
-        Vector3 scale = transform.lossyScale;
-
-        float largestScale = Mathf.Max(
-            Mathf.Abs(scale.x),
-            Mathf.Abs(scale.y)
-        );
-
-        return bulletCollider.radius * largestScale;
+        return cachedHitboxRadius;
     }
 }

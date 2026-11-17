@@ -41,8 +41,6 @@ public sealed class RadialWavePattern : MonoBehaviour
     private sealed class WaveBullet
     {
         public Bullet bullet;
-        public Rigidbody2D body;
-        public CircleCollider2D collider;
         public float angle;
     }
 
@@ -142,16 +140,11 @@ public sealed class RadialWavePattern : MonoBehaviour
                 continue;
             }
 
-            CircleCollider2D bulletCollider =
-                bullet.GetComponent<CircleCollider2D>();
-
-            bulletCollider.enabled = false;
+            bullet.CollisionEnabled = false;
 
             bullets.Add(new WaveBullet
             {
                 bullet = bullet,
-                body = bullet.GetComponent<Rigidbody2D>(),
-                collider = bulletCollider,
                 angle = angle
             });
         }
@@ -177,12 +170,13 @@ public sealed class RadialWavePattern : MonoBehaviour
                     origin
                 );
 
-            waveBullet.body.position =
+            waveBullet.bullet.SetExternalPosition(
                 Vector2.Lerp(
                     origin,
                     destination,
                     easedProgress
-                );
+                )
+            );
         }
     }
 
@@ -197,11 +191,12 @@ public sealed class RadialWavePattern : MonoBehaviour
                 continue;
             }
 
-            waveBullet.body.position =
+            waveBullet.bullet.SetExternalPosition(
                 GetBulletPosition(
                     waveBullet.angle,
                     origin
-                );
+                )
+            );
         }
     }
 
@@ -236,21 +231,21 @@ public sealed class RadialWavePattern : MonoBehaviour
         foreach (WaveBullet waveBullet in bullets)
         {
             if (!CanControl(waveBullet) ||
-                waveBullet.collider.enabled)
+                waveBullet.bullet.CollisionEnabled)
             {
                 continue;
             }
 
             if (grazeArea != null &&
-                OverlapsPlayerArea(
-                    waveBullet.collider,
-                    grazeArea
+                grazeArea.OverlapsCircle(
+                    waveBullet.bullet.HitboxWorldCenter,
+                    waveBullet.bullet.HitboxWorldRadius
                 ))
             {
                 continue;
             }
 
-            waveBullet.collider.enabled = true;
+            waveBullet.bullet.CollisionEnabled = true;
         }
     }
 
@@ -266,35 +261,7 @@ public sealed class RadialWavePattern : MonoBehaviour
     )
     {
         return waveBullet.bullet != null &&
-            waveBullet.body != null &&
-            waveBullet.collider != null &&
             waveBullet.bullet.gameObject.activeSelf &&
             waveBullet.bullet.IsPatternControlled;
-    }
-
-    private static bool OverlapsPlayerArea(
-        CircleCollider2D bulletCollider,
-        PlayerArea area
-    )
-    {
-        Vector2 bulletCenter =
-            bulletCollider.transform.TransformPoint(
-                bulletCollider.offset
-            );
-
-        Vector3 scale =
-            bulletCollider.transform.lossyScale;
-
-        float bulletRadius =
-            bulletCollider.radius *
-            Mathf.Max(
-                Mathf.Abs(scale.x),
-                Mathf.Abs(scale.y)
-            );
-
-        return area.OverlapsCircle(
-            bulletCenter,
-            bulletRadius
-        );
     }
 }

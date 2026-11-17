@@ -1,21 +1,26 @@
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
+[DefaultExecutionOrder(-800)]
 [DisallowMultipleComponent]
 public sealed class BulletPool : MonoBehaviour
 {
     [SerializeField]
     private Bullet bulletPrefab;
 
-    [SerializeField, Min(0)]
-    private int initialSize = 256;
+    [SerializeField, Min(64)]
+    private int initialSize = 1536;
 
-    private readonly SortedSet<Bullet> available =
-        new(Comparer<Bullet>.Create(CompareBullets));
+    private Bullet[] allBullets = Array.Empty<Bullet>();
+    private Bullet[] activeBullets = Array.Empty<Bullet>();
+    private int[] freeIndices = Array.Empty<int>();
 
-    private readonly HashSet<Bullet> activeBullets = new();
-    public int ActiveCount => activeBullets.Count;
-    private readonly Dictionary<Bullet, Rigidbody2D> bodies = new();
+    private int totalCreated;
+    private int activeCount;
+    private int freeCount;
+    private bool hasDeadSlotsInActive;
+
+    public int ActiveCount => activeCount;
 
     private void Awake()
     {
@@ -25,28 +30,50 @@ public sealed class BulletPool : MonoBehaviour
                 "Bullet Pool has no Bullet Prefab assigned.",
                 this
             );
-
             enabled = false;
             return;
         }
 
+        AllocateCapacity(initialSize);
+
         for (int index = 0; index < initialSize; index++)
         {
-            available.Add(CreateBullet());
+            CreateBullet();
         }
     }
 
-public Bullet Spawn(
-    Vector2 position,
-    Vector2 direction,
-    float speed,
-    Transform source = null,
-    bool patternControlled = false,
-    BulletStyleDefinition style = null,
-    Color? tint = null,
-    BulletMotionDefinition motion = null
-)
+    private void FixedUpdate()
+    {
+        // Снимок длины: пули, рождённые внутри этого тика,
+        // начнут движение со следующего тика.
+        int countThisTick = activeCount;
 
+        for (int index = 0; index < countThisTick; index++)
+        {
+            Bullet bullet = activeBullets[index];
+
+            if (bullet != null && bullet.IsActiveInPool)
+            {
+                bullet.StepSimulation();
+            }
+        }
+
+        if (hasDeadSlotsInActive)
+        {
+            CompactActiveBullets();
+        }
+    }
+
+    public Bullet Spawn(
+        Vector2 position,
+        Vector2 direction,
+        float speed,
+        Transform source = null,
+        bool patternControlled = false,
+        BulletStyleDefinition style = null,
+        Color? tint = null,
+        BulletMotionDefinition motion = null
+    )
     {
         if (!enabled || bulletPrefab == null)
         {
@@ -55,143 +82,156 @@ public Bullet Spawn(
 
         Bullet bullet;
 
-        if (available.Count > 0)
+        if (freeCount > 0)
         {
-            bullet = available.Min;
-            available.Remove(bullet);
+            freeCount--;
+            int poolIndex = freeIndices[freeCount];
+            bullet = allBullets[poolIndex];
         }
         else
         {
-            bullet = CreateBullet();
+            bullet = CreateBulletAndTake();
         }
 
-        bullet.transform.SetPositionAndRotation(
-            position,
-            Quaternion.identity
-        );
-
-        Rigidbody2D body = bodies[bullet];
-
-        body.position = position;
-        body.rotation = 0f;
-        body.linearVelocity = Vector2.zero;
-        body.angularVelocity = 0f;
-
-bullet.ApplyStyleGeometry(style);
+        bullet.ApplyStyleGeometry(style);
 
         bullet.Initialize(
+            position,
             direction,
             speed,
             source,
             patternControlled,
             motion
-       
-);
+        );
 
-bullet.ApplyAppearance(
-    style,
-    tint ?? Color.white
-);
+        bullet.ApplyAppearance(style, tint ?? Color.white);
 
-
+        bullet.IsActiveInPool = true;
         bullet.gameObject.SetActive(true);
 
-        activeBullets.Add(bullet);
+        if (activeCount >= activeBullets.Length)
+        {
+            Array.Resize(ref activeBullets, activeBullets.Length * 2);
+        }
+
+        activeBullets[activeCount] = bullet;
+        activeCount++;
 
         return bullet;
     }
 
     public void ClearActiveBullets()
     {
-        if (activeBullets.Count == 0)
+        for (int index = 0; index < activeCount; index++)
         {
-            return;
+            Bullet bullet = activeBullets[index];
+
+            if (bullet != null && bullet.IsActiveInPool)
+            {
+                ReturnInternal(bullet);
+            }
+
+            activeBullets[index] = null;
         }
 
-        Bullet[] bulletsToReturn =
-            new Bullet[activeBullets.Count];
-
-        activeBullets.CopyTo(bulletsToReturn);
-
-        System.Array.Sort(
-            bulletsToReturn,
-            CompareBullets
-        );
-
-        foreach (Bullet bullet in bulletsToReturn)
-        {
-            Return(bullet);
-        }
+        activeCount = 0;
+        hasDeadSlotsInActive = false;
     }
 
     internal void Return(Bullet bullet)
     {
-        if (bullet == null ||
-            !bullet.gameObject.activeSelf)
+        if (bullet == null || !bullet.IsActiveInPool)
         {
             return;
         }
 
-        activeBullets.Remove(bullet);
+        ReturnInternal(bullet);
+        hasDeadSlotsInActive = true;
+    }
 
-        Rigidbody2D body = bodies[bullet];
-
-        body.linearVelocity = Vector2.zero;
-        body.angularVelocity = 0f;
-
+    private void ReturnInternal(Bullet bullet)
+    {
+        bullet.IsActiveInPool = false;
         bullet.gameObject.SetActive(false);
-        available.Add(bullet);
+
+        if (freeCount >= freeIndices.Length)
+        {
+            Array.Resize(ref freeIndices, freeIndices.Length * 2);
+        }
+
+        freeIndices[freeCount] = bullet.PoolIndex;
+        freeCount++;
+    }
+
+    private void CompactActiveBullets()
+    {
+        int writeIndex = 0;
+
+        for (int readIndex = 0; readIndex < activeCount; readIndex++)
+        {
+            Bullet bullet = activeBullets[readIndex];
+
+            if (bullet != null && bullet.IsActiveInPool)
+            {
+                activeBullets[writeIndex] = bullet;
+                writeIndex++;
+            }
+        }
+
+        for (int clearIndex = writeIndex; clearIndex < activeCount; clearIndex++)
+        {
+            activeBullets[clearIndex] = null;
+        }
+
+        activeCount = writeIndex;
+        hasDeadSlotsInActive = false;
+    }
+
+    private void AllocateCapacity(int capacity)
+    {
+        allBullets = new Bullet[capacity];
+        activeBullets = new Bullet[capacity];
+        freeIndices = new int[capacity];
     }
 
     private Bullet CreateBullet()
     {
-        Bullet bullet =
-            Instantiate(bulletPrefab, transform);
+        int poolIndex = totalCreated;
 
-        bullet.AssignPool(this);
-        SpriteRenderer visual =
-            bullet.GetComponentInChildren<SpriteRenderer>(true);
-
-        if (visual != null)
+        if (poolIndex >= allBullets.Length)
         {
-            // Постоянный уникальный приоритет внутри пула.
-            visual.sortingOrder = bodies.Count;
+            int newCapacity = Mathf.Max(64, allBullets.Length * 2);
+            Array.Resize(ref allBullets, newCapacity);
+            Array.Resize(ref activeBullets, newCapacity);
+            Array.Resize(ref freeIndices, newCapacity);
         }
 
-        Rigidbody2D body =
-            bullet.GetComponent<Rigidbody2D>();
-
-        bodies.Add(bullet, body);
-
+        Bullet bullet = Instantiate(bulletPrefab, transform);
+        bullet.AssignPool(this, poolIndex);
+        bullet.IsActiveInPool = false;
         bullet.gameObject.SetActive(false);
+
+        allBullets[poolIndex] = bullet;
+        freeIndices[freeCount] = poolIndex;
+
+        totalCreated++;
+        freeCount++;
 
         return bullet;
     }
 
-    private static int CompareBullets(
-        Bullet left,
-        Bullet right
-    )
+    private Bullet CreateBulletAndTake()
+
     {
-        if (ReferenceEquals(left, right))
-        {
-            return 0;
-        }
+        Debug.LogWarning(
+            $"BulletPool expanded at runtime to {totalCreated + 1}. " +
+            "Increase Initial Size in Inspector to avoid mid-battle Instantiate.",
+            this
+        );
 
-        if (left == null)
-        {
-            return -1;
-        }
-
-        if (right == null)
-        {
-            return 1;
-        }
-
-        return left.transform
-            .GetSiblingIndex()
-            .CompareTo(
-                right.transform.GetSiblingIndex()
-            );
+        Bullet bullet = CreateBullet();
+        freeCount--;
+        return bullet;
     }
+
 }

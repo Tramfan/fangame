@@ -16,45 +16,36 @@ public sealed class PlayerArea : MonoBehaviour
     [SerializeField]
     private bool reflectionEnabled = true;
 
-    public bool ReflectionEnabled => reflectionEnabled;     
-
     private CircleCollider2D circleCollider;
+    private float cachedWorldRadius;
 
-    public static PlayerArea GrazeArea
-    {
-        get;
-        private set;
-    }
+    public static PlayerArea GrazeArea { get; private set; }
+    public static PlayerArea HitboxArea { get; private set; }
 
+    public PlayerShield OwnerShield { get; private set; }
+    public PlayerState OwnerState { get; private set; }
+
+    public bool ReflectionEnabled => reflectionEnabled;
     public PlayerAreaType AreaType => areaType;
 
     public Vector2 Center =>
-        transform.TransformPoint(
-            circleCollider.offset
-        );
+        transform.TransformPoint(circleCollider.offset);
 
-    public float WorldRadius
-    {
-        get
-        {
-            Vector3 scale =
-                transform.lossyScale;
-
-            float largestScale = Mathf.Max(
-                Mathf.Abs(scale.x),
-                Mathf.Abs(scale.y)
-            );
-
-            return
-                circleCollider.radius *
-                largestScale;
-        }
-    }
+    public float WorldRadius => cachedWorldRadius;
 
     private void Awake()
     {
-        circleCollider =
-            GetComponent<CircleCollider2D>();
+        circleCollider = GetComponent<CircleCollider2D>();
+        OwnerShield = GetComponentInParent<PlayerShield>();
+        OwnerState = GetComponentInParent<PlayerState>();
+
+        Vector3 scale = transform.lossyScale;
+        float largestScale = Mathf.Max(
+            Mathf.Abs(scale.x),
+            Mathf.Abs(scale.y)
+        );
+
+        cachedWorldRadius = circleCollider.radius * largestScale;
     }
 
     private void OnEnable()
@@ -62,6 +53,10 @@ public sealed class PlayerArea : MonoBehaviour
         if (areaType == PlayerAreaType.Graze)
         {
             GrazeArea = this;
+        }
+        else if (areaType == PlayerAreaType.Hitbox)
+        {
+            HitboxArea = this;
         }
     }
 
@@ -71,31 +66,27 @@ public sealed class PlayerArea : MonoBehaviour
         {
             GrazeArea = null;
         }
+        else if (HitboxArea == this)
+        {
+            HitboxArea = null;
+        }
     }
 
-    public bool ContainsPoint(Vector2 worldPoint)
+    public void SetWorldRadius(float newRadius)
     {
-        Vector2 offset =
-            worldPoint - Center;
-
-        float radius = WorldRadius;
-
-        return
-            offset.sqrMagnitude <=
-            radius * radius;
+        cachedWorldRadius = Mathf.Max(0f, newRadius);
     }
+
     public bool OverlapsCircle(
-    Vector2 worldCenter,
-    float worldRadius
-)
-{
-    Vector2 offset =
-        worldCenter - Center;
-
-    float combinedRadius =
-        WorldRadius + Mathf.Max(0f, worldRadius);
-
-    return offset.sqrMagnitude <=
-        combinedRadius * combinedRadius;
-}
+        Vector2 worldCenter,
+        float worldRadius
+    )
+    {
+        return BulletHitboxMath.OverlapsCircle(
+            Center,
+            cachedWorldRadius,
+            worldCenter,
+            worldRadius
+        );
+    }
 }

@@ -13,19 +13,29 @@ public sealed class BulletStyleDefinition : ScriptableObject
     [SerializeField]
     private Material material;
 
+    [SerializeField]
+    [Tooltip(
+        "Order in layer for all bullets of this style. " +
+        "Bullets with the same order and atlas batch into 1 draw call. " +
+        "Put small bullets higher (e.g. 10) than large orbs (e.g. 0)."
+    )]
+    private int sortingOrder;
+
     [SerializeField, Min(0.01f)]
     [Tooltip(
         "Visual size multiplier. Does not scale the hitbox."
     )]
     private float visualScale = 1f;
-[Header("Orientation")]
-[SerializeField]
-[Tooltip("Point the visual along the movement direction.")]
-private bool alignToMovement;
 
-[SerializeField]
-[Tooltip("Angle correction for the sprite's original orientation.")]
-private float rotationOffsetDegrees;
+    [Header("Orientation")]
+    [SerializeField]
+    [Tooltip("Point the visual along the movement direction.")]
+    private bool alignToMovement;
+
+    [SerializeField]
+    [Tooltip("Angle correction for the sprite's original orientation.")]
+    private float rotationOffsetDegrees;
+
     [Header("Hitbox")]
     [SerializeField]
     [Tooltip(
@@ -47,6 +57,7 @@ private float rotationOffsetDegrees;
 
     public Sprite Sprite => sprite;
     public Material Material => material;
+    public int SortingOrder => sortingOrder;
 
     public float VisualScale =>
         Mathf.Max(0.01f, visualScale);
@@ -59,6 +70,6 @@ private float rotationOffsetDegrees;
     public Vector2 HitboxOffset => hitboxOffset;
     public bool AlignToMovement => alignToMovement;
 
-public float RotationOffsetDegrees =>
-    rotationOffsetDegrees;
+    public float RotationOffsetDegrees =>
+        rotationOffsetDegrees;
 }

@@ -11,7 +11,7 @@ public sealed partial class Bullet
     {
         owner = BulletOwner.Player;
 
-        Vector2 directionToPlayer = playerCenter - body.position;
+        Vector2 directionToPlayer = playerCenter - position;
 
         float cross =
             direction.x * directionToPlayer.y -
@@ -23,7 +23,7 @@ public sealed partial class Bullet
         }
         else
         {
-            turnSign = body.position.x >= playerCenter.x
+            turnSign = position.x >= playerCenter.x
                 ? 1f
                 : -1f;
         }
@@ -31,7 +31,7 @@ public sealed partial class Bullet
         Vector2 leftNormal = new(-direction.y, direction.x);
 
         turnCenter =
-            body.position +
+            position +
             leftNormal * turnSign * reflectionTurnRadius;
 
         turnDegreesRemaining = 180f;
@@ -55,7 +55,7 @@ public sealed partial class Bullet
 
         float signedAngle = angleStep * turnSign;
 
-        Vector2 relativePosition = body.position - turnCenter;
+        Vector2 relativePosition = position - turnCenter;
 
         relativePosition = RotateVector(
             relativePosition,
@@ -88,7 +88,7 @@ public sealed partial class Bullet
 
         if (target == null)
         {
-            target = FindNearestEnemy(currentPosition);
+            target = EnemyTargetRegistry.FindNearest(currentPosition);
         }
 
         if (target != null)
@@ -104,41 +104,6 @@ public sealed partial class Bullet
         }
 
         direction.Normalize();
-    }
-
-    private static Transform FindNearestEnemy(Vector2 currentPosition)
-    {
-        EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(
-            FindObjectsSortMode.None
-        );
-
-        EnemyHealth nearestEnemy = null;
-        float nearestDistanceSquared = float.PositiveInfinity;
-
-        foreach (EnemyHealth enemy in enemies)
-        {
-            if (enemy == null || enemy.IsDead)
-            {
-                continue;
-            }
-
-            Vector2 offset =
-                (Vector2)enemy.transform.position - currentPosition;
-
-            float distanceSquared = offset.sqrMagnitude;
-
-            if (distanceSquared >= nearestDistanceSquared)
-            {
-                continue;
-            }
-
-            nearestDistanceSquared = distanceSquared;
-            nearestEnemy = enemy;
-        }
-
-        return nearestEnemy != null
-            ? nearestEnemy.transform
-            : null;
     }
 
     private static Vector2 RotateVector(Vector2 vector, float degrees)

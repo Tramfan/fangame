@@ -10,38 +10,40 @@ public sealed partial class Bullet
     private Vector3 originalVisualScale = Vector3.one;
     private Quaternion originalVisualRotation;
     private bool originalVisualRotationSaved;
+    private int originalSortingOrder;
+    private bool originalSortingOrderSaved;
 
     private bool alignVisualToMovement;
     private float visualRotationOffset;
-
-    private float originalHitboxRadius;
-    private Vector2 originalHitboxOffset;
 
     internal void ApplyStyleGeometry(BulletStyleDefinition style)
     {
         bool useStyleHitbox = style != null && style.OverrideHitbox;
 
-        bulletCollider.radius = useStyleHitbox
+        Vector3 scale = transform.lossyScale;
+        float largestScale = Mathf.Max(
+            Mathf.Abs(scale.x),
+            Mathf.Abs(scale.y)
+        );
+
+        float rawRadius = useStyleHitbox
             ? style.HitboxRadius
-            : originalHitboxRadius;
+            : defaultHitboxRadius;
 
-        bulletCollider.offset = useStyleHitbox
+        Vector2 rawOffset = useStyleHitbox
             ? style.HitboxOffset
-            : originalHitboxOffset;
+            : defaultHitboxOffset;
 
-        if (spriteRenderer == null)
+        cachedHitboxRadius = rawRadius * largestScale;
+        cachedHitboxOffset = new Vector2(
+            rawOffset.x * scale.x,
+            rawOffset.y * scale.y
+        );
+
+        if (spriteRenderer != null && spriteRenderer.transform != transform)
         {
-            return;
-        }
-
-        if (spriteRenderer.transform != transform)
-        {
-            float multiplier = style != null
-                ? style.VisualScale
-                : 1f;
-
-            spriteRenderer.transform.localScale =
-                originalVisualScale * multiplier;
+            float multiplier = style != null ? style.VisualScale : 1f;
+            spriteRenderer.transform.localScale = originalVisualScale * multiplier;
         }
     }
 
@@ -63,6 +65,12 @@ public sealed partial class Bullet
             originalVisualRotationSaved = true;
         }
 
+        if (!originalSortingOrderSaved)
+        {
+            originalSortingOrder = spriteRenderer.sortingOrder;
+            originalSortingOrderSaved = true;
+        }
+
         spriteRenderer.sprite = style != null && style.Sprite != null
             ? style.Sprite
             : originalSprite;
@@ -71,6 +79,10 @@ public sealed partial class Bullet
             style != null && style.Material != null
                 ? style.Material
                 : originalMaterial;
+
+        spriteRenderer.sortingOrder = style != null
+            ? style.SortingOrder
+            : originalSortingOrder;
 
         spriteRenderer.color = originalColor * tint;
 

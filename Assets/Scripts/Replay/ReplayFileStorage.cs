@@ -8,6 +8,12 @@ public static class ReplayFileStorage
     private const string ReplayExtension =
         ".replay.json";
 
+    private static readonly Encoding Utf8WithoutBom =
+        new UTF8Encoding(false);
+
+    private static readonly char[] InvalidFileNameChars =
+        Path.GetInvalidFileNameChars();
+
     public static string ReplayDirectoryPath
     {
         get
@@ -56,13 +62,13 @@ public static class ReplayFileStorage
 
             string json = JsonUtility.ToJson(
                 replay,
-                true
+                false
             );
 
             File.WriteAllText(
                 temporaryPath,
                 json,
-                new UTF8Encoding(false)
+                Utf8WithoutBom
             );
 
             File.Move(
@@ -159,7 +165,7 @@ public static class ReplayFileStorage
         return false;
     }
 
-     public static bool TryLoad(
+    public static bool TryLoad(
         string replayPath,
         out ReplayRunData replay
     )
@@ -210,7 +216,7 @@ public static class ReplayFileStorage
         }
     }
 
- private static bool IsCompleteReplay(
+    private static bool IsCompleteReplay(
         ReplayRunData replay
     )
     {
@@ -264,16 +270,13 @@ public static class ReplayFileStorage
             return "unknown";
         }
 
-        char[] invalidCharacters =
-            Path.GetInvalidFileNameChars();
-
-        StringBuilder builder = new();
+        StringBuilder builder = new(value.Length);
 
         foreach (char character in value)
         {
             bool invalid =
                 Array.IndexOf(
-                    invalidCharacters,
+                    InvalidFileNameChars,
                     character
                 ) >= 0;
 

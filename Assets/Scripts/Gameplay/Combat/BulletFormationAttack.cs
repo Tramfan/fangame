@@ -138,7 +138,7 @@ public sealed class BulletFormationAttack : MonoBehaviour
                 offset.x * sine + offset.y * cosine
             );
 
-            member.Body.MovePosition(center + rotatedOffset);
+            member.Bullet.SetExternalPosition(center + rotatedOffset);
         }
     }
 

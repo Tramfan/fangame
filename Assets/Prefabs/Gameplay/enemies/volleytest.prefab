@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2207961768965337832}
   - component: {fileID: 3286775804829198518}
   - component: {fileID: 8022991309534070768}
-  - component: {fileID: -7372554122594204029}
+  - component: {fileID: 6947574451516127704}
   m_Layer: 0
   m_Name: volleytest
   m_TagString: Untagged
@@ -158,6 +158,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
   maxHealth: 5
   destroyOnDeath: 1
+  hitRadius: 0.35
 --- !u!114 &8022991309534070768
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -180,7 +181,7 @@ MonoBehaviour:
   minimumLaunchSpeed: 1.4
   maximumLaunchSpeed: 2.2
   spreadAngle: 100
---- !u!114 &-7372554122594204029
+--- !u!114 &6947574451516127704
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -189,77 +190,77 @@ MonoBehaviour:
   m_GameObject: {fileID: 4217140370117118093}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b28efb50e2648734685f93c5592305a8, type: 3}
+  m_Script: {fileID: 11500000, guid: d5edc39266122854d864086b3811d3c3, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HoverReturnEnemyMover
-  approachAngleDegrees: -90
-  approachDistance: 1.2
-  approachTicks: 10
-  hoverTicks: 60000
-  returnTicks: 60
---- !u!1 &5455833040903885639
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2797816270112287528}
-  - component: {fileID: 938060707422970802}
-  m_Layer: 0
-  m_Name: ChildVolley
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2797816270112287528
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5455833040903885639}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6023414608311833582}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &938060707422970802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5455833040903885639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8a15dedc4824ca4a88d5f99282e88cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BulletVolleyEmitter
-  bulletPool: {fileID: 0}
-  bulletStyle: {fileID: 11400000, guid: 5a4787d0c899ea64390f143f2b9d1c41, type: 2}
-  bulletTint: {r: 0.8553459, g: 0.83387697, b: 0.06724399, a: 1}
-  shape: 1
-  bulletCount: 7
-  bulletSpeed: 5
-  baseAngleDegrees: -90
-  fanSpreadDegrees: 10
-  bulletCountJitter: 0
-  angleJitterDegrees: 0
-  speedJitter: 0
-  groupCount: 1
-  groupAngleStepDegrees: 5
-  aimAtPlayer: 1
-  target: {fileID: 0}
-  bulletMotion: {fileID: 0}
-  childEmitter: {fileID: 0}
-  childVolleyDelayTicks: 45
-  returnAfterChildVolley: 1
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyBehaviorSequence
+  playOnEnable: 1
+  steps:
+  - type: 0
+    durationTicks: 60
+    positionSpace: 0
+    position: {x: 0, y: 2.5}
+    smoothMovement: 1
+    angleDegrees: -90
+    initialSpeed: 2
+    acceleration: 0
+    accelerationPower: 1
+    minimumSpeed: 0
+    attack: {fileID: 0}
+  - type: 1
+    durationTicks: 10
+    positionSpace: 0
+    position: {x: 0, y: 2.5}
+    smoothMovement: 1
+    angleDegrees: -90
+    initialSpeed: 2
+    acceleration: 0
+    accelerationPower: 1
+    minimumSpeed: 0
+    attack: {fileID: 0}
+  - type: 2
+    durationTicks: 30
+    positionSpace: 0
+    position: {x: 0, y: 2.5}
+    smoothMovement: 1
+    angleDegrees: -90
+    initialSpeed: 2
+    acceleration: 0
+    accelerationPower: 1
+    minimumSpeed: 0
+    attack: {fileID: 5891575274944094603}
+  - type: 4
+    durationTicks: 30
+    positionSpace: 0
+    position: {x: 0, y: 2.5}
+    smoothMovement: 1
+    angleDegrees: -90
+    initialSpeed: 2
+    acceleration: 0
+    accelerationPower: 1
+    minimumSpeed: 0
+    attack: {fileID: 5891575274944094603}
+  - type: 6
+    durationTicks: 90
+    positionSpace: 0
+    position: {x: 0, y: 5.5}
+    smoothMovement: 1
+    angleDegrees: 90
+    initialSpeed: 1
+    acceleration: 2
+    accelerationPower: 1
+    minimumSpeed: 0
+    attack: {fileID: 5891575274944094603}
+  - type: 5
+    durationTicks: 60
+    positionSpace: 0
+    position: {x: 0, y: 5.5}
+    smoothMovement: 1
+    angleDegrees: -90
+    initialSpeed: 2
+    acceleration: 0
+    accelerationPower: 1
+    minimumSpeed: 0
+    attack: {fileID: 5891575274944094603}
 --- !u!1 &6417989589326434176
 GameObject:
   m_ObjectHideFlags: 0
@@ -290,8 +291,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 2797816270112287528}
+  m_Children: []
   m_Father: {fileID: 1087793230139626299}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8147086952404675915
@@ -310,11 +310,11 @@ MonoBehaviour:
   bulletStyle: {fileID: 11400000, guid: 5a4787d0c899ea64390f143f2b9d1c41, type: 2}
   bulletTint: {r: 0.8553459, g: 0.83387697, b: 0.06724399, a: 1}
   shape: 0
-  bulletCount: 2
+  bulletCount: 48
   bulletSpeed: 3
   baseAngleDegrees: -90
   fanSpreadDegrees: 10
-  bulletCountJitter: 0
+  bulletCountJitter: 2
   angleJitterDegrees: 0
   speedJitter: 0
   groupCount: 1
@@ -322,7 +322,7 @@ MonoBehaviour:
   aimAtPlayer: 0
   target: {fileID: 0}
   bulletMotion: {fileID: 11400000, guid: ef0efd759a5eefe4d870d2db45e3c593, type: 2}
-  childEmitter: {fileID: 938060707422970802}
+  childEmitter: {fileID: 0}
   childVolleyDelayTicks: 45
   returnAfterChildVolley: 1
 --- !u!114 &5891575274944094603
@@ -338,11 +338,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletVolleyRepeater
   volleyEmitter: {fileID: 8147086952404675915}
-  playOnEnable: 1
-  initialDelayTicks: 60
+  playOnEnable: 0
+  initialDelayTicks: 0
   repeatForever: 1
-  repeatCount: 1
-  intervalTicks: 40
+  repeatCount: 5
+  intervalTicks: 20
   seriesDelayTicks: 60
   initialAngleOffsetDegrees: 90
   angleStepDegrees: 180

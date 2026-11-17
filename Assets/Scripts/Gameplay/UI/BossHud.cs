@@ -17,6 +17,7 @@ public sealed class BossHud : MonoBehaviour
     private TMP_Text timerText;
 
     private EnemyHealth health;
+    private int lastSecondsRemaining = -1;
 
     private void Awake()
     {
@@ -41,11 +42,35 @@ public sealed class BossHud : MonoBehaviour
             );
 
             enabled = false;
+            return;
+        }
+
+        if (healthFill == null)
+        {
+            Debug.LogError(
+                "Boss HUD has no Health Fill assigned.",
+                this
+            );
+
+            enabled = false;
+            return;
+        }
+
+        if (timerText == null)
+        {
+            Debug.LogError(
+                "Boss HUD has no Timer Text assigned.",
+                this
+            );
+
+            enabled = false;
         }
     }
 
     private void OnEnable()
     {
+        lastSecondsRemaining = -1;
+
         if (displayRoot != null)
         {
             displayRoot.SetActive(true);
@@ -63,11 +88,12 @@ public sealed class BossHud : MonoBehaviour
     {
         if (boss == null || !boss.IsPhaseActive)
         {
-            if (displayRoot != null)
+            if (displayRoot != null && displayRoot.activeSelf)
             {
                 displayRoot.SetActive(false);
             }
 
+            lastSecondsRemaining = -1;
             return;
         }
 
@@ -85,7 +111,12 @@ public sealed class BossHud : MonoBehaviour
                 )
                 : 0f;
 
-        timerText.text =
-            boss.SecondsRemaining.ToString();
+        int secondsRemaining = boss.SecondsRemaining;
+
+        if (secondsRemaining != lastSecondsRemaining)
+        {
+            lastSecondsRemaining = secondsRemaining;
+            timerText.text = secondsRemaining.ToString();
+        }
     }
 }

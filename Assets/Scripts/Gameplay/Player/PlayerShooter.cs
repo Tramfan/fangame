@@ -10,8 +10,16 @@ public sealed class PlayerShooter : MonoBehaviour
     [SerializeField]
     private Transform firePoint;
 
-[SerializeField]
-private PlayerOptionController playerOptionController;
+    [SerializeField]
+    private PlayerOptionController playerOptionController;
+
+    [Header("Pooling")]
+    [SerializeField]
+    private PlayerProjectilePool projectilePool;
+
+    [SerializeField, Min(8)]
+    private int prewarmPerProjectilePrefab = 64;
+
     [Header("Legacy Fallback")]
     [SerializeField]
     private PlayerBullet bulletPrefab;
@@ -26,56 +34,56 @@ private PlayerOptionController playerOptionController;
     private PlayerShotPatternDefinition focusedPattern;
     private PlayerShotPatternDefinition activePattern;
 
-private int patternFireTick;
-private readonly Dictionary<
-    PlayerShotPatternDefinition.Emitter,
-    GameObject
-> activeContinuousProjectiles = new();
+    private int patternFireTick;
+    private readonly Dictionary<
+        PlayerShotPatternDefinition.Emitter,
+        GameObject
+    > activeContinuousProjectiles = new();
+
     private bool usesPattern;
     private bool shootHeld;
     private bool focusHeld;
     private int legacyCooldownTicks;
 
-  private void Awake()
-{
-    if (inputSource == null)
+    private void Awake()
     {
-        inputSource =
-            GetComponentInParent<PlayerInputSource>();
+        if (inputSource == null)
+        {
+            inputSource =
+                GetComponentInParent<PlayerInputSource>();
+        }
+
+        if (playerOptionController == null)
+        {
+            playerOptionController =
+                GetComponentInParent<PlayerOptionController>();
+        }
+
+        if (inputSource == null)
+        {
+            Debug.LogError(
+                "Player Shooter has no Input Source.",
+                this
+            );
+
+            enabled = false;
+        }
     }
 
-    if (playerOptionController == null)
-    {
-        playerOptionController =
-            GetComponentInParent<PlayerOptionController>();
-    }
-
-    if (inputSource == null)
-    {
-        Debug.LogError(
-            "Player Shooter has no Input Source.",
-            this
-        );
-
-        enabled = false;
-    }
-}
-
-   
     private void FixedUpdate()
     {
         shootHeld =
-    inputSource != null &&
-    shootingEnabled &&
-    inputSource.ShootHeld;
+            inputSource != null &&
+            shootingEnabled &&
+            inputSource.ShootHeld;
 
-focusHeld =
-    inputSource != null &&
-    inputSource.FocusHeld;
+        focusHeld =
+            inputSource != null &&
+            inputSource.FocusHeld;
+
         if (!shootHeld)
         {
             ResetFiringState();
-            
             return;
         }
 
@@ -104,63 +112,80 @@ focusHeld =
         SetActivePattern(wantedPattern);
     }
 
-   private void SetActivePattern(
-    PlayerShotPatternDefinition pattern
-)
-{
-    ClearContinuousProjectiles();
-    activePattern = pattern;
-}
-
- private void FirePatternTick()
-{
-    if (activePattern == null) return;
-
-    PlayerShotPatternDefinition.Emitter[] emitters =
-        activePattern.Emitters;
-
-    if (emitters == null) return;
-
-    for (int index = 0; index < emitters.Length; index++)
+    private void SetActivePattern(
+        PlayerShotPatternDefinition pattern
+    )
     {
-        PlayerShotPatternDefinition.Emitter emitter =
-            emitters[index];
-
-      if (emitter == null)
-{
-    continue;
-}
-
-if (emitter.FireMode ==
-    PlayerShotFireMode.Continuous)
-{
-    if (!MaintainContinuousEmitter(emitter))
-    {
-        return;
+        ClearContinuousProjectiles();
+        activePattern = pattern;
     }
 
-    continue;
-}
+    private void FirePatternTick()
+    {
+        if (activePattern == null)
+        {
+            return;
+        }
 
-int firstShotTick =
-    emitter.FirstShotDelayTicks;
-        int interval = Mathf.Max(
-            1,
-            emitter.FireIntervalTicks
-        );
+        PlayerShotPatternDefinition.Emitter[] emitters =
+            activePattern.Emitters;
 
-        if (patternFireTick < firstShotTick) continue;
+        if (emitters == null)
+        {
+            return;
+        }
 
-        int emitterTick =
-            patternFireTick - firstShotTick;
+        for (int index = 0; index < emitters.Length; index++)
+        {
+            PlayerShotPatternDefinition.Emitter emitter =
+                emitters[index];
 
-        if (emitterTick % interval != 0) continue;
+            if (emitter == null)
+            {
+                continue;
+            }
 
-        if (!FireEmitter(emitter)) return;
+            if (emitter.FireMode ==
+                PlayerShotFireMode.Continuous)
+            {
+                if (!MaintainContinuousEmitter(emitter))
+                {
+                    return;
+                }
+
+                continue;
+            }
+
+            int firstShotTick =
+                emitter.FirstShotDelayTicks;
+
+            int interval = Mathf.Max(
+                1,
+                emitter.FireIntervalTicks
+            );
+
+            if (patternFireTick < firstShotTick)
+            {
+                continue;
+            }
+
+            int emitterTick =
+                patternFireTick - firstShotTick;
+
+            if (emitterTick % interval != 0)
+            {
+                continue;
+            }
+
+            if (!FireEmitter(emitter))
+            {
+                return;
+            }
+        }
+
+        patternFireTick++;
     }
 
-    patternFireTick++;
-}
     private bool FireEmitter(
         PlayerShotPatternDefinition.Emitter emitter
     )
@@ -177,13 +202,13 @@ int firstShotTick =
             return false;
         }
 
-Transform origin =
-    ResolveEmitterOrigin(emitter);
+        Transform origin =
+            ResolveEmitterOrigin(emitter);
 
-if (origin == null)
-{
-    return true;
-}
+        if (origin == null)
+        {
+            return true;
+        }
 
         Vector3 spawnPosition =
             origin.TransformPoint(
@@ -192,6 +217,8 @@ if (origin == null)
 
         int projectileCount =
             Mathf.Max(1, emitter.ProjectileCount);
+
+        PlayerProjectilePool pool = ResolvePool();
 
         for (int index = 0;
              index < projectileCount;
@@ -223,7 +250,7 @@ if (origin == null)
                 );
 
             GameObject projectileObject =
-                Instantiate(
+                pool.Spawn(
                     emitter.ProjectilePrefab,
                     spawnPosition,
                     Quaternion.identity
@@ -243,7 +270,10 @@ if (origin == null)
                     emitter.ProjectilePrefab
                 );
 
-                Destroy(projectileObject);
+                PlayerProjectilePool.Despawn(
+                    projectileObject
+                );
+
                 SetShootingEnabled(false);
                 return false;
             }
@@ -257,48 +287,149 @@ if (origin == null)
 
         return true;
     }
-private Transform ResolveEmitterOrigin(
-    PlayerShotPatternDefinition.Emitter emitter
-)
-{
-    if (emitter.OriginType ==
-        PlayerShotOriginType.Option)
+
+    private Transform ResolveEmitterOrigin(
+        PlayerShotPatternDefinition.Emitter emitter
+    )
     {
-        if (playerOptionController == null)
+        if (emitter.OriginType ==
+            PlayerShotOriginType.Option)
         {
-            return null;
+            if (playerOptionController == null)
+            {
+                return null;
+            }
+
+            return playerOptionController
+                .GetOptionTransform(
+                    emitter.OptionIndex
+                );
         }
 
-        return playerOptionController
-            .GetOptionTransform(
-                emitter.OptionIndex
-            );
+        return firePoint != null
+            ? firePoint
+            : transform;
     }
 
-    return firePoint != null
-        ? firePoint
-        : transform;
-}
-private bool MaintainContinuousEmitter(
-    PlayerShotPatternDefinition.Emitter emitter
-)
-{
-    Transform origin =
-        ResolveEmitterOrigin(emitter);
-
-    if (origin == null)
+    private bool MaintainContinuousEmitter(
+        PlayerShotPatternDefinition.Emitter emitter
+    )
     {
-        StopContinuousEmitter(emitter);
+        Transform origin =
+            ResolveEmitterOrigin(emitter);
+
+        if (origin == null)
+        {
+            StopContinuousEmitter(emitter);
+            return true;
+        }
+
+        if (activeContinuousProjectiles.TryGetValue(
+                emitter,
+                out GameObject existingProjectile))
+        {
+            if (existingProjectile != null)
+            {
+                return true;
+            }
+
+            activeContinuousProjectiles.Remove(
+                emitter
+            );
+        }
+
+        if (emitter.ProjectilePrefab == null)
+        {
+            Debug.LogError(
+                "Continuous player shot emitter has no " +
+                "projectile prefab.",
+                activePattern
+            );
+
+            SetShootingEnabled(false);
+            return false;
+        }
+
+        Vector3 spawnPosition =
+            origin.TransformPoint(
+                emitter.LocalOffset
+            );
+
+        Vector2 localDirection =
+            RotateVector(
+                Vector2.up,
+                emitter.AngleOffsetDegrees
+            );
+
+        Vector2 worldDirection =
+            origin.TransformDirection(
+                localDirection
+            );
+
+        GameObject projectileObject =
+            Instantiate(
+                emitter.ProjectilePrefab,
+                spawnPosition,
+                Quaternion.identity
+            );
+
+        IPlayerProjectile projectile =
+            projectileObject
+                .GetComponent<IPlayerProjectile>();
+
+        IOriginBoundPlayerProjectile originBound =
+            projectileObject
+                .GetComponent<
+                    IOriginBoundPlayerProjectile
+                >();
+
+        if (projectile == null ||
+            originBound == null)
+        {
+            Debug.LogError(
+                $"Continuous projectile prefab " +
+                $"{emitter.ProjectilePrefab.name} must " +
+                $"implement {nameof(IPlayerProjectile)} " +
+                $"and " +
+                $"{nameof(IOriginBoundPlayerProjectile)}.",
+                emitter.ProjectilePrefab
+            );
+
+            Destroy(projectileObject);
+            SetShootingEnabled(false);
+            return false;
+        }
+
+        originBound.BindOrigin(origin);
+
+        projectile.Initialize(
+            worldDirection,
+            emitter.ProjectileSpeed,
+            emitter.ProjectileDamage
+        );
+
+        activeContinuousProjectiles.Add(
+            emitter,
+            projectileObject
+        );
+
         return true;
     }
 
-    if (activeContinuousProjectiles.TryGetValue(
-            emitter,
-            out GameObject existingProjectile))
+    private void StopContinuousEmitter(
+        PlayerShotPatternDefinition.Emitter emitter
+    )
     {
-        if (existingProjectile != null)
+        if (!activeContinuousProjectiles.TryGetValue(
+                emitter,
+                out GameObject projectileObject))
         {
-            return true;
+            return;
+        }
+
+        if (projectileObject != null)
+        {
+            Destroy(projectileObject);
         }
 
         activeContinuousProjectiles.Remove(
@@ -306,118 +437,20 @@ private bool MaintainContinuousEmitter(
         );
     }
 
-    if (emitter.ProjectilePrefab == null)
+    private void ClearContinuousProjectiles()
     {
-        Debug.LogError(
-            "Continuous player shot emitter has no " +
-            "projectile prefab.",
-            activePattern
-        );
-
-        SetShootingEnabled(false);
-        return false;
-    }
-
-    Vector3 spawnPosition =
-        origin.TransformPoint(
-            emitter.LocalOffset
-        );
-
-    Vector2 localDirection =
-        RotateVector(
-            Vector2.up,
-            emitter.AngleOffsetDegrees
-        );
-
-    Vector2 worldDirection =
-        origin.TransformDirection(
-            localDirection
-        );
-
-    GameObject projectileObject =
-        Instantiate(
-            emitter.ProjectilePrefab,
-            spawnPosition,
-            Quaternion.identity
-        );
-
-    IPlayerProjectile projectile =
-        projectileObject
-            .GetComponent<IPlayerProjectile>();
-
-    IOriginBoundPlayerProjectile originBound =
-        projectileObject
-            .GetComponent<
-                IOriginBoundPlayerProjectile
-            >();
-
-    if (projectile == null ||
-        originBound == null)
-    {
-        Debug.LogError(
-            $"Continuous projectile prefab " +
-            $"{emitter.ProjectilePrefab.name} must " +
-            $"implement {nameof(IPlayerProjectile)} " +
-            $"and " +
-            $"{nameof(IOriginBoundPlayerProjectile)}.",
-            emitter.ProjectilePrefab
-        );
-
-        Destroy(projectileObject);
-        SetShootingEnabled(false);
-        return false;
-    }
-
-    originBound.BindOrigin(origin);
-
-    projectile.Initialize(
-        worldDirection,
-        emitter.ProjectileSpeed,
-        emitter.ProjectileDamage
-    );
-
-    activeContinuousProjectiles.Add(
-        emitter,
-        projectileObject
-    );
-
-    return true;
-}
-
-private void StopContinuousEmitter(
-    PlayerShotPatternDefinition.Emitter emitter
-)
-{
-    if (!activeContinuousProjectiles.TryGetValue(
-            emitter,
-            out GameObject projectileObject))
-    {
-        return;
-    }
-
-    if (projectileObject != null)
-    {
-        Destroy(projectileObject);
-    }
-
-    activeContinuousProjectiles.Remove(
-        emitter
-    );
-}
-
-private void ClearContinuousProjectiles()
-{
-    foreach (GameObject projectileObject
-             in activeContinuousProjectiles.Values)
-    {
-        if (projectileObject != null)
+        foreach (GameObject projectileObject
+                 in activeContinuousProjectiles.Values)
         {
-            Destroy(projectileObject);
+            if (projectileObject != null)
+            {
+                Destroy(projectileObject);
+            }
         }
+
+        activeContinuousProjectiles.Clear();
     }
 
-    activeContinuousProjectiles.Clear();
-}
     private void FireLegacyTick()
     {
         if (legacyCooldownTicks > 0)
@@ -446,8 +479,8 @@ private void ClearContinuousProjectiles()
                 ? firePoint.position
                 : transform.position;
 
-        Instantiate(
-            bulletPrefab,
+        ResolvePool().Spawn(
+            bulletPrefab.gameObject,
             spawnPosition,
             Quaternion.identity
         );
@@ -456,14 +489,14 @@ private void ClearContinuousProjectiles()
             Mathf.Max(1, fireIntervalTicks);
     }
 
- private void ResetFiringState()
-{
-    ClearContinuousProjectiles();
+    private void ResetFiringState()
+    {
+        ClearContinuousProjectiles();
 
-    legacyCooldownTicks = 0;
-    patternFireTick = 0;
-    activePattern = null;
-}
+        legacyCooldownTicks = 0;
+        patternFireTick = 0;
+        activePattern = null;
+    }
 
     private void OnDisable()
     {
@@ -489,6 +522,14 @@ private void ClearContinuousProjectiles()
         unfocusedPattern = null;
         focusedPattern = null;
 
+        if (bulletPrefab != null)
+        {
+            ResolvePool().Prewarm(
+                bulletPrefab.gameObject,
+                prewarmPerProjectilePrefab
+            );
+        }
+
         ResetFiringState();
         SetShootingEnabled(enableShooting);
     }
@@ -508,6 +549,9 @@ private void ClearContinuousProjectiles()
                 ? newFocusedPattern
                 : newUnfocusedPattern;
 
+        PrewarmPattern(unfocusedPattern);
+        PrewarmPattern(focusedPattern);
+
         ResetFiringState();
 
         SetShootingEnabled(
@@ -524,6 +568,49 @@ private void ClearContinuousProjectiles()
         {
             shootHeld = false;
             ResetFiringState();
+        }
+    }
+
+    private PlayerProjectilePool ResolvePool()
+    {
+        if (projectilePool == null)
+        {
+            projectilePool =
+                PlayerProjectilePool.GetOrCreate();
+        }
+
+        return projectilePool;
+    }
+
+    private void PrewarmPattern(
+        PlayerShotPatternDefinition pattern
+    )
+    {
+        if (pattern == null ||
+            pattern.Emitters == null)
+        {
+            return;
+        }
+
+        PlayerProjectilePool pool = ResolvePool();
+
+        for (int index = 0;
+             index < pattern.Emitters.Length;
+             index++)
+        {
+            PlayerShotPatternDefinition.Emitter emitter =
+                pattern.Emitters[index];
+
+            if (emitter != null &&
+                emitter.FireMode !=
+                    PlayerShotFireMode.Continuous &&
+                emitter.ProjectilePrefab != null)
+            {
+                pool.Prewarm(
+                    emitter.ProjectilePrefab,
+                    prewarmPerProjectilePrefab
+                );
+            }
         }
     }
 

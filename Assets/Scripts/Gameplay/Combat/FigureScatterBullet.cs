@@ -2,24 +2,16 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Bullet))]
-[RequireComponent(typeof(CircleCollider2D))]
 public sealed class FigureScatterBullet : MonoBehaviour
 {
     private Bullet bullet;
     private BulletPool pool;
-    private CircleCollider2D bulletCollider;
 
     public bool IsAvailable =>
         isActiveAndEnabled &&
         bullet != null &&
         bullet.gameObject.activeSelf &&
         bullet.IsPatternControlled;
-
-    private void Awake()
-    {
-        bulletCollider =
-            GetComponent<CircleCollider2D>();
-    }
 
     public void Prepare(
         Bullet newBullet,
@@ -30,7 +22,7 @@ public sealed class FigureScatterBullet : MonoBehaviour
         pool = newPool;
 
         // Фигура опасна уже во время рисования.
-        bulletCollider.enabled = true;
+        bullet.CollisionEnabled = true;
         enabled = true;
     }
 
@@ -43,7 +35,7 @@ public sealed class FigureScatterBullet : MonoBehaviour
             return;
         }
 
-        bullet.ReleasePatternControl(
+        bullet.ReleasePatternControlWithVelocity(
             velocity
         );
 

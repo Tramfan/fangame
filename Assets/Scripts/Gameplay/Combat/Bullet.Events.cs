@@ -44,7 +44,7 @@ public sealed partial class Bullet
         timedVolleyEmitter = null;
         ticksUntilTimedVolley = -1;
 
-        if (emitter.FireAt(body.position, source) && returnAfterTimedVolley)
+        if (emitter.FireAt(position, source) && returnAfterTimedVolley)
         {
             ReturnToPool();
             return true;

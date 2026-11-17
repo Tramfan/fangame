@@ -35,7 +35,11 @@ private void OnEnable()
 {
     EnemyTargetRegistry.Register(this);
 }
+[SerializeField, Min(0.01f)]
+private float hitRadius = 0.35f;
 
+public float HitRadius => hitRadius;
+public Vector2 WorldPosition => transform.position;
 private void OnDisable()
 {
     EnemyTargetRegistry.Unregister(this);

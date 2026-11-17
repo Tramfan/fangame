@@ -14,6 +14,8 @@ public sealed class GrazeDisplay : MonoBehaviour
         new object[1];
 
     private TMP_Text label;
+    private int pendingGrazeCount;
+    private bool isDirty;
 
     private void Awake()
     {
@@ -38,12 +40,13 @@ public sealed class GrazeDisplay : MonoBehaviour
 
     private void OnEnable()
     {
-        int initialGraze =
+        pendingGrazeCount =
             playerState != null
                 ? playerState.GrazeCount
                 : 0;
 
-        formatArguments[0] = initialGraze;
+        isDirty = false;
+        formatArguments[0] = pendingGrazeCount;
         labelFormat.Arguments = formatArguments;
 
         labelFormat.StringChanged +=
@@ -68,12 +71,31 @@ public sealed class GrazeDisplay : MonoBehaviour
             playerState.GrazeChanged -=
                 HandleGrazeChanged;
         }
+
+        isDirty = false;
+    }
+
+    private void LateUpdate()
+    {
+        if (!isDirty)
+        {
+            return;
+        }
+
+        isDirty = false;
+        formatArguments[0] = pendingGrazeCount;
+        labelFormat.RefreshString();
     }
 
     private void HandleGrazeChanged(int grazeCount)
     {
-        formatArguments[0] = grazeCount;
-        labelFormat.RefreshString();
+        if (grazeCount == pendingGrazeCount)
+        {
+            return;
+        }
+
+        pendingGrazeCount = grazeCount;
+        isDirty = true;
     }
 
     private void HandleLocalizedStringChanged(

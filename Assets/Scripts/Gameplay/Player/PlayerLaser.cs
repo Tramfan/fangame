@@ -23,17 +23,39 @@ public sealed class PlayerLaser :
 
     private readonly List<EnemyHealth>
         overlappingEnemies = new();
-private SpriteRenderer spriteRenderer;
+
+    private SpriteRenderer spriteRenderer;
+    private BoxCollider2D boxCollider;
     private Transform origin;
     private int damage = 1;
     private int damageCooldownTicks;
+    private float lastBeamLength = -1f;
+    private float lastBeamWidth = -1f;
+
+    private void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        boxCollider = GetComponent<BoxCollider2D>();
+
+        transform.localScale = Vector3.one;
+        transform.rotation = Quaternion.identity;
+
+        if (spriteRenderer.drawMode == SpriteDrawMode.Simple)
+        {
+            spriteRenderer.drawMode = SpriteDrawMode.Sliced;
+        }
+
+        boxCollider.isTrigger = true;
+        boxCollider.offset = Vector2.zero;
+    }
 
     private void OnEnable()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
         origin = null;
         damage = 1;
         damageCooldownTicks = 0;
+        lastBeamLength = -1f;
+        lastBeamWidth = -1f;
 
         overlappingEnemies.Clear();
     }
@@ -64,7 +86,7 @@ private SpriteRenderer spriteRenderer;
         if (origin == null ||
             !origin.gameObject.activeInHierarchy)
         {
-            Destroy(gameObject);
+            PlayerProjectilePool.Despawn(gameObject);
             return;
         }
 
@@ -96,19 +118,16 @@ private SpriteRenderer spriteRenderer;
                 originPosition.z
             );
 
-        transform.rotation =
-            Quaternion.identity;
+        if (!Mathf.Approximately(beamLength, lastBeamLength) ||
+            !Mathf.Approximately(beamWidth, lastBeamWidth))
+        {
+            lastBeamLength = beamLength;
+            lastBeamWidth = beamWidth;
 
-        Vector2 spriteSize =
-    spriteRenderer.sprite.bounds.size;
-
-transform.localScale =
-    new Vector3(
-        beamWidth / spriteSize.x,
-        beamLength / spriteSize.y,
-        1f
-    
-            );
+            Vector2 newSize = new(beamWidth, beamLength);
+            spriteRenderer.size = newSize;
+            boxCollider.size = newSize;
+        }
     }
 
     private void UpdateDamage()

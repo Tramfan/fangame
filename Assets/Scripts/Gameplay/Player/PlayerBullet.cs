@@ -23,17 +23,32 @@ public sealed class PlayerBullet :
     private float lowerRemovalY = -6f;
 
     private Rigidbody2D body;
+    private float defaultSpeed;
+    private int defaultDamage;
     private Vector2 direction = Vector2.up;
     private bool hasHit;
 
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
+        defaultSpeed = speed;
+        defaultDamage = damage;
     }
 
     private void OnEnable()
     {
         hasHit = false;
+        direction = Vector2.up;
+        speed = defaultSpeed;
+        damage = defaultDamage;
+    }
+
+    internal void SyncSpawnPosition(Vector2 spawnPosition)
+    {
+        if (body != null)
+        {
+            body.position = spawnPosition;
+        }
     }
 
     public void Initialize(
@@ -64,6 +79,11 @@ public sealed class PlayerBullet :
 
     private void FixedUpdate()
     {
+        if (hasHit)
+        {
+            return;
+        }
+
         Vector2 nextPosition =
             body.position +
             direction *
@@ -76,7 +96,7 @@ public sealed class PlayerBullet :
             nextPosition.y >= removalY ||
             nextPosition.y <= lowerRemovalY)
         {
-            Destroy(gameObject);
+            PlayerProjectilePool.Despawn(gameObject);
         }
     }
 
@@ -98,6 +118,6 @@ public sealed class PlayerBullet :
         hasHit = true;
         damageable.TakeDamage(damage);
 
-        Destroy(gameObject);
+        PlayerProjectilePool.Despawn(gameObject);
     }
 }

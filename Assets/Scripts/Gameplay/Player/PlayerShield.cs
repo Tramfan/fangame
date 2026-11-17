@@ -1,8 +1,28 @@
 using UnityEngine;
 [DefaultExecutionOrder(-900)]
 [DisallowMultipleComponent]
+
+
 public sealed class PlayerShield : MonoBehaviour
 {
+    public float ShieldWorldRadius
+    {
+        get
+        {
+            if (shieldCollider is not CircleCollider2D circle)
+            {
+                return 0f;
+            }
+
+            Vector3 scale = circle.transform.lossyScale;
+            float largestScale = Mathf.Max(
+                Mathf.Abs(scale.x),
+                Mathf.Abs(scale.y)
+            );
+
+            return circle.radius * largestScale;
+        }
+    }
     [SerializeField]
     private PlayerInputSource inputSource;
 

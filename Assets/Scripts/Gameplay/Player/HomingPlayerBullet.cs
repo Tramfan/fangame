@@ -15,8 +15,10 @@ public sealed class HomingPlayerBullet :
     [Header("Homing")]
     [SerializeField, Min(0f)]
     private float turnSpeedDegreesPerSecond = 360f;
-[SerializeField, Min(0)]
-private int homingDurationTicks = 90;
+
+    [SerializeField, Min(0)]
+    private int homingDurationTicks = 90;
+
     [Header("Removal Bounds")]
     [SerializeField, Min(0f)]
     private float removalX = 6f;
@@ -29,14 +31,14 @@ private int homingDurationTicks = 90;
 
     private Rigidbody2D body;
 
-    private Vector2 direction =
-        Vector2.up;
-private Transform target;
-private EnemyHealth targetHealth;
+    private Vector2 direction = Vector2.up;
+    private Transform target;
+    private EnemyHealth targetHealth;
 
-private bool hasAcquiredTarget;
-private bool hasHit;
-private int homingTicksRemaining;
+    private bool hasAcquiredTarget;
+    private bool hasHit;
+    private int homingTicksRemaining;
+
     private void Awake()
     {
         body = GetComponent<Rigidbody2D>();
@@ -45,10 +47,15 @@ private int homingTicksRemaining;
     private void OnEnable()
     {
         hasHit = false;
-    target = null;
-    targetHealth = null;
-    hasAcquiredTarget = false;
-    homingTicksRemaining = 0;
+        target = null;
+        targetHealth = null;
+        hasAcquiredTarget = false;
+        homingTicksRemaining = 0;
+
+        if (body != null)
+        {
+            body.position = transform.position;
+        }
     }
 
     public void Initialize(
@@ -57,6 +64,11 @@ private int homingTicksRemaining;
         int hitDamage
     )
     {
+        if (body != null)
+        {
+            body.position = transform.position;
+        }
+
         direction =
             movementDirection.sqrMagnitude > 0.0001f
                 ? movementDirection.normalized
@@ -71,64 +83,70 @@ private int homingTicksRemaining;
             1,
             hitDamage
         );
-homingTicksRemaining =
-    Mathf.Max(
-        0,
-        homingDurationTicks
-    );
-    
+
+        homingTicksRemaining =
+            Mathf.Max(
+                0,
+                homingDurationTicks
+            );
+
         AcquireTarget();
         UpdateRotation();
     }
 
-private void FixedUpdate()
-{
-    if (homingTicksRemaining > 0)
+    private void FixedUpdate()
     {
-        if (!hasAcquiredTarget)
+        if (hasHit)
         {
-            AcquireTarget();
-        }
-
-        if (hasAcquiredTarget)
-        {
-            if (HasValidTarget())
-            {
-                TurnTowardsTarget();
-            }
-            else
-            {
-                StopHoming();
-            }
+            return;
         }
 
         if (homingTicksRemaining > 0)
         {
-            homingTicksRemaining--;
-
-            if (homingTicksRemaining == 0)
+            if (!hasAcquiredTarget)
             {
-                StopHoming();
+                AcquireTarget();
+            }
+
+            if (hasAcquiredTarget)
+            {
+                if (HasValidTarget())
+                {
+                    TurnTowardsTarget();
+                }
+                else
+                {
+                    StopHoming();
+                }
+            }
+
+            if (homingTicksRemaining > 0)
+            {
+                homingTicksRemaining--;
+
+                if (homingTicksRemaining == 0)
+                {
+                    StopHoming();
+                }
             }
         }
+
+        Vector2 nextPosition =
+            body.position +
+            direction *
+            speed *
+            Time.fixedDeltaTime;
+
+        body.MovePosition(nextPosition);
+        UpdateRotation();
+
+        if (Mathf.Abs(nextPosition.x) >= removalX ||
+            nextPosition.y >= removalY ||
+            nextPosition.y <= lowerRemovalY)
+        {
+            PlayerProjectilePool.Despawn(gameObject);
+        }
     }
-
-    Vector2 nextPosition =
-        body.position +
-        direction *
-        speed *
-        Time.fixedDeltaTime;
-
-    body.MovePosition(nextPosition);
-    UpdateRotation();
-
-    if (Mathf.Abs(nextPosition.x) >= removalX ||
-        nextPosition.y >= removalY ||
-        nextPosition.y <= lowerRemovalY)
-    {
-        Destroy(gameObject);
-    }
-}
 
     private bool HasValidTarget()
     {
@@ -139,29 +157,32 @@ private void FixedUpdate()
             !targetHealth.IsDead &&
             !targetHealth.IsInvulnerable;
     }
-private void StopHoming()
-{
-    homingTicksRemaining = 0;
-    target = null;
-    targetHealth = null;
-}
-    private void AcquireTarget()
-{
-    target =
-        EnemyTargetRegistry.FindNearest(
-            body.position
-        );
 
-    targetHealth =
-        target != null
-            ? target.GetComponent<EnemyHealth>()
-            : null;
-
-    if (targetHealth != null)
+    private void StopHoming()
     {
-        hasAcquiredTarget = true;
+        homingTicksRemaining = 0;
+        target = null;
+        targetHealth = null;
     }
-}
+
+    private void AcquireTarget()
+    {
+        target =
+            EnemyTargetRegistry.FindNearest(
+                body.position
+            );
+
+        targetHealth =
+            target != null
+                ? target.GetComponent<EnemyHealth>()
+                : null;
+
+        if (targetHealth != null)
+        {
+            hasAcquiredTarget = true;
+        }
+    }
+
     private void TurnTowardsTarget()
     {
         if (!HasValidTarget())
@@ -250,6 +271,6 @@ private void StopHoming()
             damage
         );
 
-        Destroy(gameObject);
+        PlayerProjectilePool.Despawn(gameObject);
     }
 }

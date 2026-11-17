@@ -1,22 +1,43 @@
 using UnityEngine;
 
-public enum BulletOwner
+public enum BulletOwner : byte
 {
-    Enemy,
-    Player
+    Enemy = 0,
+    Player = 1
 }
 
-[DefaultExecutionOrder(-800)]
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(CircleCollider2D))]
+[DisallowMultipleComponent]
 public sealed partial class Bullet : MonoBehaviour
 {
+    // <-- Вставлять поля и ReleasePatternControl() нужно сюда, внутрь класса
+
+    private bool useMotionFunction;
+    private BulletMotionType motionType;
+    private Vector2 motionOrigin;
+    private Vector2 motionDirection;
+    private float motionInitialSpeed;
+    private float motionAcceleration;
+    private float motionAccelerationPower = 1f;
+    private float motionMinimumSpeed;
+    private float motionSineAmplitude;
+    private float motionSinePeriod = 1f;
+    private float motionSpiralAngularSpeed;
+    private int motionAgeTicks;
+
+   
+
     [Header("Movement")]
     [SerializeField]
     private float speed = 2.5f;
-
     [SerializeField]
     private Vector2 removalBounds = new(6f, 6f);
+
+    [Header("Default Hitbox")]
+    [SerializeField, Min(0.001f)]
+    private float defaultHitboxRadius = 0.08f;
+
+    [SerializeField]
+    private Vector2 defaultHitboxOffset = Vector2.zero;
 
     [Header("Reflection")]
     [SerializeField, Min(0.05f)]
@@ -39,28 +60,45 @@ public sealed partial class Bullet : MonoBehaviour
     [SerializeField]
     private bool logGrazeDiagnostics;
 
-    private Rigidbody2D body;
-    private CircleCollider2D bulletCollider;
     private BulletPool pool;
 
+    private Vector2 position;
+    private Vector2 previousPosition;
     private Vector2 direction = Vector2.down;
     private Transform source;
     private BulletOwner owner = BulletOwner.Enemy;
     private bool isPatternControlled;
 
+    private float cachedHitboxRadius;
+    private Vector2 cachedHitboxOffset;
+
+    internal int PoolIndex { get; set; }
+    internal bool IsActiveInPool { get; set; }
     internal int SpawnGeneration { get; private set; }
 
     public bool IsPatternControlled =>
         isPatternControlled && owner == BulletOwner.Enemy;
 
+    public Vector2 Position => position;
+ 
+ public bool CollisionEnabled { get; set; } = true;
+    public float HitboxWorldRadius => cachedHitboxRadius;
+    public Vector2 HitboxWorldCenter => position + cachedHitboxOffset;
+
+    public void ReleasePatternControlWithVelocity(Vector2 velocity)
+    {
+        float newSpeed = velocity.magnitude;
+        speed = newSpeed;
+
+        if (newSpeed > 0.0001f)
+        {
+            direction = velocity / newSpeed;
+        }
+
+        ReleasePatternControl();
+    }
     private void Awake()
     {
-        bulletCollider = GetComponent<CircleCollider2D>();
-        body = GetComponent<Rigidbody2D>();
-
-        originalHitboxRadius = bulletCollider.radius;
-        originalHitboxOffset = bulletCollider.offset;
-
         spriteRenderer = GetComponentInChildren<SpriteRenderer>(true);
 
         if (spriteRenderer != null)
@@ -72,12 +110,21 @@ public sealed partial class Bullet : MonoBehaviour
         }
     }
 
-    internal void AssignPool(BulletPool bulletPool)
+    internal void AssignPool(BulletPool bulletPool, int index)
     {
         pool = bulletPool;
+        PoolIndex = index;
+    }
+
+    internal void SetExternalPosition(Vector2 newPosition)
+    {
+        previousPosition = position;
+        position = newPosition;
+        transform.position = new Vector3(newPosition.x, newPosition.y, 0f);
     }
 
     public void Initialize(
+        Vector2 startPosition,
         Vector2 movementDirection,
         float movementSpeed,
         Transform bulletSource = null,
@@ -85,21 +132,25 @@ public sealed partial class Bullet : MonoBehaviour
         BulletMotionDefinition motion = null
     )
     {
-        // Кожна видача з пулу отримує новий номер.
         unchecked
         {
             SpawnGeneration++;
         }
 
-        // Скидаємо подію попереднього використання кулі.
+        position = startPosition;
+        previousPosition = startPosition;
+        transform.position = new Vector3(startPosition.x, startPosition.y, 0f);
+
         timedVolleyEmitter = null;
         ticksUntilTimedVolley = -1;
         returnAfterTimedVolley = false;
 
-        direction = movementDirection.normalized;
+        direction = movementDirection.sqrMagnitude > 0.000001f
+            ? movementDirection.normalized
+            : Vector2.down;
+
         speed = Mathf.Max(0f, movementSpeed);
         source = bulletSource;
-        bulletCollider.enabled = true;
 
         owner = BulletOwner.Enemy;
         isPatternControlled = patternControlled;
@@ -109,45 +160,25 @@ public sealed partial class Bullet : MonoBehaviour
         hasHitPlayer = false;
 
         useMotionFunction = motion != null;
-
         motionType = motion != null
             ? motion.MotionType
             : BulletMotionType.Straight;
 
-        motionOrigin = transform.position;
+        motionOrigin = startPosition;
         motionDirection = direction;
         motionInitialSpeed = speed;
-
-        motionAcceleration = motion != null
-            ? motion.Acceleration
-            : 0f;
-
-        motionAccelerationPower = motion != null
-            ? motion.AccelerationPower
-            : 1f;
-
-        motionMinimumSpeed = motion != null
-            ? motion.MinimumSpeed
-            : 0f;
-
-        motionSineAmplitude = motion != null
-            ? motion.SineAmplitude
-            : 0f;
-
-        motionSinePeriod = motion != null
-            ? motion.SinePeriodSeconds
-            : 1f;
-
+        motionAcceleration = motion != null ? motion.Acceleration : 0f;
+        motionAccelerationPower = motion != null ? motion.AccelerationPower : 1f;
+        motionMinimumSpeed = motion != null ? motion.MinimumSpeed : 0f;
+        motionSineAmplitude = motion != null ? motion.SineAmplitude : 0f;
+        motionSinePeriod = motion != null ? motion.SinePeriodSeconds : 1f;
         motionSpiralAngularSpeed = motion != null
             ? motion.SpiralAngularSpeedDegreesPerSecond
             : 0f;
 
         motionAgeTicks = 0;
 
-        // На початку синусоїди дотична може відрізнятися
-        // від основного напрямку польоту.
-        if (useMotionFunction &&
-            motionType == BulletMotionType.Sine)
+        if (useMotionFunction && motionType == BulletMotionType.Sine)
         {
             MotionMath.EvaluateSine(
                 motionOrigin,
@@ -173,8 +204,8 @@ public sealed partial class Bullet : MonoBehaviour
         wasInsideGrazeArea =
             grazeArea != null &&
             grazeArea.OverlapsCircle(
-                GetBulletCenter(transform.position),
-                GetBulletWorldRadius()
+                position + cachedHitboxOffset,
+                cachedHitboxRadius
             );
 
         ignoreGrazeUntilExit = wasInsideGrazeArea;
@@ -188,25 +219,22 @@ public sealed partial class Bullet : MonoBehaviour
         {
             spriteRenderer.color = originalColor;
         }
-
-        // ApplyAppearance() встановить вигляд
-        // та орієнтацію підготовленої кулі.
     }
 
     private void ReturnToPool()
     {
-        if (!gameObject.activeSelf)
+        if (!IsActiveInPool)
         {
             return;
         }
 
-        if (pool == null)
+        if (pool != null)
         {
-            Debug.LogError("Bullet has no pool assigned.", this);
+            pool.Return(this);
+        }
+        else
+        {
             gameObject.SetActive(false);
-            return;
         }
-
-        pool.Return(this);
     }
 }
