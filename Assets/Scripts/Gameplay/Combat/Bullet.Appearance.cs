@@ -16,11 +16,107 @@ public sealed partial class Bullet
     private bool alignVisualToMovement;
     private float visualRotationOffset;
 
+    private bool isSpawnAppearancePending;
+    private Vector2 spawnAppearanceOrigin;
+    private Color spawnAppearanceColor;
+    private float spawnHiddenDistance;
+    private float spawnVisibleDistance;
+    private float spawnHiddenDistanceSquared;
+    private float spawnVisibleDistanceSquared;
+    private float spawnOpacity;
+
+    internal void ConfigureSpawnAppearance(
+        float hiddenDistance,
+        float fadeDistance
+    )
+    {
+        spawnHiddenDistance = Mathf.Max(0f, hiddenDistance);
+        spawnVisibleDistance =
+            spawnHiddenDistance + Mathf.Max(0f, fadeDistance);
+
+        if (spawnVisibleDistance <= 0f)
+        {
+            return;
+        }
+
+        // Точка появи не рухається разом із босом.
+        spawnAppearanceOrigin = position;
+
+        spawnHiddenDistanceSquared =
+            spawnHiddenDistance * spawnHiddenDistance;
+
+        spawnVisibleDistanceSquared =
+            spawnVisibleDistance * spawnVisibleDistance;
+
+        spawnAppearanceColor = spriteRenderer != null
+            ? spriteRenderer.color
+            : Color.white;
+
+        isSpawnAppearancePending = true;
+        spawnOpacity = 0f;
+        SetSpawnOpacity(0f);
+
+        // Невидимий рух не повинен створювати вихід із зони грейзу.
+        wasInsideGrazeArea = false;
+        ignoreGrazeUntilExit = false;
+    }
+
+    private bool UpdateSpawnAppearance()
+    {
+        if (!isSpawnAppearancePending)
+        {
+            return true;
+        }
+
+        float distanceSquared =
+            (position - spawnAppearanceOrigin).sqrMagnitude;
+
+        if (distanceSquared >= spawnVisibleDistanceSquared)
+        {
+            SetSpawnOpacity(1f);
+            isSpawnAppearancePending = false;
+            return true;
+        }
+
+        if (distanceSquared <= spawnHiddenDistanceSquared)
+        {
+            return false;
+        }
+
+        float opacity = Mathf.InverseLerp(
+            spawnHiddenDistance,
+            spawnVisibleDistance,
+            Mathf.Sqrt(distanceSquared)
+        );
+
+        // Прозорість змінюється лише в бік повної видимості.
+        if (opacity > spawnOpacity)
+        {
+            spawnOpacity = opacity;
+            SetSpawnOpacity(opacity);
+        }
+
+        return false;
+    }
+
+    private void SetSpawnOpacity(float opacity)
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        Color color = spawnAppearanceColor;
+        color.a *= opacity;
+        spriteRenderer.color = color;
+    }
+
     internal void ApplyStyleGeometry(BulletStyleDefinition style)
     {
         bool useStyleHitbox = style != null && style.OverrideHitbox;
 
         Vector3 scale = transform.lossyScale;
+
         float largestScale = Mathf.Max(
             Mathf.Abs(scale.x),
             Mathf.Abs(scale.y)
@@ -35,15 +131,21 @@ public sealed partial class Bullet
             : defaultHitboxOffset;
 
         cachedHitboxRadius = rawRadius * largestScale;
+
         cachedHitboxOffset = new Vector2(
             rawOffset.x * scale.x,
             rawOffset.y * scale.y
         );
 
-        if (spriteRenderer != null && spriteRenderer.transform != transform)
+        if (spriteRenderer != null &&
+            spriteRenderer.transform != transform)
         {
-            float multiplier = style != null ? style.VisualScale : 1f;
-            spriteRenderer.transform.localScale = originalVisualScale * multiplier;
+            float multiplier = style != null
+                ? style.VisualScale
+                : 1f;
+
+            spriteRenderer.transform.localScale =
+                originalVisualScale * multiplier;
         }
     }
 

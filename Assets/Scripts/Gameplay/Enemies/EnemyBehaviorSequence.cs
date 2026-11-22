@@ -29,8 +29,14 @@ public sealed class EnemyBehaviorSequence : MonoBehaviour
     [Serializable]
     private sealed class Step
     {
-        public StepType type;
 
+        public bool smoothMovement = true;
+        public StepType type;
+  [Tooltip(
+            "Maximum sideways offset for MoveTo. " +
+            "Positive bends left relative to travel; 0 is straight."
+        )]
+        public float arcOffset;
         [Min(1)]
         [Tooltip("Duration of movement or waiting in fixed ticks.")]
         public int durationTicks = 60;
@@ -39,9 +45,6 @@ public sealed class EnemyBehaviorSequence : MonoBehaviour
         public PositionSpace positionSpace;
 
         public Vector2 position;
-
-        [Tooltip("Smooth acceleration and braking for MoveTo.")]
-        public bool smoothMovement = true;
 
         [Header("Fly Direction")]
         [Tooltip("World angle: 0 right, 90 up, 180 left, -90 down.")]
@@ -190,11 +193,38 @@ public sealed class EnemyBehaviorSequence : MonoBehaviour
                             progress * progress * (3f - 2f * progress);
                     }
 
-                    transform.position = Vector3.Lerp(
+                    Vector3 position = Vector3.Lerp(
                         stepStartPosition,
                         stepTargetPosition,
                         progress
                     );
+
+                    if (step.arcOffset != 0f)
+                    {
+                        Vector3 travel =
+                            stepTargetPosition - stepStartPosition;
+
+                        float distance = travel.magnitude;
+
+                        if (distance > 0.0001f)
+                        {
+                            Vector3 sideways = new(
+                                -travel.y / distance,
+                                travel.x / distance,
+                                0f
+                            );
+
+                            // Вигин дорівнює нулю на кінцях
+                            // і досягає максимуму посередині шляху.
+                            float bend =
+                                4f * progress * (1f - progress);
+
+                            position +=
+                                sideways * step.arcOffset * bend;
+                        }
+                    }
+
+                    transform.position = position;
 
                     if (elapsedTicks < duration)
                     {

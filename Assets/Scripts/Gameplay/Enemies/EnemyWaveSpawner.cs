@@ -307,6 +307,13 @@ public sealed class EnemyWaveSpawner : MonoBehaviour
         );
 
         activeEnemies.Add(enemy);
+        OrbitingAttackEmitter[] orbitingEmitters =
+    enemy.GetComponentsInChildren<OrbitingAttackEmitter>(true);
+
+foreach (OrbitingAttackEmitter orbitingEmitter in orbitingEmitters)
+{
+    orbitingEmitter.Configure(target, bulletPool);
+}
 BulletVolleyEmitter[] volleyEmitters =
     enemy.GetComponentsInChildren<BulletVolleyEmitter>(true);
 

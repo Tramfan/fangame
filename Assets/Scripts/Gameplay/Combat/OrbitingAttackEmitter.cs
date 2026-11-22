@@ -5,6 +5,13 @@ using UnityEngine;
 [DefaultExecutionOrder(-200)]
 public sealed class OrbitingAttackEmitter : MonoBehaviour
 {
+    public enum VolleyDirectionMode
+    {
+        EmitterSettings,
+        FixedAngle,
+        OutwardNormal
+    }
+
     private sealed class EmitterInstance
     {
         public Transform Anchor;
@@ -26,6 +33,11 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
     [SerializeField, Min(1)]
     private int emitterCount = 2;
 
+    [Header("Volley Direction")]
+    [SerializeField]
+    [Tooltip("Режим напрямку для BulletVolleyEmitter на орбіті.")]
+    private VolleyDirectionMode volleyDirection = VolleyDirectionMode.EmitterSettings;
+
     [Header("Movement")]
     [SerializeField, Min(0f)]
     private float orbitRadius = 1.5f;
@@ -38,19 +50,21 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
     private float startAngleDegrees;
 
     [SerializeField]
-    [Tooltip(
-        "Positive: counterclockwise. " +
-        "Negative: clockwise."
-    )]
+    [Tooltip("Positive: counterclockwise. Negative: clockwise.")]
     private float degreesPerSecond = 90f;
 
-    private readonly List<EmitterInstance> emitters =
-        new();
+    private readonly List<EmitterInstance> emitters = new();
 
     private int elapsedLaunchTicks;
     private float orbitAngleOffset;
 
     public bool IsFiring { get; private set; }
+
+    public void Configure(Transform newTarget, BulletPool newBulletPool)
+    {
+        target = newTarget;
+        bulletPool = newBulletPool;
+    }
 
     private void OnEnable()
     {
@@ -63,8 +77,7 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
             !attackRoot.transform.IsChildOf(transform))
         {
             Debug.LogError(
-                "Orbiting Boss Emitter needs an " +
-                "Attack Root that is its child object.",
+                "Orbiting Boss Emitter needs an Attack Root that is its child object.",
                 this
             );
 
@@ -72,17 +85,8 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
             return;
         }
 
-        // Attack Root служит образцом. Сам он
-        // никогда не участвует в стрельбе.
+        // Шаблон вимикаємо одразу, щоб він не стріляв самостійно.
         attackRoot.SetActive(false);
-
-        if (!HasRequiredReferences())
-        {
-            enabled = false;
-            return;
-        }
-
-        CreateEmitters();
     }
 
     private void OnDisable()
@@ -113,32 +117,34 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Спавнер передає посилання після Instantiate, до першого тіку орбіти.
+        if (emitters.Count == 0)
+        {
+            if (!HasRequiredReferences())
+            {
+                enabled = false;
+                return;
+            }
+
+            CreateEmitters();
+        }
+
         if (!IsFiring)
         {
             elapsedLaunchTicks++;
 
             float progress = Mathf.Clamp01(
-                elapsedLaunchTicks /
-                (float)Mathf.Max(1, launchTicks)
+                elapsedLaunchTicks / (float)Mathf.Max(1, launchTicks)
             );
 
-            float currentRadius =
-                Mathf.Max(0f, orbitRadius) *
-                progress;
+            float currentRadius = Mathf.Max(0f, orbitRadius) * progress;
+            UpdateEmitterPositions(currentRadius);
 
-            UpdateEmitterPositions(
-                currentRadius
-            );
-
-            if (elapsedLaunchTicks >=
-                Mathf.Max(1, launchTicks))
+            if (elapsedLaunchTicks >= Mathf.Max(1, launchTicks))
             {
                 IsFiring = true;
 
-                foreach (
-                    EmitterInstance emitter
-                    in emitters
-                )
+                foreach (EmitterInstance emitter in emitters)
                 {
                     emitter.Attack.SetActive(true);
                 }
@@ -147,55 +153,50 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
             return;
         }
 
-        orbitAngleOffset +=
-            degreesPerSecond *
-            Time.fixedDeltaTime;
-
-        UpdateEmitterPositions(
-            Mathf.Max(0f, orbitRadius)
-        );
+        orbitAngleOffset += degreesPerSecond * Time.fixedDeltaTime;
+        UpdateEmitterPositions(Mathf.Max(0f, orbitRadius));
     }
 
     private bool HasRequiredReferences()
     {
+        BulletVolleyEmitter[] volleys =
+            attackRoot.GetComponentsInChildren<BulletVolleyEmitter>(true);
+
         bool needsTarget =
-            attackRoot
-                .GetComponentInChildren<
-                    AimedFanEmitter
-                >(true) != null ||
-            attackRoot
-                .GetComponentInChildren<
-                    EnemyLaserEmitter
-                >(true) != null;
+            attackRoot.GetComponentInChildren<AimedFanEmitter>(true) != null ||
+            attackRoot.GetComponentInChildren<EnemyLaserEmitter>(true) != null;
+
+        if (volleyDirection == VolleyDirectionMode.EmitterSettings)
+        {
+            foreach (BulletVolleyEmitter volley in volleys)
+            {
+                if (volley.AimsAtPlayer)
+                {
+                    needsTarget = true;
+                    break;
+                }
+            }
+        }
 
         bool needsPool =
-            attackRoot
-                .GetComponentInChildren<
-                    AimedFanEmitter
-                >(true) != null ||
-            attackRoot
-                .GetComponentInChildren<
-                    RingEmitter
-                >(true) != null;
+            volleys.Length > 0 ||
+            attackRoot.GetComponentInChildren<AimedFanEmitter>(true) != null ||
+            attackRoot.GetComponentInChildren<RingEmitter>(true) != null;
 
-        if (needsTarget &&
-            target == null)
+        if (needsTarget && target == null)
         {
             Debug.LogError(
-                "Orbiting Boss Emitter needs " +
-                "a Target for this attack.",
+                "Orbiting Boss Emitter needs a Target for this attack.",
                 this
             );
 
             return false;
         }
 
-        if (needsPool &&
-            bulletPool == null)
+        if (needsPool && bulletPool == null)
         {
             Debug.LogError(
-                "Orbiting Boss Emitter needs " +
-                "a Bullet Pool for this attack.",
+                "Orbiting Boss Emitter needs a Bullet Pool for this attack.",
                 this
             );
 
@@ -207,147 +208,103 @@ public sealed class OrbitingAttackEmitter : MonoBehaviour
 
     private void CreateEmitters()
     {
-        int count =
-            Mathf.Max(1, emitterCount);
+        int count = Mathf.Max(1, emitterCount);
+        float angleStep = 360f / count;
 
-        float angleStep =
-            360f / count;
-
-        for (
-            int index = 0;
-            index < count;
-            index++
-        )
+        for (int index = 0; index < count; index++)
         {
-            GameObject anchorObject =
-                new GameObject(
-                    "Orbiting Emitter " +
-                    (index + 1)
-                );
-
-            Transform anchor =
-                anchorObject.transform;
-
-            anchor.SetParent(
-                transform,
-                false
+            GameObject anchorObject = new GameObject(
+                "Orbiting Emitter " + (index + 1)
             );
 
-            anchor.localPosition =
-                Vector3.zero;
+            Transform anchor = anchorObject.transform;
+            anchor.SetParent(transform, false);
+            anchor.localPosition = Vector3.zero;
 
-            GameObject attack =
-                Instantiate(
-                    attackRoot,
-                    anchor,
-                    false
-                );
-
-            attack.name =
-                attackRoot.name;
-
-            attack.transform.localPosition =
-                Vector3.zero;
-
-            attack.transform.localRotation =
-                Quaternion.identity;
-
+            GameObject attack = Instantiate(attackRoot, anchor, false);
+            attack.name = attackRoot.name;
+            attack.transform.localPosition = Vector3.zero;
+            attack.transform.localRotation = Quaternion.identity;
             attack.SetActive(false);
 
-            EmitterInstance emitter =
-                new EmitterInstance
-                {
-                    Anchor = anchor,
-                    Attack = attack,
-                    StartAngle =
-                        startAngleDegrees +
-                        angleStep * index
-                };
+            EmitterInstance emitter = new EmitterInstance
+            {
+                Anchor = anchor,
+                Attack = attack,
+                StartAngle = startAngleDegrees + angleStep * index
+            };
 
             emitters.Add(emitter);
-
-            ConfigureAttack(attack);
+            ConfigureAttack(attack, anchor);
         }
 
         UpdateEmitterPositions(0f);
     }
 
-    private void ConfigureAttack(
-        GameObject attack
-    )
+    private void ConfigureAttack(GameObject attack, Transform anchor)
     {
+        BulletVolleyEmitter[] volleys =
+            attack.GetComponentsInChildren<BulletVolleyEmitter>(true);
+
+        bool overrideDirection =
+            volleyDirection != VolleyDirectionMode.EmitterSettings;
+
+        bool aimOutward =
+            volleyDirection == VolleyDirectionMode.OutwardNormal;
+
+        foreach (BulletVolleyEmitter volley in volleys)
+        {
+            volley.SetBulletPool(bulletPool);
+
+            if (target != null)
+            {
+                volley.SetTarget(target);
+            }
+
+            volley.ConfigureOrbitDirection(
+                overrideDirection,
+                aimOutward ? transform : null,
+                aimOutward ? anchor : null
+            );
+        }
+
         AimedFanEmitter[] fans =
-            attack.GetComponentsInChildren<
-                AimedFanEmitter
-            >(true);
+            attack.GetComponentsInChildren<AimedFanEmitter>(true);
 
         RingEmitter[] rings =
-            attack.GetComponentsInChildren<
-                RingEmitter
-            >(true);
+            attack.GetComponentsInChildren<RingEmitter>(true);
 
         EnemyLaserEmitter[] lasers =
-            attack.GetComponentsInChildren<
-                EnemyLaserEmitter
-            >(true);
+            attack.GetComponentsInChildren<EnemyLaserEmitter>(true);
 
-        foreach (
-            AimedFanEmitter fan
-            in fans
-        )
+        foreach (AimedFanEmitter fan in fans)
         {
-            fan.Configure(
-                target,
-                bulletPool
-            );
+            fan.Configure(target, bulletPool);
         }
 
-        foreach (
-            RingEmitter ring
-            in rings
-        )
+        foreach (RingEmitter ring in rings)
         {
-            ring.SetBulletPool(
-                bulletPool
-            );
+            ring.SetBulletPool(bulletPool);
         }
 
-        foreach (
-            EnemyLaserEmitter laser
-            in lasers
-        )
+        foreach (EnemyLaserEmitter laser in lasers)
         {
-            laser.Configure(
-                target
-            );
+            laser.Configure(target);
         }
     }
 
-    private void UpdateEmitterPositions(
-        float radius
-    )
+    private void UpdateEmitterPositions(float radius)
     {
-        foreach (
-            EmitterInstance emitter
-            in emitters
-        )
+        foreach (EmitterInstance emitter in emitters)
         {
-            float angle =
-                emitter.StartAngle +
-                orbitAngleOffset;
+            float angle = emitter.StartAngle + orbitAngleOffset;
+            float radians = angle * Mathf.Deg2Rad;
 
-            float radians =
-                angle *
-                Mathf.Deg2Rad;
-
-            emitter.Anchor.localPosition =
-                new Vector3(
-                    Mathf.Cos(radians) *
-                        radius,
-                    Mathf.Sin(radians) *
-                        radius,
-                    0f
-                );
+            emitter.Anchor.localPosition = new Vector3(
+                Mathf.Cos(radians) * radius,
+                Mathf.Sin(radians) * radius,
+                0f
+            );
         }
     }
 }

@@ -135,7 +135,8 @@ public sealed partial class Bullet : MonoBehaviour
     {
        // Кожен новий спавн починається з увімкненими зіткненнями.
         CollisionEnabled = true;
-
+// Повторний спавн скидає стан попереднього проявлення.
+isSpawnAppearancePending = false;
         unchecked
         {
             SpawnGeneration++;

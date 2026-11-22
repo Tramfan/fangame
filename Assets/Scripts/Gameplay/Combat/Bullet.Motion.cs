@@ -127,6 +127,10 @@ public sealed partial class Bullet
             }
         }
 
-        EvaluateCollisions();
+       // Невидимі кулі та кулі під час проявлення ще безпечні.
+if (UpdateSpawnAppearance())
+{
+    EvaluateCollisions();
+}
     }
 }

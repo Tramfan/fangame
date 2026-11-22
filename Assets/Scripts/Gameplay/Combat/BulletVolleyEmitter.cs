@@ -20,6 +20,15 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     [SerializeField]
     private Color bulletTint = Color.white;
 
+    [Header("Spawn Appearance")]
+    [SerializeField, Min(0f)]
+    [Tooltip("Відстань від точки появи до початку проявлення кулі.")]
+    private float spawnHiddenDistance;
+
+    [SerializeField, Min(0f)]
+    [Tooltip("Відстань, за яку куля стає повністю видимою та небезпечною.")]
+    private float spawnFadeDistance;
+
     [Header("Volley")]
     [SerializeField]
     private VolleyShape shape = VolleyShape.Ring;
@@ -35,6 +44,15 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
 
     [SerializeField, Range(0f, 360f)]
     private float fanSpreadDegrees = 60f;
+
+    [Header("Speed Layers")]
+    [SerializeField, Min(1)]
+    [Tooltip("Кількість куль із різними швидкостями в кожному напрямку.")]
+    private int speedLayerCount = 1;
+
+    [SerializeField, Min(0f)]
+    [Tooltip("Приріст початкової швидкості між сусідніми шарами.")]
+    private float speedLayerStep = 0.5f;
 
     [Header("Random Variation")]
     [SerializeField, Min(0)]
@@ -73,7 +91,22 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
 
     [SerializeField]
     private bool returnAfterChildVolley = true;
+private bool overrideOrbitDirection;
+private Transform orbitCenter;
+private Transform orbitAnchor;
 
+internal bool AimsAtPlayer => aimAtPlayer;
+
+internal void ConfigureOrbitDirection(
+    bool overrideDirection,
+    Transform center,
+    Transform outwardAnchor
+)
+{
+    overrideOrbitDirection = overrideDirection;
+    orbitCenter = center;
+    orbitAnchor = outwardAnchor;
+}
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
@@ -85,51 +118,89 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     }
 
     public void Fire(float angleOffsetDegrees = 0f)
+{
+    FireAt(
+        transform.position,
+        transform.root,
+        angleOffsetDegrees,
+        fromEmitter: true
+    );
+}
+
+public bool FireAt(
+    Vector2 origin,
+    Transform source,
+    float angleOffsetDegrees = 0f
+)
+{
+    return FireAt(
+        origin,
+        source,
+        angleOffsetDegrees,
+        fromEmitter: false
+    );
+}
+
+private bool FireAt(
+    Vector2 origin,
+    Transform source,
+    float angleOffsetDegrees,
+    bool fromEmitter
+)
+{
+    if (!Application.isPlaying || !isActiveAndEnabled)
     {
-        FireAt(transform.position, transform.root, angleOffsetDegrees);
+        return false;
     }
 
-    public bool FireAt(
-        Vector2 origin,
-        Transform source,
-        float angleOffsetDegrees = 0f
-    )
+    if (bulletPool == null)
     {
-        if (!Application.isPlaying || !isActiveAndEnabled)
-        {
-            return false;
-        }
+        Debug.LogError(
+            "Bullet Volley Emitter has no Bullet Pool assigned.",
+            this
+        );
+        return false;
+    }
 
-        if (bulletPool == null)
+    float directionAngle = baseAngleDegrees;
+
+    if (fromEmitter && overrideOrbitDirection)
+    {
+        // Повторювач задає ритм, а вісь залпу задає режим орбіти.
+        angleOffsetDegrees = 0f;
+
+        if (orbitCenter != null && orbitAnchor != null)
+        {
+            Vector2 outward = orbitAnchor.position - orbitCenter.position;
+
+            if (outward.sqrMagnitude > 0f)
+            {
+                directionAngle =
+                    Mathf.Atan2(outward.y, outward.x) * Mathf.Rad2Deg;
+            }
+        }
+    }
+    else if (aimAtPlayer)
+    {
+        if (target == null)
         {
             Debug.LogError(
-                "Bullet Volley Emitter has no Bullet Pool assigned.",
+                "Bullet Volley Emitter has no target assigned.",
                 this
             );
             return false;
         }
 
-        float directionAngle = baseAngleDegrees;
+        Vector2 toTarget = (Vector2)target.position - origin;
 
-        if (aimAtPlayer)
+        if (toTarget.sqrMagnitude > 0.000001f)
         {
-            if (target == null)
-            {
-                Debug.LogError(
-                    "Bullet Volley Emitter has no target assigned.",
-                    this
-                );
-                return false;
-            }
-
-            Vector2 toTarget = (Vector2)target.position - origin;
-
-            if (toTarget.sqrMagnitude > 0.000001f)
-            {
-                directionAngle =
-                    Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
-            }
+            directionAngle =
+                Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
         }
+    }
+
+    // Далі йде наявний код, починаючи з GameplayRandom random.
 
         GameplayRandom random = GameplayRandom.Instance;
         int count = Mathf.Max(1, bulletCount);
@@ -137,6 +208,7 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
         if (random != null && bulletCountJitter > 0)
         {
             int minCount = Mathf.Max(1, count - bulletCountJitter);
+
             int maxCount = (int)System.Math.Min(
                 (long)count + bulletCountJitter,
                 int.MaxValue - 1L
@@ -147,6 +219,9 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
         }
 
         int groups = Mathf.Max(1, groupCount);
+        int layers = Mathf.Max(1, speedLayerCount);
+        float layerSpeedStep = Mathf.Max(0f, speedLayerStep);
+
         float firstAngle = directionAngle + angleOffsetDegrees;
         float bulletAngleStep = 0f;
 
@@ -156,7 +231,12 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
         }
         else if (count > 1)
         {
-            float spread = Mathf.Clamp(fanSpreadDegrees, 0f, 360f);
+            float spread = Mathf.Clamp(
+                fanSpreadDegrees,
+                0f,
+                360f
+            );
+
             firstAngle -= spread * 0.5f;
             bulletAngleStep = spread / (count - 1);
         }
@@ -165,10 +245,14 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
 
         for (int groupIndex = 0; groupIndex < groups; groupIndex++)
         {
-            float groupAngleOffset = groupAngleStepDegrees * groupIndex;
+            float groupAngleOffset =
+                groupAngleStepDegrees * groupIndex;
 
-            for (int bulletIndex = 0; bulletIndex < count; bulletIndex++)
+            for (int bulletIndex = 0;
+                 bulletIndex < count;
+                 bulletIndex++)
             {
+                // Усі шари одного стека мають спільний напрямок.
                 float angle =
                     firstAngle +
                     groupAngleOffset +
@@ -182,35 +266,50 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
                     Mathf.Sin(radians)
                 );
 
-                float speed = Mathf.Max(
+                // Спільна випадкова поправка зберігає крок швидкості.
+                float stackBaseSpeed = Mathf.Max(
                     0f,
                     bulletSpeed + RandomOffset(random, speedJitter)
                 );
 
-                Bullet bullet = bulletPool.Spawn(
-                    origin,
-                    direction,
-                    speed,
-                    source,
-                    style: bulletStyle,
-                    tint: bulletTint,
-                    motion: bulletMotion
-                );
-
-                if (bullet == null)
+                for (int layerIndex = 0;
+                     layerIndex < layers;
+                     layerIndex++)
                 {
-                    return spawnedAny;
-                }
+                    float speed =
+                        stackBaseSpeed +
+                        layerSpeedStep * layerIndex;
 
-                spawnedAny = true;
-
-                if (childEmitter != null)
-                {
-                    bullet.ArmTimedVolley(
-                        childEmitter,
-                        childVolleyDelayTicks,
-                        returnAfterChildVolley
+                    Bullet bullet = bulletPool.Spawn(
+                        origin,
+                        direction,
+                        speed,
+                        source,
+                        style: bulletStyle,
+                        tint: bulletTint,
+                        motion: bulletMotion
                     );
+
+                    if (bullet == null)
+                    {
+                        return spawnedAny;
+                    }
+
+                    bullet.ConfigureSpawnAppearance(
+                        spawnHiddenDistance,
+                        spawnFadeDistance
+                    );
+
+                    spawnedAny = true;
+
+                    if (childEmitter != null)
+                    {
+                        bullet.ArmTimedVolley(
+                            childEmitter,
+                            childVolleyDelayTicks,
+                            returnAfterChildVolley
+                        );
+                    }
                 }
             }
         }
@@ -218,7 +317,10 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
         return spawnedAny;
     }
 
-    private static float RandomOffset(GameplayRandom random, float maximum)
+    private static float RandomOffset(
+        GameplayRandom random,
+        float maximum
+    )
     {
         if (random == null || maximum <= 0f)
         {
