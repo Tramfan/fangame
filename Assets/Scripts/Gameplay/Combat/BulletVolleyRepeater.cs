@@ -18,15 +18,15 @@ public sealed class BulletVolleyRepeater : MonoBehaviour
     [Tooltip("Keep firing until stopped or disabled.")]
     private bool repeatForever;
 
-    [SerializeField, Min(1)]
-    private int repeatCount = 5;
+    [SerializeField]
+    private DifficultyInt repeatCount = new(5);
 
-    [SerializeField, Min(1)]
-    private int intervalTicks = 15;
+    [SerializeField]
+    private DifficultyInt intervalTicks = new(18, 15, 11);
 
-    [SerializeField, Min(1)]
+    [SerializeField]
     [Tooltip("Ticks from the last volley of a series to the next series.")]
-    private int seriesDelayTicks = 60;
+    private DifficultyInt seriesDelayTicks = new(75, 60, 45);
 
     [Header("Rotation By Volley")]
     [SerializeField]
@@ -138,7 +138,8 @@ public sealed class BulletVolleyRepeater : MonoBehaviour
         volleyEmitter.Fire(angleOffset);
         firedCount++;
 
-        int volleysPerSeries = Mathf.Max(1, repeatCount);
+        GameDifficulty difficulty = GameRunContext.Difficulty;
+        int volleysPerSeries = repeatCount.ResolveMin(difficulty, 1);
 
         bool seriesFinished =
             firedCount % volleysPerSeries == 0;
@@ -151,11 +152,11 @@ public sealed class BulletVolleyRepeater : MonoBehaviour
                 return;
             }
 
-            ticksUntilFire = Mathf.Max(1, seriesDelayTicks);
+            ticksUntilFire = seriesDelayTicks.ResolveMin(difficulty, 1);
         }
         else
         {
-            ticksUntilFire = Mathf.Max(1, intervalTicks);
+            ticksUntilFire = intervalTicks.ResolveMin(difficulty, 1);
         }
     }
 

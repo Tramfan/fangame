@@ -2,6 +2,27 @@ using UnityEngine;
 
 public sealed partial class Bullet
 {
+    [Header("Visual Juice")]
+    [SerializeField, Min(0)]
+    [Tooltip("Duration in fixed ticks of the spawn scale-in flash.")]
+    private int spawnFlashTicks = 6;
+
+    [SerializeField, Min(1f)]
+    [Tooltip("Initial visual scale multiplier during spawn flash.")]
+    private float spawnFlashStartScale = 1.75f;
+
+    [SerializeField, Min(0)]
+    [Tooltip("Duration in fixed ticks of the scale pulse when entering graze area.")]
+    private int grazeCapturePulseTicks = 8;
+
+    [SerializeField, Min(1f)]
+    [Tooltip("Peak visual scale multiplier when captured by graze area.")]
+    private float grazeCapturePeakScale = 1.22f;
+
+    [SerializeField, Range(0f, 1f)]
+    [Tooltip("White tint blend while bullet is inside an active reflection aura.")]
+    private float grazeCaptureBrightness = 0.35f;
+
     private SpriteRenderer spriteRenderer;
 
     private Sprite originalSprite;
@@ -12,6 +33,9 @@ public sealed partial class Bullet
     private bool originalVisualRotationSaved;
     private int originalSortingOrder;
     private bool originalSortingOrderSaved;
+
+    private Vector3 baseVisualScale = Vector3.one;
+    private Color baseTintColor = Color.white;
 
     private bool alignVisualToMovement;
     private float visualRotationOffset;
@@ -24,6 +48,10 @@ public sealed partial class Bullet
     private float spawnHiddenDistanceSquared;
     private float spawnVisibleDistanceSquared;
     private float spawnOpacity;
+
+    private int spawnFlashTicksRemaining;
+    private int grazePulseTicksRemaining;
+    private bool isVisuallyCapturedInGraze;
 
     internal void ConfigureSpawnAppearance(
         float hiddenDistance,
@@ -39,6 +67,9 @@ public sealed partial class Bullet
             return;
         }
 
+        // Отключаем обычную вспышку спавна, если используется проявление по дистанции.
+        spawnFlashTicksRemaining = 0;
+
         // Точка появи не рухається разом із босом.
         spawnAppearanceOrigin = position;
 
@@ -48,9 +79,7 @@ public sealed partial class Bullet
         spawnVisibleDistanceSquared =
             spawnVisibleDistance * spawnVisibleDistance;
 
-        spawnAppearanceColor = spriteRenderer != null
-            ? spriteRenderer.color
-            : Color.white;
+        spawnAppearanceColor = baseTintColor;
 
         isSpawnAppearancePending = true;
         spawnOpacity = 0f;
@@ -111,6 +140,115 @@ public sealed partial class Bullet
         spriteRenderer.color = color;
     }
 
+    internal void OnGrazeCaptureEntered(bool reflectionEnabled)
+    {
+        if (!reflectionEnabled || owner != BulletOwner.Enemy)
+        {
+            return;
+        }
+
+        isVisuallyCapturedInGraze = true;
+        grazePulseTicksRemaining = Mathf.Max(0, grazeCapturePulseTicks);
+        RefreshVisualJuiceState();
+    }
+
+    internal void OnGrazeCaptureExited()
+    {
+        if (!isVisuallyCapturedInGraze && grazePulseTicksRemaining <= 0)
+        {
+            return;
+        }
+
+        isVisuallyCapturedInGraze = false;
+        RefreshVisualJuiceState();
+    }
+
+    internal void UpdateVisualJuice()
+    {
+        if (spriteRenderer == null)
+        {
+            return;
+        }
+
+        if (isSpawnAppearancePending)
+        {
+            UpdateSpawnAppearance();
+        }
+
+        bool needsUpdate = false;
+
+        if (spawnFlashTicksRemaining > 0)
+        {
+            spawnFlashTicksRemaining--;
+            needsUpdate = true;
+        }
+
+        if (grazePulseTicksRemaining > 0)
+        {
+            grazePulseTicksRemaining--;
+            needsUpdate = true;
+        }
+
+        if (needsUpdate)
+        {
+            RefreshVisualJuiceState();
+        }
+    }
+
+    private void RefreshVisualJuiceState()
+    {
+        if (spriteRenderer == null || owner != BulletOwner.Enemy)
+        {
+            return;
+        }
+
+        float scaleMultiplier = 1f;
+
+        if (spawnFlashTicksRemaining > 0 && spawnFlashTicks > 0)
+        {
+            float t = 1f - (spawnFlashTicksRemaining / (float)spawnFlashTicks);
+            float eased = 1f - (1f - t) * (1f - t);
+            scaleMultiplier *= Mathf.Lerp(spawnFlashStartScale, 1f, eased);
+        }
+
+        if (grazePulseTicksRemaining > 0 && grazeCapturePulseTicks > 0)
+        {
+            float pulseT = grazePulseTicksRemaining / (float)grazeCapturePulseTicks;
+            scaleMultiplier *= Mathf.Lerp(1f, grazeCapturePeakScale, pulseT);
+        }
+
+        if (spriteRenderer.transform != transform)
+        {
+            spriteRenderer.transform.localScale = baseVisualScale * scaleMultiplier;
+        }
+
+        if (isSpawnAppearancePending)
+        {
+            return;
+        }
+
+        Color targetColor = baseTintColor;
+
+        if (isVisuallyCapturedInGraze && grazeCaptureBrightness > 0f)
+        {
+            Color highlight = Color.Lerp(
+                baseTintColor,
+                Color.white,
+                grazeCaptureBrightness
+            );
+            highlight.a = baseTintColor.a;
+            targetColor = highlight;
+        }
+
+        if (spawnFlashTicksRemaining > 0 && spawnFlashTicks > 0)
+        {
+            float alphaT = 1f - (spawnFlashTicksRemaining / (float)spawnFlashTicks);
+            targetColor.a *= Mathf.Lerp(0.35f, 1f, alphaT);
+        }
+
+        spriteRenderer.color = targetColor;
+    }
+
     internal void ApplyStyleGeometry(BulletStyleDefinition style)
     {
         bool useStyleHitbox = style != null && style.OverrideHitbox;
@@ -137,15 +275,16 @@ public sealed partial class Bullet
             rawOffset.y * scale.y
         );
 
+        float multiplier = style != null
+            ? style.VisualScale
+            : 1f;
+
+        baseVisualScale = originalVisualScale * multiplier;
+
         if (spriteRenderer != null &&
             spriteRenderer.transform != transform)
         {
-            float multiplier = style != null
-                ? style.VisualScale
-                : 1f;
-
-            spriteRenderer.transform.localScale =
-                originalVisualScale * multiplier;
+            spriteRenderer.transform.localScale = baseVisualScale;
         }
     }
 
@@ -186,7 +325,13 @@ public sealed partial class Bullet
             ? style.SortingOrder
             : originalSortingOrder;
 
-        spriteRenderer.color = originalColor * tint;
+        baseTintColor = originalColor * tint;
+        spriteRenderer.color = baseTintColor;
+
+        isSpawnAppearancePending = false;
+        isVisuallyCapturedInGraze = false;
+        grazePulseTicksRemaining = 0;
+        spawnFlashTicksRemaining = Mathf.Max(0, spawnFlashTicks);
 
         alignVisualToMovement =
             style != null &&
@@ -200,6 +345,7 @@ public sealed partial class Bullet
         visual.localRotation = originalVisualRotation;
 
         UpdateVisualRotation();
+        RefreshVisualJuiceState();
     }
 
     private void UpdateVisualRotation()

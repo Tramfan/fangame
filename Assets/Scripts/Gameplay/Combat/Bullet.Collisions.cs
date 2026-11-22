@@ -13,7 +13,7 @@ public sealed partial class Bullet
     private bool ignoreGrazeUntilExit;
     private bool grazedBeforePatternRelease;
 
-private void UpdateGrazeState(
+    private void UpdateGrazeState(
         Vector2 bulletCenter,
         PlayerArea grazeArea,
         bool shieldActive
@@ -21,6 +21,11 @@ private void UpdateGrazeState(
     {
         if (shieldActive || grazeArea == null || !grazeArea.isActiveAndEnabled)
         {
+            if (wasInsideGrazeArea)
+            {
+                OnGrazeCaptureExited();
+            }
+
             wasInsideGrazeArea = false;
             ignoreGrazeUntilExit = false;
             return;
@@ -45,6 +50,7 @@ private void UpdateGrazeState(
         if (isInsideGrazeArea && !wasInsideGrazeArea)
         {
             wasInsideGrazeArea = true;
+            OnGrazeCaptureEntered(grazeArea.ReflectionEnabled);
 
             if (!hasGrantedGraze && grazeArea.OwnerState != null)
             {
@@ -55,6 +61,7 @@ private void UpdateGrazeState(
         else if (!isInsideGrazeArea && wasInsideGrazeArea)
         {
             wasInsideGrazeArea = false;
+            OnGrazeCaptureExited();
 
             if (grazeArea.ReflectionEnabled)
             {
@@ -64,13 +71,13 @@ private void UpdateGrazeState(
                 }
                 else
                 {
-                   Reflect(grazeArea.Center);
+                    Reflect(grazeArea.Center);
                 }
             }
         }
     }
-   
-private void EvaluateCollisions()
+
+    private void EvaluateCollisions()
     {
         if (!CollisionEnabled)
         {
@@ -79,79 +86,79 @@ private void EvaluateCollisions()
 
         Vector2 bulletCenter = position + cachedHitboxOffset;
 
-    if (owner == BulletOwner.Enemy)
-    {
-        if (hasHitPlayer)
+        if (owner == BulletOwner.Enemy)
         {
-            return;
-        }
-
-        PlayerArea hitboxArea = PlayerArea.HitboxArea;
-        PlayerArea grazeArea = PlayerArea.GrazeArea;
-
-        PlayerShield shield = hitboxArea != null
-            ? hitboxArea.OwnerShield
-            : (grazeArea != null ? grazeArea.OwnerShield : null);
-
-        bool shieldActive = shield != null && shield.IsActive;
-
-        // 1. Проверка поглощения щитом.
-        if (shieldActive &&
-            !IsPatternControlled &&
-            BulletHitboxMath.OverlapsCircle(
-                bulletCenter,
-                cachedHitboxRadius,
-                shield.transform.position,
-                shield.ShieldWorldRadius
-            ))
-        {
-            if (shield.TryAbsorb(shieldPowerCost))
+            if (hasHitPlayer)
             {
+                return;
+            }
+
+            PlayerArea hitboxArea = PlayerArea.HitboxArea;
+            PlayerArea grazeArea = PlayerArea.GrazeArea;
+
+            PlayerShield shield = hitboxArea != null
+                ? hitboxArea.OwnerShield
+                : (grazeArea != null ? grazeArea.OwnerShield : null);
+
+            bool shieldActive = shield != null && shield.IsActive;
+
+            // 1. Проверка поглощения щитом.
+            if (shieldActive &&
+                !IsPatternControlled &&
+                BulletHitboxMath.OverlapsCircle(
+                    bulletCenter,
+                    cachedHitboxRadius,
+                    shield.transform.position,
+                    shield.ShieldWorldRadius
+                ))
+            {
+                if (shield.TryAbsorb(shieldPowerCost))
+                {
+                    ReturnToPool();
+                    return;
+                }
+            }
+
+            // 2. Проверка попадания в хитбокс игрока.
+            if (!shieldActive &&
+                hitboxArea != null &&
+                BulletHitboxMath.OverlapsCircle(
+                    bulletCenter,
+                    cachedHitboxRadius,
+                    hitboxArea.Center,
+                    hitboxArea.WorldRadius
+                ))
+            {
+                hasHitPlayer = true;
+
+                if (hitboxArea.OwnerState != null)
+                {
+                    hitboxArea.OwnerState.TakeHit();
+                }
+
                 ReturnToPool();
                 return;
             }
-        }
 
-        // 2. Проверка попадания в хитбокс игрока.
-        if (!shieldActive &&
-            hitboxArea != null &&
-            BulletHitboxMath.OverlapsCircle(
-                bulletCenter,
-                cachedHitboxRadius,
-                hitboxArea.Center,
-                hitboxArea.WorldRadius
-            ))
-        {
-            hasHitPlayer = true;
-
-            if (hitboxArea.OwnerState != null)
-            {
-                hitboxArea.OwnerState.TakeHit();
-            }
-
-            ReturnToPool();
+            UpdateGrazeState(bulletCenter, grazeArea, shieldActive);
             return;
         }
 
-      
-        UpdateGrazeState(bulletCenter, grazeArea, shieldActive);
-        return;
-    }
- // Перевіряємо шлях відбитої кулі між попередньою та поточною позиціями.
-    Vector2 prevCenter = previousPosition + cachedHitboxOffset;
+        // Проверяем путь отражённой пули между предыдущей и текущей позициями.
+        Vector2 prevCenter = previousPosition + cachedHitboxOffset;
 
-    EnemyHealth hitEnemy = EnemyTargetRegistry.FindFirstHit(
-        prevCenter,
-        bulletCenter,
-        cachedHitboxRadius
-    );
+        EnemyHealth hitEnemy = EnemyTargetRegistry.FindFirstHit(
+            prevCenter,
+            bulletCenter,
+            cachedHitboxRadius
+        );
 
-    if (hitEnemy != null)
-    {
-        hitEnemy.TakeDamage(reflectedDamage);
-        ReturnToPool();
+        if (hitEnemy != null)
+        {
+            hitEnemy.TakeDamage(reflectedDamage);
+            ReturnToPool();
+        }
     }
-}
 
     private void LogGrazeDiagnostic(
         PlayerArea grazeArea,
@@ -242,7 +249,7 @@ private void EvaluateCollisions()
             (Vector2)transform.TransformVector(cachedHitboxOffset);
     }
 
-   private float GetBulletWorldRadius()
+    private float GetBulletWorldRadius()
     {
         return cachedHitboxRadius;
     }

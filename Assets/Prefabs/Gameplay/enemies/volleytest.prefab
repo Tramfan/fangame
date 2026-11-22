@@ -48,12 +48,12 @@ MonoBehaviour:
   attackRoot: {fileID: 1792207996453872885}
   target: {fileID: 0}
   bulletPool: {fileID: 0}
-  emitterCount: 7
+  emitterCount: 1
   volleyDirection: 2
   orbitRadius: 3
   launchTicks: 45
   startAngleDegrees: 0
-  degreesPerSecond: -240
+  degreesPerSecond: -30
 --- !u!1 &1792207996453872885
 GameObject:
   m_ObjectHideFlags: 0
@@ -64,7 +64,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2267699122314171407}
   - component: {fileID: 2459886348021044708}
-  - component: {fileID: 7342789657371301077}
+  - component: {fileID: 420825968489390834}
   m_Layer: 0
   m_Name: VolleyEmitter
   m_TagString: Untagged
@@ -81,7 +81,7 @@ Transform:
   m_GameObject: {fileID: 1792207996453872885}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 13.81656, y: -4.23424, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -101,29 +101,52 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletVolleyEmitter
   bulletPool: {fileID: 0}
+  minimumDifficulty: 1
   bulletStyle: {fileID: 11400000, guid: 5a4787d0c899ea64390f143f2b9d1c41, type: 2}
+  bulletColor: 0
   bulletTint: {r: 0.8553459, g: 0.83387697, b: 0.06724399, a: 1}
   spawnHiddenDistance: 0.2
   spawnFadeDistance: 0.3
   shape: 1
-  bulletCount: 1
-  bulletSpeed: 3
+  bulletCount:
+    normal: 1
+    hard: 2
+    lunatic: 4
+  bulletSpeed:
+    normal: 2.2
+    hard: 2.5
+    lunatic: 3
   baseAngleDegrees: -90
-  fanSpreadDegrees: 0
-  speedLayerCount: 1
-  speedLayerStep: 5
+  fanSpreadDegrees:
+    normal: 50
+    hard: 60
+    lunatic: 75
+  speedLayerCount:
+    normal: 1
+    hard: 1
+    lunatic: 1
+  speedLayerStep:
+    normal: 0.5
+    hard: 0.5
+    lunatic: 0.5
   bulletCountJitter: 0
   angleJitterDegrees: 0
   speedJitter: 0
-  groupCount: 1
+  groupCount:
+    normal: 1
+    hard: 1
+    lunatic: 1
   groupAngleStepDegrees: 5
   aimAtPlayer: 0
   target: {fileID: 0}
   bulletMotion: {fileID: 11400000, guid: ef0efd759a5eefe4d870d2db45e3c593, type: 2}
   childEmitter: {fileID: 0}
-  childVolleyDelayTicks: 45
+  childVolleyDelayTicks:
+    normal: 45
+    hard: 45
+    lunatic: 45
   returnAfterChildVolley: 1
---- !u!114 &7342789657371301077
+--- !u!114 &420825968489390834
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -138,12 +161,21 @@ MonoBehaviour:
   volleyEmitter: {fileID: 2459886348021044708}
   playOnEnable: 1
   initialDelayTicks: 0
-  repeatForever: 1
-  repeatCount: 1
-  intervalTicks: 10
-  seriesDelayTicks: 10
+  repeatForever: 0
+  repeatCount:
+    normal: 1
+    hard: 1
+    lunatic: 1
+  intervalTicks:
+    normal: 10
+    hard: 8
+    lunatic: 7
+  seriesDelayTicks:
+    normal: 75
+    hard: 60
+    lunatic: 45
   initialAngleOffsetDegrees: 0
-  angleStepDegrees: 0
+  angleStepDegrees: 7
   rotationSpeedDegreesPerSecond: 0
 --- !u!1 &2373559454709152308
 GameObject:
@@ -419,54 +451,6 @@ MonoBehaviour:
     accelerationPower: 1
     minimumSpeed: 0
     attack: {fileID: 0}
-  - smoothMovement: 1
-    type: 2
-    arcOffset: 0
-    durationTicks: 30
-    positionSpace: 0
-    position: {x: 0, y: 2.5}
-    angleDegrees: -90
-    initialSpeed: 2
-    acceleration: 0
-    accelerationPower: 1
-    minimumSpeed: 0
-    attack: {fileID: 5891575274944094603}
-  - smoothMovement: 1
-    type: 4
-    arcOffset: 0
-    durationTicks: 30
-    positionSpace: 0
-    position: {x: 0, y: 2.5}
-    angleDegrees: -90
-    initialSpeed: 2
-    acceleration: 0
-    accelerationPower: 1
-    minimumSpeed: 0
-    attack: {fileID: 5891575274944094603}
-  - smoothMovement: 1
-    type: 6
-    arcOffset: 0
-    durationTicks: 90
-    positionSpace: 0
-    position: {x: 0, y: 5.5}
-    angleDegrees: 90
-    initialSpeed: 1
-    acceleration: 2
-    accelerationPower: 1
-    minimumSpeed: 0
-    attack: {fileID: 5891575274944094603}
-  - smoothMovement: 1
-    type: 5
-    arcOffset: 0
-    durationTicks: 60
-    positionSpace: 0
-    position: {x: 0, y: 5.5}
-    angleDegrees: -90
-    initialSpeed: 2
-    acceleration: 0
-    accelerationPower: 1
-    minimumSpeed: 0
-    attack: {fileID: 5891575274944094603}
 --- !u!1 &4351754099374720943
 GameObject:
   m_ObjectHideFlags: 0
@@ -587,7 +571,7 @@ Transform:
   m_GameObject: {fileID: 6417989589326434176}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 13.81656, y: -4.23424, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.5, y: 0.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -607,27 +591,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletVolleyEmitter
   bulletPool: {fileID: 0}
+  minimumDifficulty: 1
   bulletStyle: {fileID: 11400000, guid: 5a4787d0c899ea64390f143f2b9d1c41, type: 2}
+  bulletColor: 0
   bulletTint: {r: 0.8553459, g: 0.83387697, b: 0.06724399, a: 1}
   spawnHiddenDistance: 0.2
   spawnFadeDistance: 0.3
   shape: 1
-  bulletCount: 1
-  bulletSpeed: 3
+  bulletCount:
+    normal: 1
+    hard: 2
+    lunatic: 4
+  bulletSpeed:
+    normal: 2.2
+    hard: 2.5
+    lunatic: 3
   baseAngleDegrees: -90
-  fanSpreadDegrees: 0
-  speedLayerCount: 1
-  speedLayerStep: 5
+  fanSpreadDegrees:
+    normal: 50
+    hard: 60
+    lunatic: 75
+  speedLayerCount:
+    normal: 1
+    hard: 1
+    lunatic: 1
+  speedLayerStep:
+    normal: 0.5
+    hard: 0.5
+    lunatic: 0.5
   bulletCountJitter: 0
   angleJitterDegrees: 0
   speedJitter: 0
-  groupCount: 1
+  groupCount:
+    normal: 1
+    hard: 1
+    lunatic: 1
   groupAngleStepDegrees: 5
   aimAtPlayer: 0
   target: {fileID: 0}
   bulletMotion: {fileID: 11400000, guid: ef0efd759a5eefe4d870d2db45e3c593, type: 2}
   childEmitter: {fileID: 0}
-  childVolleyDelayTicks: 45
+  childVolleyDelayTicks:
+    normal: 45
+    hard: 45
+    lunatic: 45
   returnAfterChildVolley: 1
 --- !u!114 &5891575274944094603
 MonoBehaviour:
@@ -645,9 +652,18 @@ MonoBehaviour:
   playOnEnable: 1
   initialDelayTicks: 0
   repeatForever: 1
-  repeatCount: 1
-  intervalTicks: 10
-  seriesDelayTicks: 10
+  repeatCount:
+    normal: 1
+    hard: 1
+    lunatic: 1
+  intervalTicks:
+    normal: 20
+    hard: 15
+    lunatic: 11
+  seriesDelayTicks:
+    normal: 20
+    hard: 60
+    lunatic: 45
   initialAngleOffsetDegrees: 0
   angleStepDegrees: 0
   rotationSpeedDegreesPerSecond: 0

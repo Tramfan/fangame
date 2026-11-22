@@ -130,6 +130,8 @@ public sealed partial class Bullet
        // Невидимі кулі та кулі під час проявлення ще безпечні.
 if (UpdateSpawnAppearance())
 {
+    UpdateVisualJuice();
+     
     EvaluateCollisions();
 }
     }

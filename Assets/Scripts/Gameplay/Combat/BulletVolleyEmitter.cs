@@ -13,11 +13,20 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     [SerializeField]
     private BulletPool bulletPool;
 
+[Header("Difficulty")]
+    [SerializeField]
+    [Tooltip("Минимальная сложность, на которой срабатывает этот эмиттер.")]
+    private GameDifficulty minimumDifficulty = GameDifficulty.Normal;
+
     [Header("Appearance")]
     [SerializeField]
     private BulletStyleDefinition bulletStyle;
 
     [SerializeField]
+    private BulletColorPreset bulletColor = BulletColorPreset.Custom;
+
+    [SerializeField]
+    [Tooltip("Используется, если выбран Bullet Color = Custom.")]
     private Color bulletTint = Color.white;
 
     [Header("Spawn Appearance")]
@@ -33,26 +42,26 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     [SerializeField]
     private VolleyShape shape = VolleyShape.Ring;
 
-    [SerializeField, Min(1)]
-    private int bulletCount = 16;
+    [SerializeField]
+    private DifficultyInt bulletCount = new(12, 16, 22);
 
-    [SerializeField, Min(0f)]
-    private float bulletSpeed = 2.5f;
+    [SerializeField]
+    private DifficultyFloat bulletSpeed = new(2.2f, 2.5f, 3.0f);
 
     [SerializeField]
     private float baseAngleDegrees = -90f;
 
-    [SerializeField, Range(0f, 360f)]
-    private float fanSpreadDegrees = 60f;
+    [SerializeField]
+    private DifficultyFloat fanSpreadDegrees = new(50f, 60f, 75f);
 
     [Header("Speed Layers")]
-    [SerializeField, Min(1)]
+    [SerializeField]
     [Tooltip("Кількість куль із різними швидкостями в кожному напрямку.")]
-    private int speedLayerCount = 1;
+    private DifficultyInt speedLayerCount = new(1);
 
-    [SerializeField, Min(0f)]
+    [SerializeField]
     [Tooltip("Приріст початкової швидкості між сусідніми шарами.")]
-    private float speedLayerStep = 0.5f;
+    private DifficultyFloat speedLayerStep = new(0.5f);
 
     [Header("Random Variation")]
     [SerializeField, Min(0)]
@@ -65,8 +74,8 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     private float speedJitter;
 
     [Header("Groups")]
-    [SerializeField, Min(1)]
-    private int groupCount = 1;
+    [SerializeField]
+    private DifficultyInt groupCount = new(1);
 
     [SerializeField]
     private float groupAngleStepDegrees = 30f;
@@ -86,27 +95,29 @@ public sealed class BulletVolleyEmitter : MonoBehaviour
     [SerializeField]
     private BulletVolleyEmitter childEmitter;
 
-    [SerializeField, Min(1)]
-    private int childVolleyDelayTicks = 45;
+    [SerializeField]
+    private DifficultyInt childVolleyDelayTicks = new(45);
 
     [SerializeField]
     private bool returnAfterChildVolley = true;
-private bool overrideOrbitDirection;
-private Transform orbitCenter;
-private Transform orbitAnchor;
 
-internal bool AimsAtPlayer => aimAtPlayer;
+    private bool overrideOrbitDirection;
+    private Transform orbitCenter;
+    private Transform orbitAnchor;
 
-internal void ConfigureOrbitDirection(
-    bool overrideDirection,
-    Transform center,
-    Transform outwardAnchor
-)
-{
-    overrideOrbitDirection = overrideDirection;
-    orbitCenter = center;
-    orbitAnchor = outwardAnchor;
-}
+    internal bool AimsAtPlayer => aimAtPlayer;
+
+    internal void ConfigureOrbitDirection(
+        bool overrideDirection,
+        Transform center,
+        Transform outwardAnchor
+    )
+    {
+        overrideOrbitDirection = overrideDirection;
+        orbitCenter = center;
+        orbitAnchor = outwardAnchor;
+    }
+
     public void SetTarget(Transform newTarget)
     {
         target = newTarget;
@@ -118,92 +129,97 @@ internal void ConfigureOrbitDirection(
     }
 
     public void Fire(float angleOffsetDegrees = 0f)
-{
-    FireAt(
-        transform.position,
-        transform.root,
-        angleOffsetDegrees,
-        fromEmitter: true
-    );
-}
-
-public bool FireAt(
-    Vector2 origin,
-    Transform source,
-    float angleOffsetDegrees = 0f
-)
-{
-    return FireAt(
-        origin,
-        source,
-        angleOffsetDegrees,
-        fromEmitter: false
-    );
-}
-
-private bool FireAt(
-    Vector2 origin,
-    Transform source,
-    float angleOffsetDegrees,
-    bool fromEmitter
-)
-{
-    if (!Application.isPlaying || !isActiveAndEnabled)
     {
-        return false;
-    }
-
-    if (bulletPool == null)
-    {
-        Debug.LogError(
-            "Bullet Volley Emitter has no Bullet Pool assigned.",
-            this
+        FireAt(
+            transform.position,
+            transform.root,
+            angleOffsetDegrees,
+            fromEmitter: true
         );
-        return false;
     }
 
-    float directionAngle = baseAngleDegrees;
-
-    if (fromEmitter && overrideOrbitDirection)
+    public bool FireAt(
+        Vector2 origin,
+        Transform source,
+        float angleOffsetDegrees = 0f
+    )
     {
-        // Повторювач задає ритм, а вісь залпу задає режим орбіти.
-        angleOffsetDegrees = 0f;
+        return FireAt(
+            origin,
+            source,
+            angleOffsetDegrees,
+            fromEmitter: false
+        );
+    }
 
-        if (orbitCenter != null && orbitAnchor != null)
+    private bool FireAt(
+        Vector2 origin,
+        Transform source,
+        float angleOffsetDegrees,
+        bool fromEmitter
+    )
+    {
+        if (!Application.isPlaying || !isActiveAndEnabled)
         {
-            Vector2 outward = orbitAnchor.position - orbitCenter.position;
-
-            if (outward.sqrMagnitude > 0f)
-            {
-                directionAngle =
-                    Mathf.Atan2(outward.y, outward.x) * Mathf.Rad2Deg;
-            }
+            return false;
         }
-    }
-    else if (aimAtPlayer)
-    {
-        if (target == null)
+
+        GameDifficulty difficulty = GameRunContext.Difficulty;
+
+        if (difficulty < minimumDifficulty)
+        {
+            return false;
+        }
+
+        if (bulletPool == null)
         {
             Debug.LogError(
-                "Bullet Volley Emitter has no target assigned.",
+                "Bullet Volley Emitter has no Bullet Pool assigned.",
                 this
             );
             return false;
         }
 
-        Vector2 toTarget = (Vector2)target.position - origin;
+        float directionAngle = baseAngleDegrees;
 
-        if (toTarget.sqrMagnitude > 0.000001f)
+        if (fromEmitter && overrideOrbitDirection)
         {
-            directionAngle =
-                Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
-        }
-    }
+            // Повторювач задає ритм, а вісь залпу задає режим орбіти.
+            angleOffsetDegrees = 0f;
 
-    // Далі йде наявний код, починаючи з GameplayRandom random.
+            if (orbitCenter != null && orbitAnchor != null)
+            {
+                Vector2 outward = orbitAnchor.position - orbitCenter.position;
+
+                if (outward.sqrMagnitude > 0f)
+                {
+                    directionAngle =
+                        Mathf.Atan2(outward.y, outward.x) * Mathf.Rad2Deg;
+                }
+            }
+        }
+        else if (aimAtPlayer)
+        {
+            if (target == null)
+            {
+                Debug.LogError(
+                    "Bullet Volley Emitter has no target assigned.",
+                    this
+                );
+                return false;
+            }
+
+            Vector2 toTarget = (Vector2)target.position - origin;
+
+            if (toTarget.sqrMagnitude > 0.000001f)
+            {
+                directionAngle =
+                    Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
+            }
+        }
 
         GameplayRandom random = GameplayRandom.Instance;
-        int count = Mathf.Max(1, bulletCount);
+        int count = bulletCount.ResolveMin(difficulty, 1);
 
         if (random != null && bulletCountJitter > 0)
         {
@@ -218,9 +234,12 @@ private bool FireAt(
             count = random.Range(minCount, maxCount + 1);
         }
 
-        int groups = Mathf.Max(1, groupCount);
-        int layers = Mathf.Max(1, speedLayerCount);
-        float layerSpeedStep = Mathf.Max(0f, speedLayerStep);
+        int groups = groupCount.ResolveMin(difficulty, 1);
+        int layers = speedLayerCount.ResolveMin(difficulty, 1);
+        float layerSpeedStep = speedLayerStep.ResolveMin(difficulty, 0f);
+        float resolvedBaseSpeed = bulletSpeed.ResolveMin(difficulty, 0f);
+        int resolvedChildDelay = childVolleyDelayTicks.ResolveMin(difficulty, 1);
+        Color resolvedTint = BulletColorUtility.Resolve(bulletColor, bulletTint);
 
         float firstAngle = directionAngle + angleOffsetDegrees;
         float bulletAngleStep = 0f;
@@ -231,8 +250,8 @@ private bool FireAt(
         }
         else if (count > 1)
         {
-            float spread = Mathf.Clamp(
-                fanSpreadDegrees,
+            float spread = fanSpreadDegrees.ResolveClamped(
+                difficulty,
                 0f,
                 360f
             );
@@ -269,7 +288,7 @@ private bool FireAt(
                 // Спільна випадкова поправка зберігає крок швидкості.
                 float stackBaseSpeed = Mathf.Max(
                     0f,
-                    bulletSpeed + RandomOffset(random, speedJitter)
+                    resolvedBaseSpeed + RandomOffset(random, speedJitter)
                 );
 
                 for (int layerIndex = 0;
@@ -286,7 +305,7 @@ private bool FireAt(
                         speed,
                         source,
                         style: bulletStyle,
-                        tint: bulletTint,
+                        tint: resolvedTint,
                         motion: bulletMotion
                     );
 
@@ -306,7 +325,7 @@ private bool FireAt(
                     {
                         bullet.ArmTimedVolley(
                             childEmitter,
-                            childVolleyDelayTicks,
+                            resolvedChildDelay,
                             returnAfterChildVolley
                         );
                     }
