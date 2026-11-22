@@ -593,7 +593,7 @@ MonoBehaviour:
   bulletPool: {fileID: 0}
   minimumDifficulty: 1
   bulletStyle: {fileID: 11400000, guid: 5a4787d0c899ea64390f143f2b9d1c41, type: 2}
-  bulletColor: 0
+  bulletColor: 5
   bulletTint: {r: 0.8553459, g: 0.83387697, b: 0.06724399, a: 1}
   spawnHiddenDistance: 0.2
   spawnFadeDistance: 0.3
@@ -620,7 +620,7 @@ MonoBehaviour:
     hard: 0.5
     lunatic: 0.5
   bulletCountJitter: 0
-  angleJitterDegrees: 0
+  angleJitterDegrees: 2
   speedJitter: 0
   groupCount:
     normal: 1
@@ -657,11 +657,11 @@ MonoBehaviour:
     hard: 1
     lunatic: 1
   intervalTicks:
-    normal: 20
+    normal: 10
     hard: 15
     lunatic: 11
   seriesDelayTicks:
-    normal: 20
+    normal: 10
     hard: 60
     lunatic: 45
   initialAngleOffsetDegrees: 0

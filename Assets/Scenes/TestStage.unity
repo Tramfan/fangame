@@ -11391,6 +11391,7 @@ MonoBehaviour:
   target: {fileID: 305619750}
   bulletPool: {fileID: 1913305738}
   emitterCount: 6
+  volleyDirection: 0
   orbitRadius: 2
   launchTicks: 45
   startAngleDegrees: 0

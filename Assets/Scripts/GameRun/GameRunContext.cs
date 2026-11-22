@@ -11,11 +11,11 @@ public static void ResetScore()
 {
     SetScore(0);
 }
-    public static GameDifficulty Difficulty
-    {
-        get;
-        private set;
-    }
+public static GameDifficulty Difficulty
+{
+    get;
+    private set;
+} = GameDifficulty.Normal;
 
     public static string CharacterId
     {
